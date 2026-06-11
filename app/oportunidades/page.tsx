@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/page-header";
 
-export default function DashboardPage() {
+export default function OportunidadesPage() {
   return (
     <div>
       <PageHeader
-        title="Dashboard"
-        description="Tus próximos follow-ups y el estado del embudo."
+        title="Oportunidades"
+        description="Tu embudo de búsqueda, de guardada a oferta."
       />
       <p className="text-sm text-muted-foreground">Próximamente.</p>
     </div>

@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/page-header";
 
-export default function DashboardPage() {
+export default function ContactosPage() {
   return (
     <div>
       <PageHeader
-        title="Dashboard"
-        description="Tus próximos follow-ups y el estado del embudo."
+        title="Contactos"
+        description="Tu red: las personas que pueden abrirte puertas."
       />
       <p className="text-sm text-muted-foreground">Próximamente.</p>
     </div>
