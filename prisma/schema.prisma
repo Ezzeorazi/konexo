@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Stage {
+  SAVED
+  APPLIED
+  INTERVIEW
+  OFFER
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RelationshipStrength {
+  COLD
+  WARM
+  STRONG
+}
+
+enum TouchpointType {
+  EMAIL
+  LINKEDIN
+  CALL
+  MEETING
+  REFERRAL_ASK
+  NOTE
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  website   String?
+  location  String?
+  industry  String?
+  source    String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  opportunities Opportunity[]
+  contacts      Contact[]
+}
+
+model Opportunity {
+  id             String    @id @default(cuid())
+  title          String
+  companyId      String?
+  stage          Stage     @default(SAVED)
+  url            String?
+  location       String?
+  salaryRange    String?
+  jobDescription String?
+  priority       Priority  @default(MEDIUM)
+  appliedAt      DateTime?
+  nextFollowUpAt DateTime?
+  cvVersionId    String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  company     Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  cvVersion   CVVersion?   @relation(fields: [cvVersionId], references: [id], onDelete: SetNull)
+  touchpoints Touchpoint[]
+}
+
+model Contact {
+  id                   String               @id @default(cuid())
+  name                 String
+  role                 String?
+  companyId            String?
+  email                String?
+  linkedinUrl          String?
+  phone                String?
+  relationshipStrength RelationshipStrength @default(COLD)
+  nextFollowUpAt       DateTime?
+  notes                String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  company     Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  touchpoints Touchpoint[]
+}
+
+model Touchpoint {
+  id            String         @id @default(cuid())
+  type          TouchpointType
+  note          String?
+  occurredAt    DateTime       @default(now())
+  contactId     String?
+  opportunityId String?
+  createdAt     DateTime       @default(now())
+
+  contact     Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+}
+
+model CVVersion {
+  id        String   @id @default(cuid())
+  label     String
+  fileName  String?
+  content   String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  opportunities Opportunity[]
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
