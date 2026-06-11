@@ -19,7 +19,7 @@ import { Building2, CalendarClock } from "lucide-react";
 import { updateOpportunityStage } from "@/app/oportunidades/actions";
 import { PriorityBadge } from "@/components/badges";
 import { STAGES, stageLabels } from "@/lib/labels";
-import { formatDate } from "@/lib/dates";
+import { formatDate, formatOverdue } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import type { Stage } from "@/lib/generated/prisma/client";
 
@@ -71,7 +71,9 @@ function OpportunityCard({
             )}
           >
             <CalendarClock className="size-3" />
-            {formatDate(opportunity.nextFollowUpAt)}
+            {overdue
+              ? formatOverdue(opportunity.nextFollowUpAt)
+              : formatDate(opportunity.nextFollowUpAt)}
           </span>
         ) : null}
       </div>

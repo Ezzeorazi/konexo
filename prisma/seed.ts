@@ -62,6 +62,19 @@ async function main() {
     },
   });
 
+  // Contacto frío en la misma empresa que Lucía, para ver el orden por fuerza
+  // de relación en el panel de referidos
+  await prisma.contact.create({
+    data: {
+      name: "Diego Paz",
+      role: "Talent Sourcer",
+      companyId: mercadoLibre.id,
+      linkedinUrl: "https://linkedin.com/in/diego-paz-example",
+      relationshipStrength: "COLD",
+      notes: "Me agregó en LinkedIn, nunca hablamos.",
+    },
+  });
+
   const marcos = await prisma.contact.create({
     data: {
       name: "Marcos Oliveira",
@@ -99,8 +112,9 @@ async function main() {
       location: "Remoto",
       salaryRange: "USD 2.500 - 3.500",
       priority: "MEDIUM",
-      appliedAt: daysFromNow(-3),
-      nextFollowUpAt: daysFromNow(4),
+      appliedAt: daysFromNow(-7),
+      // Follow-up vencido a propósito, para ver el estado "vencido hace X"
+      nextFollowUpAt: daysFromNow(-2),
       cvVersionId: cv.id,
       jobDescription: "Producto SaaS B2B, Next.js + Postgres + AWS.",
     },
@@ -147,7 +161,7 @@ async function main() {
     },
   });
 
-  console.log("Seed completado: 2 empresas, 3 oportunidades, 2 contactos, 3 touchpoints, 1 CV.");
+  console.log("Seed completado: 2 empresas, 3 oportunidades, 3 contactos, 3 touchpoints, 1 CV.");
 }
 
 main()

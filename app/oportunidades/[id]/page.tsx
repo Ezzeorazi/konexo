@@ -223,7 +223,7 @@ export default async function OportunidadDetailPage({
           ) : null}
         </div>
 
-        <Card className="h-fit border-primary/30 bg-primary/[0.03]">
+        <Card className="h-fit border-primary/30 bg-primary/3">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <HeartHandshake className="size-4 text-primary" />

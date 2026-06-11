@@ -1,12 +1,18 @@
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNowStrict } from "date-fns";
 import { es } from "date-fns/locale";
 
 export function formatDate(date: Date) {
   return format(date, "d MMM yyyy", { locale: es });
 }
 
+// Estricta: "hace 3 días" / "en 2 días", sin el "alrededor de"
 export function formatRelative(date: Date) {
-  return formatDistanceToNow(date, { locale: es, addSuffix: true });
+  return formatDistanceToNowStrict(date, { locale: es, addSuffix: true });
+}
+
+// Para follow-ups pasados: "vencido hace 3 días"
+export function formatOverdue(date: Date) {
+  return `vencido ${formatRelative(date)}`;
 }
 
 export function toDateInputValue(date: Date | null | undefined) {

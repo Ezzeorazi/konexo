@@ -4,6 +4,9 @@ import {
   KanbanSquare,
   Users,
   ArrowRight,
+  UserPlus,
+  PartyPopper,
+  Building2,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/page-header";
@@ -15,7 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { STAGES, stageLabels } from "@/lib/labels";
-import { formatRelative, formatDate } from "@/lib/dates";
+import { formatRelative, formatOverdue, formatDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -24,23 +27,45 @@ export default async function DashboardPage() {
   const inTwoWeeks = new Date();
   inTwoWeeks.setDate(inTwoWeeks.getDate() + 14);
 
-  const [stageCounts, oppFollowUps, contactFollowUps, contactCount] =
-    await Promise.all([
-      prisma.opportunity.groupBy({ by: ["stage"], _count: { _all: true } }),
-      prisma.opportunity.findMany({
-        where: { nextFollowUpAt: { not: null, lte: inTwoWeeks } },
-        orderBy: { nextFollowUpAt: "asc" },
-        include: { company: { select: { name: true } } },
-        take: 10,
-      }),
-      prisma.contact.findMany({
-        where: { nextFollowUpAt: { not: null, lte: inTwoWeeks } },
-        orderBy: { nextFollowUpAt: "asc" },
-        include: { company: { select: { name: true } } },
-        take: 10,
-      }),
-      prisma.contact.count(),
-    ]);
+  const [
+    stageCounts,
+    oppFollowUps,
+    contactFollowUps,
+    contactCount,
+    noContactOpps,
+  ] = await Promise.all([
+    prisma.opportunity.groupBy({ by: ["stage"], _count: { _all: true } }),
+    prisma.opportunity.findMany({
+      where: { nextFollowUpAt: { not: null, lte: inTwoWeeks } },
+      orderBy: { nextFollowUpAt: "asc" },
+      include: { company: { select: { name: true } } },
+      take: 10,
+    }),
+    prisma.contact.findMany({
+      where: { nextFollowUpAt: { not: null, lte: inTwoWeeks } },
+      orderBy: { nextFollowUpAt: "asc" },
+      include: { company: { select: { name: true } } },
+      take: 10,
+    }),
+    prisma.contact.count(),
+    // Oportunidades activas sin ningún contacto en su empresa (o sin empresa):
+    // ahí no hay puente posible para un referido todavía
+    prisma.opportunity.findMany({
+      where: {
+        stage: { not: "CLOSED" },
+        OR: [
+          { companyId: null },
+          { company: { contacts: { none: {} } } },
+        ],
+      },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        company: { select: { name: true } },
+      },
+    }),
+  ]);
 
   const countByStage = new Map(
     stageCounts.map((s) => [s.stage, s._count._all])
@@ -156,8 +181,9 @@ export default async function DashboardPage() {
                           )}
                           title={formatDate(fu.date)}
                         >
-                          {overdue ? "Vencido · " : ""}
-                          {formatRelative(fu.date)}
+                          {overdue
+                            ? formatOverdue(fu.date)
+                            : formatRelative(fu.date)}
                         </span>
                       </Link>
                     </li>
@@ -169,6 +195,49 @@ export default async function DashboardPage() {
         </Card>
 
         <div className="space-y-6">
+          <Card className="border-primary/30 bg-primary/3">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <UserPlus className="size-4 text-primary" />
+                Oportunidades sin contacto
+              </CardTitle>
+              <CardDescription>
+                Acá no conocés a nadie todavía: buscá un puente que pueda
+                referirte.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {noContactOpps.length === 0 ? (
+                <p className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <PartyPopper className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+                  Tenés un contacto en cada empresa activa, bien ahí.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {noContactOpps.map((opp) => (
+                    <li key={opp.id}>
+                      <Link
+                        href={`/oportunidades/${opp.id}`}
+                        className="group flex items-center justify-between gap-2"
+                      >
+                        <div>
+                          <p className="text-sm font-medium group-hover:underline">
+                            {opp.title}
+                          </p>
+                          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Building2 className="size-3" />
+                            {opp.company?.name ?? "Sin empresa asignada"}
+                          </p>
+                        </div>
+                        <ArrowRight className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Tu búsqueda en números</CardTitle>
