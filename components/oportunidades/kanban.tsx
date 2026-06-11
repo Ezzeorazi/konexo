@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -109,7 +109,7 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex min-h-[12rem] w-64 shrink-0 flex-col gap-2 rounded-xl border bg-muted/40 p-3 transition-colors md:w-auto md:flex-1",
+        "flex min-h-48 w-64 shrink-0 flex-col gap-2 rounded-xl border bg-muted/40 p-3 transition-colors md:w-auto md:flex-1",
         isOver && "border-primary/50 bg-primary/5"
       )}
     >
@@ -142,7 +142,13 @@ export function Kanban({
   const [items, setItems] = useState(opportunities);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  useEffect(() => setItems(opportunities), [opportunities]);
+  // Re-sincroniza el estado local cuando llegan datos frescos del server
+  // (patrón "adjusting state during render", evita un useEffect en cascada)
+  const [prevOpportunities, setPrevOpportunities] = useState(opportunities);
+  if (prevOpportunities !== opportunities) {
+    setPrevOpportunities(opportunities);
+    setItems(opportunities);
+  }
 
   // Distancia mínima para iniciar drag: deja pasar los clicks al link de la card
   const sensors = useSensors(

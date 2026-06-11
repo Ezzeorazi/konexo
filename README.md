@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# konexo
 
-## Getting Started
+CRM **local-first** para búsqueda de empleo. No es otro tracker de aplicaciones: el objeto central es la **Oportunidad** ligada a **Personas** y **Touchpoints**. Toda la UX empuja dos preguntas:
 
-First, run the development server:
+1. **¿Quién que conozco puede meterme un referido en esta empresa?**
+2. **¿Cuándo es el próximo follow-up y con quién?**
+
+## Stack
+
+- [Next.js](https://nextjs.org) (App Router) + TypeScript
+- Tailwind CSS + [shadcn/ui](https://ui.shadcn.com)
+- [Prisma 7](https://prisma.io) + SQLite (archivo local `prisma/dev.db`)
+- [@dnd-kit/core](https://dndkit.com) para el kanban
+
+100% local y gratuito: single-user, sin auth, sin servicios externos. Tus datos nunca salen de tu máquina.
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install                 # instala deps y genera el client de Prisma (postinstall)
+cp .env.example .env        # define DATABASE_URL (ruta de la SQLite local)
+npm run db:migrate          # crea la base y aplica migraciones
+npm run db:seed             # (opcional) datos de ejemplo
+npm run dev                 # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> En Windows sin `cp`: `Copy-Item .env.example .env`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Funcionalidades (MVP)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Dashboard**: próximos follow-ups (vencidos + 14 días) entre oportunidades y contactos, y resumen del embudo por etapa.
+- **Oportunidades**: tablero kanban (Guardada → Aplicada → Entrevista → Oferta → Cerrada) con drag-and-drop persistente. Crear/editar con empresa, prioridad, versión de CV, fechas y descripción del puesto.
+- **Detalle de oportunidad**: panel **"¿Quién puede referirte acá?"** con tus contactos de esa empresa ordenados por fuerza de relación y acción directa de pedir referido.
+- **Empresas**: CRUD con oportunidades y contactos vinculados.
+- **Contactos**: CRUD con fuerza de relación (Frío/Tibio/Fuerte), registro de touchpoints (email, LinkedIn, llamada, reunión, pedido de referido, nota) y timeline.
+- **Configuración**: proveedor de IA + API key (BYO-key, guardada solo en la SQLite local) y gestión de versiones de CV.
 
-## Learn More
+## Estructura
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/                  # rutas (App Router) + Server Actions por dominio
+components/           # componentes compartidos y por dominio
+components/ui/        # shadcn/ui
+lib/prisma.ts         # singleton de PrismaClient (adapter better-sqlite3)
+lib/labels.ts         # enums (código en inglés) → labels en español
+prisma/schema.prisma  # modelo de datos
+prisma/seed.ts        # datos de ejemplo
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Roadmap (Fase 2+)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Tailoring de CV con IA usando la BYO-key
+- Analítica de embudo por canal
+- Extensión de navegador (clipper de avisos)
+- Build desktop con Tauri
+- Tier hosted (Supabase/Postgres) en **konexo.work**
