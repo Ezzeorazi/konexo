@@ -1,26 +1,10 @@
 import type {
-  Stage,
   Priority,
   RelationshipStrength,
   TouchpointType,
 } from "@/lib/generated/prisma/client";
 
-export const STAGES: Stage[] = [
-  "SAVED",
-  "APPLIED",
-  "INTERVIEW",
-  "OFFER",
-  "CLOSED",
-];
-
-export const stageLabels: Record<Stage, string> = {
-  SAVED: "Guardada",
-  APPLIED: "Aplicada",
-  INTERVIEW: "Entrevista",
-  OFFER: "Oferta",
-  CLOSED: "Cerrada",
-};
-
+// Las etapas (Stage) ahora son por-track y viven en lib/tracks.ts.
 export const PRIORITIES: Priority[] = ["LOW", "MEDIUM", "HIGH"];
 
 export const priorityLabels: Record<Priority, string> = {

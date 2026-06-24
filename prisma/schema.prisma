@@ -7,14 +7,6 @@ datasource db {
   provider = "sqlite"
 }
 
-enum Stage {
-  SAVED
-  APPLIED
-  INTERVIEW
-  OFFER
-  CLOSED
-}
-
 enum Priority {
   LOW
   MEDIUM
@@ -39,6 +31,7 @@ enum TouchpointType {
 model Company {
   id        String   @id @default(cuid())
   name      String
+  track     String   @default("jobs")
   website   String?
   location  String?
   industry  String?
@@ -54,11 +47,13 @@ model Company {
 model Opportunity {
   id             String    @id @default(cuid())
   title          String
+  track          String    @default("jobs")
   companyId      String?
-  stage          Stage     @default(SAVED)
+  stage          String    @default("SAVED")
   url            String?
   location       String?
   salaryRange    String?
+  value          Float?
   jobDescription String?
   priority       Priority  @default(MEDIUM)
   appliedAt      DateTime?
@@ -76,6 +71,7 @@ model Opportunity {
 model Contact {
   id                   String               @id @default(cuid())
   name                 String
+  track                String               @default("jobs")
   role                 String?
   companyId            String?
   email                String?
@@ -119,4 +115,20 @@ model Setting {
   id    String @id @default(cuid())
   key   String @unique
   value String
+}
+
+// Etapas del embudo, editables por el usuario. Cada track tiene su set.
+// Se siembran desde los presets de lib/tracks.ts la primera vez que se leen.
+model PipelineStage {
+  id          String   @id @default(cuid())
+  track       String
+  key         String
+  label       String
+  order       Int
+  type        String   @default("open") // open | won | lost
+  probability Int      @default(0) // 0-100, para el forecast ponderado
+  createdAt   DateTime @default(now())
+
+  @@unique([track, key])
+  @@index([track, order])
 }

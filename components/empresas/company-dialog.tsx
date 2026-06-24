@@ -20,14 +20,17 @@ import {
   createCompany,
   updateCompany,
   type CompanyInput,
-} from "@/app/empresas/actions";
+} from "@/app/(app)/empresas/actions";
 import type { Company } from "@/lib/generated/prisma/client";
+import type { Track } from "@/lib/tracks";
 
 export function CompanyDialog({
   company,
+  track = "jobs",
   trigger,
 }: {
   company?: Company;
+  track?: Track;
   trigger: React.ReactElement<Record<string, unknown>>;
 }) {
   const router = useRouter();
@@ -40,6 +43,7 @@ export function CompanyDialog({
     const form = new FormData(e.currentTarget);
     const input: CompanyInput = {
       name: String(form.get("name") ?? ""),
+      track: company?.track ?? track,
       website: String(form.get("website") ?? ""),
       location: String(form.get("location") ?? ""),
       industry: String(form.get("industry") ?? ""),
@@ -89,9 +93,10 @@ export function CompanyDialog({
               <Input
                 id="website"
                 name="website"
-                type="url"
+                type="text"
+                inputMode="url"
                 defaultValue={company?.website ?? ""}
-                placeholder="https://..."
+                placeholder="ejemplo.com"
               />
             </div>
             <div className="space-y-2">

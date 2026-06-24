@@ -28,20 +28,18 @@ import {
   createOpportunity,
   updateOpportunity,
   type OpportunityInput,
-} from "@/app/oportunidades/actions";
-import { createCVVersion } from "@/app/configuracion/actions";
+} from "@/app/(app)/oportunidades/actions";
+import { createCVVersion } from "@/app/(app)/configuracion/actions";
+import { PRIORITIES, priorityLabels } from "@/lib/labels";
 import {
-  STAGES,
-  stageLabels,
-  PRIORITIES,
-  priorityLabels,
-} from "@/lib/labels";
+  getVocab,
+  isTrack,
+  defaultStageKeyOf,
+  type Track,
+  type StageDef,
+} from "@/lib/tracks";
 import { toDateInputValue } from "@/lib/dates";
-import type {
-  Opportunity,
-  Stage,
-  Priority,
-} from "@/lib/generated/prisma/client";
+import type { Opportunity, Priority } from "@/lib/generated/prisma/client";
 
 export type CompanyOption = { id: string; name: string };
 export type CVVersionOption = { id: string; label: string };
@@ -51,18 +49,27 @@ export function OpportunityDialog({
   companies,
   cvVersions,
   defaultCompanyId,
+  track = "jobs",
+  stages,
   trigger,
 }: {
   opportunity?: Opportunity;
   companies: CompanyOption[];
   cvVersions: CVVersionOption[];
   defaultCompanyId?: string;
+  track?: Track;
+  stages: StageDef[];
   trigger: React.ReactElement<Record<string, unknown>>;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const isEdit = Boolean(opportunity);
+  // En edición respetamos el track guardado de la oportunidad; en alta, el activo.
+  const formTrack: Track = isTrack(opportunity?.track)
+    ? opportunity.track
+    : track;
+  const vocab = getVocab(formTrack);
 
   // Quick-create de versión de CV sin salir del form
   const [cvOptions, setCvOptions] = useState(cvVersions);
@@ -93,11 +100,13 @@ export function OpportunityDialog({
     const form = new FormData(e.currentTarget);
     const input: OpportunityInput = {
       title: String(form.get("title") ?? ""),
+      track: formTrack,
       companyId: String(form.get("companyId") ?? ""),
-      stage: String(form.get("stage") ?? "SAVED") as Stage,
+      stage: String(form.get("stage") ?? defaultStageKeyOf(stages)),
       url: String(form.get("url") ?? ""),
       location: String(form.get("location") ?? ""),
       salaryRange: String(form.get("salaryRange") ?? ""),
+      value: String(form.get("value") ?? ""),
       jobDescription: String(form.get("jobDescription") ?? ""),
       priority: String(form.get("priority") ?? "MEDIUM") as Priority,
       appliedAt: String(form.get("appliedAt") ?? ""),
@@ -110,9 +119,7 @@ export function OpportunityDialog({
         ? await updateOpportunity(opportunity.id, input)
         : await createOpportunity(input);
       if (result.ok) {
-        toast.success(
-          isEdit ? "Oportunidad actualizada." : "Oportunidad creada."
-        );
+        toast.success(isEdit ? "Cambios guardados." : "Guardado.");
         setOpen(false);
         router.refresh();
       } else {
@@ -127,12 +134,12 @@ export function OpportunityDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "Editar oportunidad" : "Nueva oportunidad"}
+            {isEdit ? `Editar ${vocab.oppSingular}` : vocab.newOpp}
           </DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Actualizá los datos de la oportunidad."
-              : "Guardá la búsqueda y empezá a moverla por el embudo."}
+              ? `Actualizá los datos del ${vocab.oppSingular}.`
+              : `Cargá ${vocab.oppSingular} y empezá a moverlo por el embudo.`}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -143,7 +150,11 @@ export function OpportunityDialog({
               name="title"
               required
               defaultValue={opportunity?.title ?? ""}
-              placeholder="Ej.: Backend Engineer Ssr"
+              placeholder={
+                vocab.hasValue
+                  ? "Ej.: Cuenta Acme"
+                  : "Ej.: Backend Engineer Ssr"
+              }
             />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -174,19 +185,19 @@ export function OpportunityDialog({
               <Label>Etapa</Label>
               <Select
                 name="stage"
-                defaultValue={opportunity?.stage ?? "SAVED"}
-                items={STAGES.map((s) => ({
-                  value: s,
-                  label: stageLabels[s],
+                defaultValue={opportunity?.stage ?? defaultStageKeyOf(stages)}
+                items={stages.map((s) => ({
+                  value: s.key,
+                  label: s.label,
                 }))}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {STAGES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {stageLabels[s]}
+                  {stages.map((s) => (
+                    <SelectItem key={s.key} value={s.key}>
+                      {s.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -223,27 +234,43 @@ export function OpportunityDialog({
                 placeholder="Ej.: Remoto"
               />
             </div>
+            {vocab.hasValue ? (
+              <div className="space-y-2">
+                <Label htmlFor="value">{vocab.valueLabel}</Label>
+                <Input
+                  id="value"
+                  name="value"
+                  inputMode="decimal"
+                  defaultValue={opportunity?.value?.toString() ?? ""}
+                  placeholder={vocab.valuePlaceholder}
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="salaryRange">{vocab.valueLabel}</Label>
+                <Input
+                  id="salaryRange"
+                  name="salaryRange"
+                  defaultValue={opportunity?.salaryRange ?? ""}
+                  placeholder={vocab.valuePlaceholder}
+                />
+              </div>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="salaryRange">Rango salarial</Label>
-              <Input
-                id="salaryRange"
-                name="salaryRange"
-                defaultValue={opportunity?.salaryRange ?? ""}
-                placeholder="Ej.: USD 3.000 - 4.000"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="url">Link del aviso</Label>
+              <Label htmlFor="url">{vocab.usesCv ? "Link del aviso" : "Link"}</Label>
               <Input
                 id="url"
                 name="url"
-                type="url"
+                type="text"
+                inputMode="url"
                 defaultValue={opportunity?.url ?? ""}
-                placeholder="https://..."
+                placeholder={
+                  vocab.usesCv ? "linkedin.com/jobs/..." : "sitio o propuesta..."
+                }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="appliedAt">Fecha de aplicación</Label>
+              <Label htmlFor="appliedAt">{vocab.firstDateLabel}</Label>
               <Input
                 id="appliedAt"
                 name="appliedAt"
@@ -261,6 +288,7 @@ export function OpportunityDialog({
               />
             </div>
           </div>
+          {vocab.usesCv ? (
           <div className="space-y-2">
             <Label>Versión de CV</Label>
             {creatingCv ? (
@@ -326,14 +354,15 @@ export function OpportunityDialog({
               </div>
             )}
           </div>
+          ) : null}
           <div className="space-y-2">
-            <Label htmlFor="jobDescription">Descripción del puesto</Label>
+            <Label htmlFor="jobDescription">{vocab.descriptionLabel}</Label>
             <Textarea
               id="jobDescription"
               name="jobDescription"
               rows={4}
               defaultValue={opportunity?.jobDescription ?? ""}
-              placeholder="Pegá acá la descripción del aviso..."
+              placeholder={vocab.descriptionPlaceholder}
             />
           </div>
           <div className="space-y-2">

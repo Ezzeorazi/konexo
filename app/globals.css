@@ -9,7 +9,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-bangers);
+  --font-display: var(--font-bangers);
+  --font-hand: var(--font-hand);
+
+  /* Comic palette — usable as bg-paper, text-komic, border-ink, etc. */
+  --color-paper: #f2e8c9;
+  --color-ink: #16110c;
+  --color-komic: #ffd23f;
+  --color-alarm: #e2493b;
+  --color-hero: #2ea8c4;
+  --color-panelw: #fbf6e3;
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,72 +60,72 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #f2e8c9; /* paper */
+  --foreground: #16110c; /* ink */
+  --card: #fbf6e3; /* panelw */
+  --card-foreground: #16110c;
+  --popover: #fbf6e3;
+  --popover-foreground: #16110c;
+  --primary: #16110c; /* ink */
+  --primary-foreground: #f2e8c9; /* paper */
+  --secondary: #ffd23f; /* komic */
+  --secondary-foreground: #16110c;
+  --muted: #e9dcb6;
+  --muted-foreground: #6b5b43;
+  --accent: #ffd23f; /* komic */
+  --accent-foreground: #16110c;
+  --destructive: #e2493b; /* alarm */
+  --border: #16110c; /* ink */
+  --input: #16110c;
+  --ring: #2ea8c4; /* hero */
+  --chart-1: #ffd23f;
+  --chart-2: #2ea8c4;
+  --chart-3: #e2493b;
+  --chart-4: #16110c;
+  --chart-5: #6b5b43;
+  --radius: 0.5rem;
+  --sidebar: #16110c; /* ink — dark comic rail */
+  --sidebar-foreground: #f2e8c9;
+  --sidebar-primary: #ffd23f;
+  --sidebar-primary-foreground: #16110c;
+  --sidebar-accent: #2a2118;
+  --sidebar-accent-foreground: #ffd23f;
+  --sidebar-border: #f2e8c9;
+  --sidebar-ring: #2ea8c4;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #16110c;
+  --foreground: #f2e8c9;
+  --card: #221a12;
+  --card-foreground: #f2e8c9;
+  --popover: #221a12;
+  --popover-foreground: #f2e8c9;
+  --primary: #ffd23f;
+  --primary-foreground: #16110c;
+  --secondary: #2a2118;
+  --secondary-foreground: #f2e8c9;
+  --muted: #2a2118;
+  --muted-foreground: #c2b690;
+  --accent: #ffd23f;
+  --accent-foreground: #16110c;
+  --destructive: #e2493b;
+  --border: #f2e8c9;
+  --input: #f2e8c9;
+  --ring: #2ea8c4;
+  --chart-1: #ffd23f;
+  --chart-2: #2ea8c4;
+  --chart-3: #e2493b;
+  --chart-4: #f2e8c9;
+  --chart-5: #c2b690;
+  --sidebar: #0e0a07;
+  --sidebar-foreground: #f2e8c9;
+  --sidebar-primary: #ffd23f;
+  --sidebar-primary-foreground: #16110c;
+  --sidebar-accent: #2a2118;
+  --sidebar-accent-foreground: #ffd23f;
+  --sidebar-border: #f2e8c9;
+  --sidebar-ring: #2ea8c4;
 }
 
 @layer base {
@@ -126,5 +137,337 @@
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: 0.01em;
+  }
+}
+
+/* ============================================================
+   COMIC AESTHETIC — shared utilities (mirrors konexo-landing.html)
+   ============================================================ */
+
+/* ---- Halftone dot backgrounds ---- */
+.halftone {
+  background-image: radial-gradient(
+    circle,
+    rgba(22, 17, 12, 0.14) 1.4px,
+    transparent 1.6px
+  );
+  background-size: 11px 11px;
+}
+.halftone-red {
+  background-image: radial-gradient(
+    circle,
+    rgba(226, 73, 59, 0.35) 1.6px,
+    transparent 1.8px
+  );
+  background-size: 9px 9px;
+}
+.halftone-yellow {
+  background-image: radial-gradient(
+    circle,
+    rgba(22, 17, 12, 0.22) 1.5px,
+    transparent 1.7px
+  );
+  background-size: 10px 10px;
+}
+
+/* ---- Comic panel: thick ink border + hard offset shadow ---- */
+.panel {
+  background: var(--card);
+  border: 4px solid var(--ink, #16110c);
+  box-shadow: 7px 7px 0 var(--ink, #16110c);
+  position: relative;
+}
+.panel-tilt-l {
+  transform: rotate(-1.2deg);
+}
+.panel-tilt-r {
+  transform: rotate(1.1deg);
+}
+
+/* panel que reacciona al hover con un golpe cómic */
+.panel-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.panel-hover:hover {
+  transform: rotate(0deg) translate(-3px, -3px) scale(1.02);
+  box-shadow: 11px 11px 0 var(--ink, #16110c);
+  animation: shake 0.35s ease-in-out;
+}
+
+/* irregular hand-drawn border feel */
+.rough {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+.rough-2 {
+  border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+}
+
+/* ---- Speech bubble ---- */
+.bubble {
+  background: #fff;
+  border: 3.5px solid var(--ink, #16110c);
+  border-radius: 30px;
+  position: relative;
+}
+.bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -18px;
+  left: 38px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 22px solid var(--ink, #16110c);
+}
+.bubble::before {
+  content: "";
+  position: absolute;
+  bottom: -11px;
+  left: 42px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 16px solid #fff;
+  z-index: 1;
+}
+
+/* ---- Onomatopoeia burst (star) ---- */
+.burst {
+  clip-path: polygon(
+    50% 0%,
+    61% 14%,
+    78% 6%,
+    80% 24%,
+    98% 26%,
+    88% 41%,
+    100% 50%,
+    88% 59%,
+    98% 74%,
+    80% 76%,
+    78% 94%,
+    61% 86%,
+    50% 100%,
+    39% 86%,
+    22% 94%,
+    20% 76%,
+    2% 74%,
+    12% 59%,
+    0% 50%,
+    12% 41%,
+    2% 26%,
+    20% 24%,
+    22% 6%,
+    39% 14%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.burst-shadow {
+  filter: drop-shadow(5px 5px 0 var(--ink, #16110c));
+}
+
+/* ---- Torn page divider ---- */
+.torn {
+  height: 42px;
+  background: var(--ink, #16110c);
+  clip-path: polygon(
+    0 100%,
+    0 55%,
+    3% 30%,
+    6% 60%,
+    10% 20%,
+    13% 65%,
+    17% 35%,
+    21% 70%,
+    25% 25%,
+    29% 60%,
+    33% 30%,
+    37% 75%,
+    41% 40%,
+    45% 65%,
+    50% 20%,
+    54% 70%,
+    58% 35%,
+    62% 60%,
+    66% 25%,
+    70% 72%,
+    74% 38%,
+    78% 65%,
+    82% 28%,
+    86% 60%,
+    90% 32%,
+    94% 68%,
+    97% 40%,
+    100% 60%,
+    100% 100%
+  );
+}
+.torn-flip {
+  transform: scaleY(-1);
+}
+
+/* ---- Action title stroke ---- */
+.stroke-ink {
+  -webkit-text-stroke: 2.5px var(--ink, #16110c);
+  text-shadow: 5px 5px 0 var(--ink, #16110c);
+}
+.stroke-thin {
+  -webkit-text-stroke: 1.5px var(--ink, #16110c);
+}
+
+/* ---- Speed lines ---- */
+.speedlines {
+  background: repeating-linear-gradient(
+    -8deg,
+    transparent 0px,
+    transparent 14px,
+    rgba(22, 17, 12, 0.08) 14px,
+    rgba(22, 17, 12, 0.08) 16px
+  );
+}
+
+/* ---- Comic button: hard offset shadow that snaps on press ---- */
+.btn-comic {
+  border: 4px solid var(--ink, #16110c);
+  box-shadow: 5px 5px 0 var(--ink, #16110c);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.btn-comic:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--ink, #16110c);
+}
+.btn-comic:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--ink, #16110c);
+}
+
+/* ---- Animations ---- */
+@keyframes panelPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-6deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06) rotate(1.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(var(--tilt, 0deg));
+  }
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  20% {
+    transform: translate(-2px, 1px) rotate(-1deg);
+  }
+  40% {
+    transform: translate(2px, -1px) rotate(1deg);
+  }
+  60% {
+    transform: translate(-1px, 2px) rotate(0);
+  }
+  80% {
+    transform: translate(1px, -2px) rotate(1deg);
+  }
+}
+@keyframes burstIn {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-40deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.25) rotate(8deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+@keyframes slideRip {
+  0% {
+    opacity: 0;
+    transform: translateX(-40px) skewX(-6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) skewX(0);
+  }
+}
+@keyframes floatBob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+@keyframes inkBlink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.reveal {
+  opacity: 0;
+}
+.reveal.in-pop {
+  animation: panelPop 0.55s cubic-bezier(0.22, 1.4, 0.36, 1) forwards;
+}
+.reveal.in-burst {
+  animation: burstIn 0.5s cubic-bezier(0.22, 1.6, 0.36, 1) forwards;
+}
+.reveal.in-rip {
+  animation: slideRip 0.5s ease-out forwards;
+}
+
+.float-bob {
+  animation: floatBob 3.5s ease-in-out infinite;
+}
+.marquee-track {
+  animation: marquee 22s linear infinite;
+}
+.cursor-blink {
+  animation: inkBlink 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  .float-bob,
+  .marquee-track,
+  .cursor-blink {
+    animation: none !important;
+  }
+  .panel-hover:hover {
+    animation: none;
   }
 }

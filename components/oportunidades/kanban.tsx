@@ -16,17 +16,16 @@ import {
 } from "@dnd-kit/core";
 import { toast } from "sonner";
 import { Building2, CalendarClock } from "lucide-react";
-import { updateOpportunityStage } from "@/app/oportunidades/actions";
+import { updateOpportunityStage } from "@/app/(app)/oportunidades/actions";
 import { PriorityBadge } from "@/components/badges";
-import { STAGES, stageLabels } from "@/lib/labels";
+import { labelFor, type StageDef } from "@/lib/tracks";
 import { formatDate, formatOverdue } from "@/lib/dates";
 import { cn } from "@/lib/utils";
-import type { Stage } from "@/lib/generated/prisma/client";
 
 export type KanbanOpportunity = {
   id: string;
   title: string;
-  stage: Stage;
+  stage: string;
   priority: "LOW" | "MEDIUM" | "HIGH";
   nextFollowUpAt: Date | null;
   company: { id: string; name: string } | null;
@@ -45,8 +44,8 @@ function OpportunityCard({
   return (
     <div
       className={cn(
-        "space-y-2 rounded-lg border bg-background p-3 shadow-sm",
-        dragging && "rotate-2 shadow-lg"
+        "space-y-2 rounded-md border-[2.5px] border-ink bg-background p-3 shadow-[3px_3px_0_var(--color-ink)] transition-shadow",
+        dragging && "rotate-2 shadow-[5px_5px_0_var(--color-ink)]"
       )}
     >
       <Link
@@ -67,7 +66,7 @@ function OpportunityCard({
           <span
             className={cn(
               "flex items-center gap-1 text-xs",
-              overdue ? "font-medium text-rose-600" : "text-muted-foreground"
+              overdue ? "font-medium text-alarm" : "text-muted-foreground"
             )}
           >
             <CalendarClock className="size-3" />
@@ -100,9 +99,11 @@ function DraggableCard({ opportunity }: { opportunity: KanbanOpportunity }) {
 
 function Column({
   stage,
+  label,
   opportunities,
 }: {
-  stage: Stage;
+  stage: string;
+  label: string;
   opportunities: KanbanOpportunity[];
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage });
@@ -111,13 +112,15 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex min-h-48 w-64 shrink-0 flex-col gap-2 rounded-xl border bg-muted/40 p-3 transition-colors md:w-auto md:flex-1",
-        isOver && "border-primary/50 bg-primary/5"
+        "halftone flex min-h-48 w-60 shrink-0 flex-col gap-2 rounded-lg border-[3px] border-ink bg-panelw/60 p-3 transition-colors md:w-auto md:flex-1",
+        isOver && "bg-komic/40"
       )}
     >
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-sm font-semibold">{stageLabels[stage]}</h2>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+        <h2 className="font-display text-base tracking-wide text-ink">
+          {label.toUpperCase()}
+        </h2>
+        <span className="rounded-md border-2 border-ink bg-komic px-2 py-0.5 font-display text-xs leading-none text-ink">
           {opportunities.length}
         </span>
       </div>
@@ -126,7 +129,7 @@ function Column({
           <DraggableCard key={opp.id} opportunity={opp} />
         ))}
         {opportunities.length === 0 ? (
-          <p className="px-1 py-4 text-center text-xs text-muted-foreground">
+          <p className="px-1 py-4 text-center font-hand text-sm text-muted-foreground">
             Sin oportunidades
           </p>
         ) : null}
@@ -137,8 +140,10 @@ function Column({
 
 export function Kanban({
   opportunities,
+  stages,
 }: {
   opportunities: KanbanOpportunity[];
+  stages: StageDef[];
 }) {
   const router = useRouter();
   const [items, setItems] = useState(opportunities);
@@ -166,7 +171,7 @@ export function Kanban({
     const { active, over } = event;
     if (!over) return;
     const id = String(active.id);
-    const newStage = over.id as Stage;
+    const newStage = String(over.id);
     const item = items.find((o) => o.id === id);
     if (!item || item.stage === newStage) return;
 
@@ -176,7 +181,7 @@ export function Kanban({
     );
     updateOpportunityStage(id, newStage)
       .then(() => {
-        toast.success(`Movida a ${stageLabels[newStage]}.`);
+        toast.success(`Movida a ${labelFor(stages, newStage)}.`);
         router.refresh();
       })
       .catch(() => {
@@ -195,12 +200,13 @@ export function Kanban({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-5 md:overflow-visible">
-        {STAGES.map((stage) => (
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {stages.map((stage) => (
           <Column
-            key={stage}
-            stage={stage}
-            opportunities={items.filter((o) => o.stage === stage)}
+            key={stage.key}
+            stage={stage.key}
+            label={stage.label}
+            opportunities={items.filter((o) => o.stage === stage.key)}
           />
         ))}
       </div>

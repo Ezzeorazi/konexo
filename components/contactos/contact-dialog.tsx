@@ -27,7 +27,7 @@ import {
   createContact,
   updateContact,
   type ContactInput,
-} from "@/app/contactos/actions";
+} from "@/app/(app)/contactos/actions";
 import {
   RELATIONSHIP_STRENGTHS,
   relationshipStrengthLabels,
@@ -37,6 +37,7 @@ import type {
   Contact,
   RelationshipStrength,
 } from "@/lib/generated/prisma/client";
+import type { Track } from "@/lib/tracks";
 
 export type CompanyOption = { id: string; name: string };
 
@@ -44,11 +45,13 @@ export function ContactDialog({
   contact,
   companies,
   defaultCompanyId,
+  track = "jobs",
   trigger,
 }: {
   contact?: Contact;
   companies: CompanyOption[];
   defaultCompanyId?: string;
+  track?: Track;
   trigger: React.ReactElement<Record<string, unknown>>;
 }) {
   const router = useRouter();
@@ -61,6 +64,7 @@ export function ContactDialog({
     const form = new FormData(e.currentTarget);
     const input: ContactInput = {
       name: String(form.get("name") ?? ""),
+      track: contact?.track ?? track,
       role: String(form.get("role") ?? ""),
       companyId: String(form.get("companyId") ?? ""),
       email: String(form.get("email") ?? ""),
@@ -188,9 +192,10 @@ export function ContactDialog({
               <Input
                 id="linkedinUrl"
                 name="linkedinUrl"
-                type="url"
+                type="text"
+                inputMode="url"
                 defaultValue={contact?.linkedinUrl ?? ""}
-                placeholder="https://linkedin.com/in/..."
+                placeholder="linkedin.com/in/..."
               />
             </div>
             <div className="space-y-2">

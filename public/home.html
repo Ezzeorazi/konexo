@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Konexo — Un pipeline, cualquier misión</title>
+<meta name="description" content="El CRM personal local-first para cerrar lo que importa: trabajos, clientes, propiedades, inversores o candidatos. Incluye un equipo de agentes de IA gratis que califica tu embudo y redacta los borradores por vos. Un mismo motor de pipeline, vestido para tu misión.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&family=Archivo+Black&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        paper: '#F2E8C9',
+        ink: '#16110C',
+        komic: '#FFD23F',
+        alarm: '#E2493B',
+        hero: '#2EA8C4',
+        panelw: '#FBF6E3',
+      },
+      fontFamily: {
+        bangers: ['Bangers', 'cursive'],
+        hand: ['"Patrick Hand"', 'cursive'],
+        block: ['"Archivo Black"', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+  :root { --ink:#16110C; }
+  html { scroll-behavior: smooth; }
+  body { background:#F2E8C9; }
+
+  /* ====== HALFTONE BACKGROUNDS ====== */
+  .halftone {
+    background-image: radial-gradient(circle, rgba(22,17,12,.14) 1.4px, transparent 1.6px);
+    background-size: 11px 11px;
+  }
+  .halftone-red {
+    background-image: radial-gradient(circle, rgba(226,73,59,.35) 1.6px, transparent 1.8px);
+    background-size: 9px 9px;
+  }
+  .halftone-yellow {
+    background-image: radial-gradient(circle, rgba(22,17,12,.22) 1.5px, transparent 1.7px);
+    background-size: 10px 10px;
+  }
+
+  /* ====== COMIC PANEL ====== */
+  .panel {
+    background: #FBF6E3;
+    border: 4px solid var(--ink);
+    box-shadow: 7px 7px 0 var(--ink);
+    position: relative;
+  }
+  .panel-tilt-l { transform: rotate(-1.2deg); }
+  .panel-tilt-r { transform: rotate(1.1deg); }
+
+  /* irregular hand-drawn border feel */
+  .rough {
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  }
+  .rough-2 {
+    border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+  }
+
+  /* ====== SPEECH BUBBLE ====== */
+  .bubble {
+    background:#fff;
+    border: 3.5px solid var(--ink);
+    border-radius: 30px;
+    position: relative;
+  }
+  .bubble::after {
+    content:'';
+    position:absolute;
+    bottom:-18px; left:38px;
+    width:0;height:0;
+    border-left:6px solid transparent;
+    border-right:20px solid transparent;
+    border-top:22px solid var(--ink);
+  }
+  .bubble::before {
+    content:'';
+    position:absolute;
+    bottom:-11px; left:42px;
+    width:0;height:0;
+    border-left:4px solid transparent;
+    border-right:14px solid transparent;
+    border-top:16px solid #fff;
+    z-index:1;
+  }
+
+  /* ====== ONOMATOPOEIA BURST (star) ====== */
+  .burst {
+    clip-path: polygon(50% 0%, 61% 14%, 78% 6%, 80% 24%, 98% 26%, 88% 41%, 100% 50%, 88% 59%, 98% 74%, 80% 76%, 78% 94%, 61% 86%, 50% 100%, 39% 86%, 22% 94%, 20% 76%, 2% 74%, 12% 59%, 0% 50%, 12% 41%, 2% 26%, 20% 24%, 22% 6%, 39% 14%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .burst-shadow { filter: drop-shadow(5px 5px 0 var(--ink)); }
+
+  /* ====== TORN PAGE DIVIDER ====== */
+  .torn {
+    height: 42px;
+    background: var(--ink);
+    clip-path: polygon(0 100%, 0 55%, 3% 30%, 6% 60%, 10% 20%, 13% 65%, 17% 35%, 21% 70%, 25% 25%, 29% 60%, 33% 30%, 37% 75%, 41% 40%, 45% 65%, 50% 20%, 54% 70%, 58% 35%, 62% 60%, 66% 25%, 70% 72%, 74% 38%, 78% 65%, 82% 28%, 86% 60%, 90% 32%, 94% 68%, 97% 40%, 100% 60%, 100% 100%);
+  }
+  .torn-flip { transform: scaleY(-1); }
+
+  /* ====== ACTION TITLE STROKE ====== */
+  .stroke-ink {
+    -webkit-text-stroke: 2.5px var(--ink);
+    text-shadow: 5px 5px 0 var(--ink);
+  }
+  .stroke-thin { -webkit-text-stroke: 1.5px var(--ink); }
+
+  /* ====== SPEED LINES ====== */
+  .speedlines {
+    background: repeating-linear-gradient(
+      -8deg,
+      transparent 0px, transparent 14px,
+      rgba(22,17,12,.08) 14px, rgba(22,17,12,.08) 16px
+    );
+  }
+
+  /* ====== ANIMATIONS ====== */
+  @keyframes panelPop {
+    0%   { opacity:0; transform: scale(.6) rotate(-6deg); }
+    70%  { opacity:1; transform: scale(1.06) rotate(1.5deg); }
+    100% { opacity:1; transform: scale(1) rotate(var(--tilt, 0deg)); }
+  }
+  @keyframes burstIn {
+    0%   { opacity:0; transform: scale(0) rotate(-40deg); }
+    60%  { opacity:1; transform: scale(1.25) rotate(8deg); }
+    100% { opacity:1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes slideRip {
+    0%   { opacity:0; transform: translateX(-60px) skewX(-6deg); }
+    100% { opacity:1; transform: translateX(0) skewX(0); }
+  }
+  @keyframes floatBob {
+    0%,100% { transform: translateY(0) rotate(-2deg); }
+    50%     { transform: translateY(-10px) rotate(2deg); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translate(0,0) rotate(0); }
+    20% { transform: translate(-2px,1px) rotate(-1deg); }
+    40% { transform: translate(2px,-1px) rotate(1deg); }
+    60% { transform: translate(-1px,2px) rotate(0); }
+    80% { transform: translate(1px,-2px) rotate(1deg); }
+  }
+  @keyframes inkBlink {
+    0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; }
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .reveal { opacity:0; }
+  .reveal.in-pop   { animation: panelPop .55s cubic-bezier(.22,1.4,.36,1) forwards; }
+  .reveal.in-burst { animation: burstIn .5s cubic-bezier(.22,1.6,.36,1) forwards; }
+  .reveal.in-rip   { animation: slideRip .5s ease-out forwards; }
+
+  .float-bob { animation: floatBob 3.5s ease-in-out infinite; }
+  .marquee-track { animation: marquee 22s linear infinite; }
+
+  .panel-hover { transition: transform .15s ease, box-shadow .15s ease; }
+  .panel-hover:hover {
+    transform: rotate(0deg) translate(-3px,-3px) scale(1.02);
+    box-shadow: 11px 11px 0 var(--ink);
+    animation: shake .35s ease-in-out;
+  }
+  .cursor-blink { animation: inkBlink 1s step-end infinite; }
+
+  .btn-comic {
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .btn-comic:hover { transform: translate(-2px,-2px); box-shadow: 8px 8px 0 var(--ink) !important; }
+  .btn-comic:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 var(--ink) !important; }
+
+  /* stamp / ribbon for vertical status */
+  .stamp {
+    position:absolute; top:-12px; right:-8px;
+    font-family:'Bangers',cursive; letter-spacing:.06em;
+    font-size:.85rem; line-height:1;
+    padding:.3rem .55rem; border:3px solid var(--ink);
+    transform: rotate(6deg);
+    box-shadow:3px 3px 0 var(--ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity:1 !important; animation:none !important; }
+    .float-bob, .marquee-track, .cursor-blink { animation:none !important; }
+    .panel-hover:hover { animation:none; }
+    html { scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body class="font-hand text-ink overflow-x-hidden selection:bg-komic selection:text-ink">
+
+<!-- ============ NAV ============ -->
+<nav class="sticky top-0 z-50 bg-paper halftone border-b-4 border-ink">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a href="#" class="font-bangers text-3xl md:text-4xl tracking-wider">
+      KONE<span class="text-alarm">X</span>O
+    </a>
+    <div class="hidden md:flex items-center gap-6 font-bangers text-xl tracking-wide">
+      <a href="#misiones" class="hover:text-alarm transition-colors">MISIONES</a>
+      <a href="#problema" class="hover:text-alarm transition-colors">EL VILLANO</a>
+      <a href="#poderes" class="hover:text-alarm transition-colors">PODERES</a>
+      <a href="#agentes" class="hover:text-alarm transition-colors">ESCUADRÓN IA</a>
+    </div>
+    <a href="/" target="_top" class="btn-comic font-bangers text-lg md:text-xl tracking-wider bg-komic border-4 border-ink px-4 py-1.5 rough" style="box-shadow:5px 5px 0 var(--ink)">
+      ¡EMPIEZA YA!
+    </a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="relative halftone speedlines overflow-hidden">
+  <div class="max-w-6xl mx-auto px-4 pt-14 pb-24 md:pt-20 md:pb-32 grid md:grid-cols-12 gap-8 items-center">
+
+    <!-- Title block -->
+    <div class="md:col-span-7 relative z-10">
+      <div class="inline-block bg-ink text-paper font-bangers text-lg md:text-xl tracking-widest px-4 py-1 rotate-[-2deg] mb-5 reveal" data-anim="rip">
+        TU CRM PERSONAL · NIVEL HÉROE
+      </div>
+      <h1 class="font-bangers leading-[0.92] text-6xl md:text-8xl lg:text-9xl text-komic stroke-ink reveal" data-anim="pop">
+        UN PIPELINE.<br>
+        <span class="text-alarm">CUALQUIER</span><br>
+        MISIÓN.
+      </h1>
+      <p class="mt-7 text-2xl md:text-3xl max-w-xl leading-snug reveal" data-anim="rip" data-delay="150">
+        Konexo convierte el caos de a quién perseguir, qué decir y cuándo seguir en un plan de ataque panel por panel. ¿Buscás trabajo o cerrás ventas? El mismo motor, vestido para tu misión.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-4 reveal" data-anim="pop" data-delay="300">
+        <a href="/" target="_top" class="btn-comic font-bangers text-2xl md:text-3xl tracking-wider bg-alarm text-paper border-4 border-ink px-7 py-3 rough" style="box-shadow:6px 6px 0 var(--ink)">
+          ¡CREA TU CUENTA GRATIS!
+        </a>
+        <a href="#misiones" class="btn-comic font-bangers text-2xl md:text-3xl tracking-wider bg-panelw border-4 border-ink px-7 py-3 rough-2" style="box-shadow:6px 6px 0 var(--ink)">
+          ELEGIR MISIÓN
+        </a>
+      </div>
+      <p class="mt-5 font-bangers tracking-wide text-lg text-ink/70 reveal" data-anim="rip" data-delay="380">
+        🦾 LOCAL-FIRST · TUS DATOS QUEDAN EN TU MÁQUINA
+      </p>
+    </div>
+
+    <!-- Hero panel: mini mockup (mode-agnostic) -->
+    <div class="md:col-span-5 relative">
+      <!-- POW burst -->
+      <div class="burst burst-shadow bg-komic halftone-yellow w-32 h-32 md:w-40 md:h-40 absolute -top-10 -right-2 md:-right-6 z-20 float-bob reveal" data-anim="burst" data-delay="500">
+        <span class="font-bangers text-4xl md:text-5xl rotate-[-8deg] stroke-thin text-alarm">¡POW!</span>
+      </div>
+
+      <div class="panel rough panel-tilt-r p-5 reveal" data-anim="pop" data-delay="200">
+        <!-- mode switcher visual -->
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="font-bangers text-sm tracking-wide bg-komic border-[3px] border-ink px-2 py-0.5 rotate-[-1deg]">EMPLEO</span>
+          <span class="font-bangers text-sm tracking-wide bg-white border-[3px] border-ink px-2 py-0.5">VENTAS</span>
+          <span class="ml-auto font-bangers text-sm bg-hero text-paper px-2 py-0.5 border-2 border-ink rotate-2">LIVE</span>
+        </div>
+        <!-- mini kanban -->
+        <div class="grid grid-cols-3 gap-2 text-center font-bangers tracking-wide">
+          <div>
+            <div class="bg-ink text-paper text-sm py-1 mb-2">PROSPECTO</div>
+            <div class="border-[3px] border-ink bg-white p-2 text-left text-base rotate-[-1deg] mb-2">Frontend Sr.<br><span class="text-alarm text-sm">TechMex</span></div>
+            <div class="border-[3px] border-ink bg-white p-2 text-left text-base rotate-[1deg]">Cuenta Acme<br><span class="text-alarm text-sm">$15k</span></div>
+          </div>
+          <div>
+            <div class="bg-ink text-paper text-sm py-1 mb-2">EN JUEGO</div>
+            <div class="border-[3px] border-ink bg-komic p-2 text-left text-base rotate-[1deg]">Entrevista<br><span class="text-sm">⚡ Jueves 10am</span></div>
+          </div>
+          <div>
+            <div class="bg-ink text-paper text-sm py-1 mb-2">CIERRE</div>
+            <div class="border-[3px] border-ink bg-hero text-paper p-2 text-left text-base rotate-[-2deg]">Oferta / Deal<br><span class="text-sm">💰 ¡A negociar!</span></div>
+          </div>
+        </div>
+        <div class="mt-4 bg-ink text-komic font-bangers tracking-widest text-center py-1.5 text-lg">
+          12 EN JUEGO · 3 ESTA SEMANA · 1 POR CERRAR<span class="cursor-blink">▌</span>
+        </div>
+      </div>
+
+      <!-- bubble -->
+      <div class="bubble px-5 py-3 mt-10 ml-6 max-w-xs rotate-[2deg] reveal" data-anim="pop" data-delay="650">
+        <p class="text-xl leading-tight">"¿Y ese contacto de hace 2 semanas...? Ah no, Konexo ya me recordó el follow-up." 😎</p>
+      </div>
+    </div>
+  </div>
+  <div class="torn"></div>
+</header>
+
+<!-- ============ MARQUEE ============ -->
+<div class="bg-ink py-3 overflow-hidden border-b-4 border-ink">
+  <div class="marquee-track flex whitespace-nowrap font-bangers text-2xl md:text-3xl tracking-widest text-paper">
+    <span class="px-6">¡ZAS! PIPELINE ORGANIZADO</span><span class="text-komic px-6">★</span>
+    <span class="px-6">¡BAM! FOLLOW-UPS A TIEMPO</span><span class="text-alarm px-6">★</span>
+    <span class="px-6">¡POW! TODO BAJO CONTROL</span><span class="text-hero px-6">★</span>
+    <span class="px-6">¡ZAS! PIPELINE ORGANIZADO</span><span class="text-komic px-6">★</span>
+    <span class="px-6">¡BAM! FOLLOW-UPS A TIEMPO</span><span class="text-alarm px-6">★</span>
+    <span class="px-6">¡POW! TODO BAJO CONTROL</span><span class="text-hero px-6">★</span>
+  </div>
+</div>
+
+<!-- ============ MISIONES (verticals / presets) ============ -->
+<section id="misiones" class="halftone bg-paper relative">
+  <div class="max-w-6xl mx-auto px-4 py-20">
+    <h2 class="font-bangers text-5xl md:text-7xl text-center stroke-ink text-hero mb-3 reveal" data-anim="pop">
+      ELEGÍ TU MISIÓN
+    </h2>
+    <p class="text-center text-2xl max-w-2xl mx-auto mb-14 reveal" data-anim="rip">
+      El mismo motor de pipeline, vestido para lo que estés cerrando. Hoy ya corren <b>Empleo</b> y <b>Ventas</b>. El resto viene en camino — el tablero, los seguimientos y los contactos son los mismos.
+    </p>
+
+    <div class="grid md:grid-cols-3 gap-x-8 gap-y-10">
+
+      <!-- Empleo · LIVE -->
+      <div class="panel rough panel-hover p-6 reveal" data-anim="pop" style="--tilt:-1deg">
+        <span class="stamp bg-komic text-ink">¡YA!</span>
+        <div class="text-5xl mb-3">🎯</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide">BUSCADORES DE EMPLEO</h3>
+        <p class="text-xl leading-snug">Postulaciones, entrevistas y referidos. Guardada → Aplicada → Entrevista → Oferta. Tu búsqueda, nivel héroe.</p>
+      </div>
+
+      <!-- Ventas · LIVE -->
+      <div class="panel rough-2 panel-hover p-6 reveal" data-anim="pop" data-delay="100" style="--tilt:1deg">
+        <span class="stamp bg-komic text-ink">¡YA!</span>
+        <div class="text-5xl mb-3">💰</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide text-alarm">VENTAS</h3>
+        <p class="text-xl leading-snug">Prospecto → Contactado → Propuesta → Negociación → Cerrado. Montos, seguimientos y cuentas para cerrar más.</p>
+      </div>
+
+      <!-- Freelancers · soon -->
+      <div class="panel rough panel-hover p-6 reveal" data-anim="pop" data-delay="200" style="--tilt:1deg">
+        <span class="stamp bg-hero text-paper">EN CAMINO</span>
+        <div class="text-5xl mb-3">🧑‍💻</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide text-hero">FREELANCERS</h3>
+        <p class="text-xl leading-snug">Clientes, propuestas y cobros. Que ningún proyecto se enfríe ni ninguna factura se olvide.</p>
+      </div>
+
+      <!-- Inmobiliarias · soon -->
+      <div class="panel rough-2 panel-hover p-6 reveal" data-anim="pop" data-delay="300" style="--tilt:-1deg">
+        <span class="stamp bg-hero text-paper">EN CAMINO</span>
+        <div class="text-5xl mb-3">🏠</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide">INMOBILIARIAS</h3>
+        <p class="text-xl leading-snug">Prospecto → visita → oferta → escritura. Cada propiedad y cada cliente, con su pipeline.</p>
+      </div>
+
+      <!-- Startups · soon -->
+      <div class="panel rough panel-hover p-6 reveal" data-anim="pop" data-delay="400" style="--tilt:-1deg">
+        <span class="stamp bg-hero text-paper">EN CAMINO</span>
+        <div class="text-5xl mb-3">🚀</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide text-alarm">STARTUPS</h3>
+        <p class="text-xl leading-snug">Tu ronda bajo control: Lead → Pitch → Due diligence → Term sheet → Cerrado. El fundraising como pipeline.</p>
+      </div>
+
+      <!-- Reclutadores · soon -->
+      <div class="panel rough-2 panel-hover p-6 reveal" data-anim="pop" data-delay="500" style="--tilt:1deg">
+        <span class="stamp bg-hero text-paper">EN CAMINO</span>
+        <div class="text-5xl mb-3">🧲</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide text-hero">RECLUTADORES</h3>
+        <p class="text-xl leading-snug">Candidatos por vacante: Sourcing → Screening → Entrevista → Oferta → Contratado. Sin perder a nadie en el camino.</p>
+      </div>
+
+    </div>
+
+    <div class="flex flex-wrap justify-center gap-3 mt-12 reveal" data-anim="pop">
+      <a href="/para/empleo" target="_top" class="btn-comic bg-komic font-bangers tracking-wide text-lg px-4 py-1.5 rough">🎯 EMPLEO</a>
+      <a href="/para/ventas" target="_top" class="btn-comic bg-komic font-bangers tracking-wide text-lg px-4 py-1.5 rough-2">💰 VENTAS</a>
+      <a href="/para/freelancers" target="_top" class="btn-comic bg-panelw font-bangers tracking-wide text-lg px-4 py-1.5 rough">🧑‍💻 FREELANCERS</a>
+      <a href="/para/inmobiliarias" target="_top" class="btn-comic bg-panelw font-bangers tracking-wide text-lg px-4 py-1.5 rough-2">🏠 INMOBILIARIAS</a>
+      <a href="/para/startups" target="_top" class="btn-comic bg-panelw font-bangers tracking-wide text-lg px-4 py-1.5 rough">🚀 STARTUPS</a>
+      <a href="/para/reclutadores" target="_top" class="btn-comic bg-panelw font-bangers tracking-wide text-lg px-4 py-1.5 rough-2">🧲 RECLUTADORES</a>
+    </div>
+    <div class="text-center mt-6 reveal" data-anim="rip">
+      <p class="text-xl text-ink/70">¿Tu misión no está en la lista? El motor es el mismo — escribinos y la sumamos.</p>
+    </div>
+  </div>
+  <div class="torn"></div>
+</section>
+
+<!-- ============ PROBLEMA (comic strip) ============ -->
+<section id="problema" class="halftone-red bg-paper relative">
+  <div class="max-w-6xl mx-auto px-4 py-20">
+    <h2 class="font-bangers text-5xl md:text-7xl text-center text-alarm stroke-ink mb-3 reveal" data-anim="pop">
+      EL VILLANO: EL CAOS
+    </h2>
+    <p class="text-center text-2xl max-w-2xl mx-auto mb-14 reveal" data-anim="rip">
+      Perseguir trabajos, clientes o deals sin sistema es pelear contra un jefe final con los ojos vendados.
+    </p>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Panel 1 -->
+      <div class="panel rough panel-tilt-l panel-hover p-6 reveal" data-anim="pop" style="--tilt:-1.2deg">
+        <div class="absolute -top-5 -left-3 bg-ink text-paper font-bangers text-xl px-3 py-0.5 rotate-[-4deg]">VIÑETA 1</div>
+        <div class="text-6xl text-center mb-4">📊💥</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide">EL EXCEL MUTANTE</h3>
+        <p class="text-xl leading-snug">47 filas, 12 colores, cero idea de en qué quedó cada contacto. Tu spreadsheet ya tiene vida propia… y no está de tu lado.</p>
+      </div>
+      <!-- Panel 2 -->
+      <div class="panel rough-2 panel-hover p-6 reveal" data-anim="pop" data-delay="150" style="--tilt:0deg">
+        <div class="absolute -top-5 -left-3 bg-ink text-paper font-bangers text-xl px-3 py-0.5 rotate-[3deg]">VIÑETA 2</div>
+        <div class="text-6xl text-center mb-4">👻📧</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide">EL GHOSTING SILENCIOSO</h3>
+        <p class="text-xl leading-snug">"Te escribimos pronto"… hace 3 semanas. Sin recordatorios, el follow-up que pudo cerrar todo nunca salió de tu cabeza.</p>
+      </div>
+      <!-- Panel 3 -->
+      <div class="panel rough panel-tilt-r panel-hover p-6 reveal" data-anim="pop" data-delay="300" style="--tilt:1.1deg">
+        <div class="absolute -top-5 -left-3 bg-ink text-paper font-bangers text-xl px-3 py-0.5 rotate-[-2deg]">VIÑETA 3</div>
+        <div class="text-6xl text-center mb-4">🤯📅</div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide">LA REUNIÓN SORPRESA</h3>
+        <p class="text-xl leading-snug">¿Qué empresa era? ¿Qué le mandaste? ¿Quién decide? Llegar sin contexto es entrar al ring sin guantes.</p>
+      </div>
+    </div>
+
+    <!-- burst transition -->
+    <div class="flex justify-center mt-14 reveal" data-anim="burst">
+      <div class="burst burst-shadow bg-komic halftone-yellow w-48 h-48 md:w-56 md:h-56 flex-col">
+        <span class="font-bangers text-3xl md:text-4xl text-alarm stroke-thin rotate-[-6deg]">¡PERO</span>
+        <span class="font-bangers text-3xl md:text-4xl text-alarm stroke-thin rotate-[-6deg]">ESPERA!</span>
+      </div>
+    </div>
+  </div>
+  <div class="torn"></div>
+</section>
+
+<!-- ============ PODERES (features) ============ -->
+<section id="poderes" class="bg-ink relative">
+  <div class="max-w-6xl mx-auto px-4 py-20">
+    <h2 class="font-bangers text-5xl md:text-7xl text-center text-komic stroke-thin mb-3 reveal" data-anim="pop" style="text-shadow:5px 5px 0 #E2493B">
+      TUS NUEVOS PODERES
+    </h2>
+    <p class="text-center text-2xl text-paper max-w-2xl mx-auto mb-14 reveal" data-anim="rip">
+      Konexo te equipa con todo el arsenal para cerrar tu próxima misión — sea cual sea.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-x-10 gap-y-12">
+      <!-- Feature 1 -->
+      <div class="panel rough panel-tilt-l panel-hover p-6 reveal" data-anim="pop" style="--tilt:-1.2deg">
+        <div class="burst bg-alarm w-20 h-20 absolute -top-8 -right-4 rotate-12">
+          <span class="font-bangers text-paper text-lg rotate-[-12deg]">¡ZAS!</span>
+        </div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide text-alarm">PIPELINE VISUAL</h3>
+        <p class="text-xl leading-snug">Arrastrá cada oportunidad por etapas. Un vistazo y sabés exactamente dónde está cada pelea — y cuál está por cerrar.</p>
+      </div>
+      <!-- Feature 2 -->
+      <div class="panel rough-2 panel-tilt-r panel-hover p-6 reveal" data-anim="pop" data-delay="120" style="--tilt:1.1deg">
+        <div class="burst bg-hero w-20 h-20 absolute -top-8 -right-4 -rotate-6">
+          <span class="font-bangers text-paper text-lg rotate-6">¡RING!</span>
+        </div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide text-hero">RECORDATORIOS QUE GOLPEAN</h3>
+        <p class="text-xl leading-snug">Follow-ups, reuniones, deadlines. Konexo te avisa antes de que el villano del olvido ataque tu mejor oportunidad.</p>
+      </div>
+      <!-- Feature 3 -->
+      <div class="panel rough panel-tilt-r panel-hover p-6 reveal" data-anim="pop" data-delay="240" style="--tilt:1.1deg">
+        <div class="burst bg-komic w-20 h-20 absolute -top-8 -right-4 rotate-6">
+          <span class="font-bangers text-ink text-lg rotate-[-6deg]">¡CLIC!</span>
+        </div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide">EXPEDIENTE POR CONTACTO</h3>
+        <p class="text-xl leading-snug">Qué hablaste, con quién, qué mandaste, qué monto. Todo el lore de cada empresa, persona y oportunidad en un solo lugar.</p>
+      </div>
+      <!-- Feature 4 -->
+      <div class="panel rough-2 panel-tilt-l panel-hover p-6 reveal" data-anim="pop" data-delay="360" style="--tilt:-1.2deg">
+        <div class="burst bg-alarm w-20 h-20 absolute -top-8 -right-4 -rotate-12">
+          <span class="font-bangers text-paper text-lg rotate-12">¡BAM!</span>
+        </div>
+        <h3 class="font-bangers text-3xl mb-2 tracking-wide text-alarm">IA DE TU LADO</h3>
+        <p class="text-xl leading-snug">Adaptá tu CV o tu propuesta a cada oportunidad con un clic. Con tu propia API key o con Ollama gratis y local. Tus datos no salen de tu máquina.</p>
+      </div>
+    </div>
+  </div>
+  <div class="torn torn-flip" style="background:#F2E8C9"></div>
+</section>
+
+<!-- ============ ESCUADRÓN IA (multi-agent team) ============ -->
+<section id="agentes" class="halftone bg-paper relative">
+  <div class="max-w-6xl mx-auto px-4 py-20">
+
+    <div class="text-center mb-4 reveal" data-anim="burst">
+      <span class="inline-block bg-hero text-paper font-bangers text-lg md:text-xl tracking-widest px-4 py-1 rotate-[-2deg] border-3 border-ink" style="box-shadow:4px 4px 0 var(--ink)">
+        ¡NUEVO PODER! · GRATIS E INCLUIDO
+      </span>
+    </div>
+    <h2 class="font-bangers text-5xl md:text-7xl text-center stroke-ink text-alarm mb-3 reveal" data-anim="pop">
+      TU ESCUADRÓN DE IA
+    </h2>
+    <p class="text-center text-2xl max-w-3xl mx-auto mb-14 reveal" data-anim="rip">
+      No es un chatbot que espera tus preguntas. Es un <b>equipo de agentes</b> que trabaja tu embudo solo: uno <b>califica</b> a quién contactar primero y otro <b>redacta</b> los borradores… <b>al mismo tiempo</b>. Vos solo revisás y enviás.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-10 items-start">
+
+      <!-- DEMO: el equipo trabajando (dark panel) -->
+      <div class="reveal" data-anim="pop">
+        <div class="panel rough panel-tilt-l p-5 bg-ink" style="--tilt:-1deg">
+          <div class="flex items-center gap-2 mb-3 pb-3 border-b-2 border-dashed border-paper/30">
+            <span class="font-bangers text-2xl tracking-wide text-komic">🤖 EQUIPO DE AGENTES</span>
+            <span class="ml-auto font-bangers text-sm bg-komic text-ink px-2 py-0.5 border-2 border-paper rotate-2">EN VIVO</span>
+          </div>
+          <!-- traza del equipo -->
+          <div class="space-y-2 font-hand text-lg text-paper/90 leading-snug">
+            <p><span class="font-bangers tracking-wide text-komic text-base">🧭 ORQUESTADOR</span> — 23 oportunidades abiertas. Despierto al Calificador.</p>
+            <p><span class="font-bangers tracking-wide text-komic text-base">✅ CALIFICADOR</span> — Listo: 3 calientes, 7 tibias, 5 frías.</p>
+            <p><span class="font-bangers tracking-wide text-komic text-base">🧭 ORQUESTADOR</span> — Paso las 3 más calientes al Redactor. <span class="text-alarm">⇉ EN PARALELO</span></p>
+            <p><span class="font-bangers tracking-wide text-komic text-base">✍️ REDACTOR</span> — 3 borradores listos para copiar y enviar.</p>
+          </div>
+          <div class="mt-4 bg-paper/10 border-2 border-paper/20 rounded p-3 text-paper">
+            <p class="font-bangers text-sm tracking-wide text-hero mb-1">✉️ BORRADOR · CUENTA ACME</p>
+            <p class="font-hand text-base leading-snug">"Hola Marcela, te escribo porque vi que tu equipo está escalando ventas. Tenemos un caso parecido al de ustedes… ¿Te viene bien una llamada de 15' el jueves?"</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Qué hace cada agente -->
+      <div class="space-y-6">
+        <div class="panel rough-2 panel-hover p-6 reveal" data-anim="pop" data-delay="100">
+          <h3 class="font-bangers text-3xl mb-2 tracking-wide text-hero">🧐 EL CALIFICADOR</h3>
+          <p class="text-xl leading-snug">Lee tu embudo real y lo ordena por prioridad: caliente, tibia o fría, con el motivo y el próximo paso de cada una. Sabe qué vendés, así que arranca por la que más conviene.</p>
+        </div>
+        <div class="panel rough panel-hover p-6 reveal" data-anim="pop" data-delay="200">
+          <h3 class="font-bangers text-3xl mb-2 tracking-wide text-alarm">✍️ EL REDACTOR</h3>
+          <p class="text-xl leading-snug">Escribe los borradores de las más calientes en tu tono y firmados con tus datos. Email, LinkedIn o WhatsApp, listos para copiar y pegar. Nada se inventa: usa tu contexto.</p>
+        </div>
+        <div class="panel rough-2 panel-hover p-6 reveal bg-komic" data-anim="pop" data-delay="300">
+          <h3 class="font-bangers text-2xl mb-1 tracking-wide">🔒 TUYO Y PRIVADO</h3>
+          <p class="text-lg leading-snug">Corre con tu propia API key —o con Ollama gratis y local—. Tus datos no salen de tu máquina. <b>Incluido sin costo en Konexo.</b></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA de la sección -->
+    <div class="text-center mt-14 reveal" data-anim="pop">
+      <a href="/asistente" target="_top" class="btn-comic inline-block font-bangers text-2xl md:text-3xl tracking-wider bg-alarm text-paper border-4 border-ink px-8 py-3 rough" style="box-shadow:6px 6px 0 var(--ink)">
+        ¡PONÉ EL EQUIPO A TRABAJAR! →
+      </a>
+      <p class="mt-4 text-xl text-ink/70">Ponelos a trabajar y completá tus misiones más rápido — sin sumar una sola herramienta más.</p>
+    </div>
+  </div>
+  <div class="torn"></div>
+</section>
+
+<!-- ============ MISIÓN (how it works) ============ -->
+<section id="como" class="halftone bg-paper">
+  <div class="max-w-6xl mx-auto px-4 py-20">
+    <h2 class="font-bangers text-5xl md:text-7xl text-center stroke-ink text-hero mb-14 reveal" data-anim="pop">
+      LA MISIÓN EN 3 ACTOS
+    </h2>
+
+    <div class="space-y-12 max-w-3xl mx-auto">
+      <!-- Acto 1 -->
+      <div class="flex items-start gap-5 reveal" data-anim="rip">
+        <div class="burst burst-shadow bg-komic halftone-yellow w-20 h-20 md:w-24 md:h-24 shrink-0">
+          <span class="font-bangers text-4xl md:text-5xl">1</span>
+        </div>
+        <div class="panel rough p-5 flex-1 panel-tilt-l">
+          <h3 class="font-bangers text-2xl md:text-3xl tracking-wide mb-1">ELEGÍ TU MODO Y CARGÁ</h3>
+          <p class="text-xl leading-snug">Activá empleo, ventas o ambos en Configuración. Cargá la oportunidad — empresa, contacto, monto — y entra a tu tablero en 30 segundos.</p>
+        </div>
+      </div>
+      <!-- Acto 2 -->
+      <div class="flex items-start gap-5 md:ml-16 reveal" data-anim="rip" data-delay="150">
+        <div class="burst burst-shadow bg-alarm w-20 h-20 md:w-24 md:h-24 shrink-0">
+          <span class="font-bangers text-4xl md:text-5xl text-paper">2</span>
+        </div>
+        <div class="panel rough-2 p-5 flex-1 panel-tilt-r">
+          <h3 class="font-bangers text-2xl md:text-3xl tracking-wide mb-1">AVANZÁ PANEL POR PANEL</h3>
+          <p class="text-xl leading-snug">Mové cada proceso por el pipeline, anotá cada contacto y dejá que los recordatorios hagan su trabajo.</p>
+        </div>
+      </div>
+      <!-- Acto 3 -->
+      <div class="flex items-start gap-5 md:ml-32 reveal" data-anim="rip" data-delay="300">
+        <div class="burst burst-shadow bg-hero w-20 h-20 md:w-24 md:h-24 shrink-0">
+          <span class="font-bangers text-4xl md:text-5xl text-paper">3</span>
+        </div>
+        <div class="panel rough p-5 flex-1 panel-tilt-l">
+          <h3 class="font-bangers text-2xl md:text-3xl tracking-wide mb-1">CERRÁ CON DATOS</h3>
+          <p class="text-xl leading-snug">Llegás a cada reunión con contexto completo y cerrás con datos, no con corazonadas. Fin del episodio… e inicio del próximo.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section id="cta" class="bg-alarm halftone-red relative overflow-hidden">
+  <div class="torn torn-flip"></div>
+  <div class="max-w-4xl mx-auto px-4 py-24 text-center relative z-10">
+    <div class="burst burst-shadow bg-komic halftone-yellow w-36 h-36 mx-auto mb-8 float-bob reveal" data-anim="burst">
+      <span class="font-bangers text-3xl text-alarm stroke-thin rotate-[-8deg]">¡GRATIS!</span>
+    </div>
+    <h2 class="font-bangers text-5xl md:text-8xl text-paper stroke-ink leading-[0.95] mb-6 reveal" data-anim="pop">
+      EL PRÓXIMO CAPÍTULO<br>LO ESCRIBÍS VOS
+    </h2>
+    <p class="text-2xl md:text-3xl text-paper max-w-2xl mx-auto mb-10 reveal" data-anim="rip">
+      Creá tu cuenta, elegí tu misión y tomá el control de tu pipeline hoy mismo.
+    </p>
+    <a href="/" target="_top" class="btn-comic inline-block font-bangers text-3xl md:text-4xl tracking-wider bg-komic text-ink border-4 border-ink px-10 py-4 rough reveal" data-anim="pop" data-delay="150" style="box-shadow:7px 7px 0 var(--ink)">
+      ¡EMPEZAR CON KONEXO! →
+    </a>
+    <p class="mt-6 text-xl text-paper/90 reveal" data-anim="rip" data-delay="250">Sin tarjeta. Sin spam. Local-first: tus datos quedan en tu máquina.</p>
+  </div>
+  <div class="torn"></div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-ink text-paper">
+  <div class="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+    <span class="font-bangers text-3xl tracking-wider">KONE<span class="text-alarm">X</span>O</span>
+    <p class="font-hand text-lg text-paper/70">El CRM personal de tus relaciones que importan · © 2026</p>
+    <div class="flex gap-5 font-bangers text-lg tracking-wide">
+      <a href="#" class="hover:text-komic transition-colors">TÉRMINOS</a>
+      <a href="#" class="hover:text-komic transition-colors">PRIVACIDAD</a>
+      <a href="#" class="hover:text-komic transition-colors">CONTACTO</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll-triggered comic reveals
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const els = document.querySelectorAll('.reveal');
+
+  if (prefersReduced) {
+    els.forEach(el => el.style.opacity = 1);
+  } else {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const anim = el.dataset.anim || 'pop';
+        const delay = parseInt(el.dataset.delay || 0, 10);
+        setTimeout(() => el.classList.add('in-' + anim), delay);
+        io.unobserve(el);
+      });
+    }, { threshold: 0.15 });
+    els.forEach(el => io.observe(el));
+  }
+</script>
+</body>
+</html>

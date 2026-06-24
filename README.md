@@ -41,7 +41,9 @@ No hay cuentas, ni servidores, ni telemetría. Toda tu información —oportunid
 - **Oportunidades**: kanban Guardada → Aplicada → Entrevista → Oferta → Cerrada con drag-and-drop persistente. Cada una con empresa, prioridad, rango salarial, descripción del aviso y versión de CV enviada.
 - **Detalle de oportunidad**: panel "¿Quién puede referirte acá?" + timeline de interacciones.
 - **Empresas** y **Contactos**: CRUD completo. Los contactos tienen fuerza de relación (Frío / Tibio / Fuerte) y un timeline de touchpoints (email, LinkedIn, llamada, reunión, pedido de referido, nota).
-- **Configuración**: proveedor de IA y API key (BYO-key, guardada solo en tu SQLite) y versiones de CV.
+- **Adaptar CV con IA**: en cada oportunidad, compara tu CV con el aviso y sugiere keywords faltantes, bullets a reescribir y un resumen profesional adaptado. Funciona gratis con [Groq](https://console.groq.com) (key gratuita, sin tarjeta) u [Ollama](https://ollama.com) (100% local, sin key), o con tu propia key de Anthropic, OpenAI o Google.
+- **Asistente de IA**: chat flotante disponible en toda la app que conoce tus oportunidades, contactos y follow-ups vencidos. Te ayuda a redactar mensajes de LinkedIn, emails de follow-up, pedidos de referido y a decidir próximos pasos.
+- **Configuración**: proveedor de IA (Groq / Ollama / Anthropic / OpenAI / Google, con prueba de conexión) y versiones de CV con su contenido en texto.
 
 ## Stack
 
@@ -49,7 +51,6 @@ No hay cuentas, ni servidores, ni telemetría. Toda tu información —oportunid
 
 ## Roadmap
 
-- Tailoring de CV con IA usando tu propia API key
 - Analítica de embudo por canal
 - Extensión de navegador para clipear avisos
 - Build desktop con Tauri

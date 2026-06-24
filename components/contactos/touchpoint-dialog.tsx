@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createTouchpoint } from "@/app/contactos/actions";
+import { createTouchpoint } from "@/app/(app)/contactos/actions";
 import { TOUCHPOINT_TYPES, touchpointTypeLabels } from "@/lib/labels";
 import { toDateInputValue } from "@/lib/dates";
 import type { TouchpointType } from "@/lib/generated/prisma/client";
