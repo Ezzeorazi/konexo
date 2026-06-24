@@ -12,6 +12,7 @@
 // que es como Next recomienda hacer trabajo concurrente del lado del servidor.
 
 import { generateAiChat, getAiConfig } from "@/lib/ai";
+import { getAgentPlaybook } from "@/lib/agent-playbooks";
 import {
   money,
   profilePromptBlock,
@@ -130,6 +131,7 @@ async function runCalificador(
     `Sos el AGENTE CALIFICADOR de un equipo de IA dentro de Konexo, un CRM en modo "${vocab.name}".`,
     `Tu ÚNICA función es calificar y priorizar las ${vocab.oppPlural.toLowerCase()} abiertas del usuario. NO redactás mensajes: de eso se encarga otro agente.`,
     "Calificá según probabilidad de avanzar Y urgencia. Un follow-up VENCIDO o una oportunidad de alto monto sin avance reciente sube la prioridad. Una sin contacto identificado puede ser caliente igual, pero el próximo paso será conseguir ese contacto.",
+    `Criterio para modo ${vocab.name}: ${getAgentPlaybook(data.track).qualifier}`,
     "Usá el perfil del usuario (qué vende) para juzgar el fit: una oportunidad alineada con lo que ofrece vale más.",
     "Devolvé SOLO un JSON válido (sin texto antes ni después, sin Markdown) con esta forma:",
     `[{"i": <número de la lista>, "tier": "hot"|"warm"|"cold", "score": <0-100>, "reason": "<por qué, máx 18 palabras>", "nextAction": "<próximo paso concreto, imperativo, máx 14 palabras>"}]`,
@@ -182,6 +184,7 @@ async function runRedactor(
   const system = [
     `Sos el AGENTE REDACTOR de un equipo de IA dentro de Konexo, un CRM en modo "${vocab.name}".`,
     "Otro agente ya calificó las oportunidades; vos recibís UNA y escribís el borrador de contacto listo para enviar.",
+    `Guía de redacción para modo ${vocab.name}: ${getAgentPlaybook(data.track).drafter}`,
     "Reglas: por defecto español rioplatense y tono cálido y profesional, PERO si el usuario definió un estilo propio en su perfil, respetalo por encima de esto. Personalizá con el contexto real y con lo que el usuario vende; nunca inventes datos (nombres, montos, fechas) que no te pasen. Si no hay un contacto identificado, escribí un mensaje de apertura para iniciar la relación.",
     "Si el perfil trae datos del remitente (nombre, email, teléfono), cerrá el mensaje con una firma usando esos datos. Si no los tenés, no inventes una firma.",
     "Elegí el canal más natural: email, linkedin o whatsapp.",

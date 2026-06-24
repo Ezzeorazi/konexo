@@ -147,7 +147,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     emoji: "🏠",
     tagline:
       "Prospecto → visita → oferta → escritura. Cada propiedad y cada cliente, con su pipeline.",
-    status: "soon",
+    status: "live",
     oppSingular: "operación",
     oppPlural: "Operaciones",
     newOpp: "Nueva operación",
@@ -179,7 +179,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     emoji: "🧑‍💻",
     tagline:
       "Clientes, propuestas y cobros. Que ningún proyecto se enfríe ni ninguna factura se olvide.",
-    status: "soon",
+    status: "live",
     oppSingular: "proyecto",
     oppPlural: "Proyectos",
     newOpp: "Nuevo proyecto",
@@ -211,7 +211,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     emoji: "🚀",
     tagline:
       "Tu ronda bajo control: Lead → Pitch → Due diligence → Term sheet → Cerrado.",
-    status: "soon",
+    status: "live",
     oppSingular: "inversor",
     oppPlural: "Inversores",
     newOpp: "Nuevo inversor",
@@ -243,7 +243,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     emoji: "🧲",
     tagline:
       "Candidatos por vacante: Sourcing → Screening → Entrevista → Oferta → Contratado.",
-    status: "soon",
+    status: "live",
     oppSingular: "candidato",
     oppPlural: "Candidatos",
     newOpp: "Nuevo candidato",
