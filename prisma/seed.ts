@@ -15,7 +15,27 @@ const daysFromNow = (days: number) => {
   return d;
 };
 
+// Guard anti-producción (auditoría L2): el seed BORRA todas las tablas. Si por
+// accidente se apunta a la base de producción (DATABASE_URL de prod o
+// NODE_ENV=production), abortamos antes de tocar nada. Para forzarlo igual
+// (caso muy excepcional), correr con SEED_ALLOW_PRODUCTION=1.
+function assertNotProduction() {
+  if (process.env.SEED_ALLOW_PRODUCTION === "1") return;
+  const url = process.env.DATABASE_URL ?? "";
+  const looksLikeProd =
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL === "1" ||
+    /neon\.tech|pooler|\.aws\.|amazonaws|supabase|render\.com/i.test(url);
+  if (looksLikeProd) {
+    throw new Error(
+      "Seed abortado: parece un entorno de PRODUCCIÓN y el seed borra todas las tablas.\n" +
+        "Si de verdad querés sembrar acá, corré con SEED_ALLOW_PRODUCTION=1."
+    );
+  }
+}
+
 async function main() {
+  assertNotProduction();
   await prisma.touchpoint.deleteMany();
   await prisma.opportunity.deleteMany();
   await prisma.contact.deleteMany();
