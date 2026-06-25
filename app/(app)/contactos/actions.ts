@@ -8,6 +8,7 @@ import { maybeTrackActivation } from "@/lib/activation";
 import { parseDateInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
+import { ContactSchema, TouchpointSchema, firstZodError } from "@/lib/validation";
 import type {
   RelationshipStrength,
   TouchpointType,
@@ -41,8 +42,9 @@ function clean(input: ContactInput) {
 }
 
 export async function createContact(input: ContactInput) {
-  if (!input.name?.trim()) {
-    return { ok: false as const, error: "El nombre es obligatorio." };
+  const parsed = ContactSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
   }
   const track = isTrack(input.track) ? input.track : DEFAULT_TRACK;
   const userId = await currentUserId();
@@ -54,8 +56,9 @@ export async function createContact(input: ContactInput) {
 }
 
 export async function updateContact(id: string, input: ContactInput) {
-  if (!input.name?.trim()) {
-    return { ok: false as const, error: "El nombre es obligatorio." };
+  const parsed = ContactSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
   }
   const userId = await currentUserId();
   const { count } = await prisma.contact.updateMany({
@@ -86,6 +89,10 @@ export type TouchpointInput = {
 };
 
 export async function createTouchpoint(input: TouchpointInput) {
+  const parsed = TouchpointSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
+  }
   if (!input.contactId && !input.opportunityId) {
     return {
       ok: false as const,

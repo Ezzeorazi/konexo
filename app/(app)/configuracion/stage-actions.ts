@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import { isTrack, getStages, type StageType } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
+import { StageSchema, firstZodError } from "@/lib/validation";
 
 function revalidateStages() {
   revalidatePath("/configuracion");
@@ -33,8 +34,10 @@ export type StageInput = {
 
 export async function createStage(track: string, input: StageInput) {
   if (!isTrack(track)) return { ok: false as const, error: "Track inválido." };
-  if (!input.label?.trim())
-    return { ok: false as const, error: "La etiqueta es obligatoria." };
+  const parsed = StageSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
+  }
 
   const userId = await currentUserId();
   await getTrackStages(track); // asegura el seed antes de agregar
@@ -62,8 +65,10 @@ export async function createStage(track: string, input: StageInput) {
 }
 
 export async function updateStage(id: string, input: StageInput) {
-  if (!input.label?.trim())
-    return { ok: false as const, error: "La etiqueta es obligatoria." };
+  const parsed = StageSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
+  }
   const userId = await currentUserId();
   try {
     const { count } = await prisma.pipelineStage.updateMany({

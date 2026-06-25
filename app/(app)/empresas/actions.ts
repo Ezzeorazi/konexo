@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
+import { CompanySchema, firstZodError } from "@/lib/validation";
 
 export type CompanyInput = {
   name: string;
@@ -28,8 +29,9 @@ function clean(input: CompanyInput) {
 }
 
 export async function createCompany(input: CompanyInput) {
-  if (!input.name?.trim()) {
-    return { ok: false as const, error: "El nombre es obligatorio." };
+  const parsed = CompanySchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
   }
   const track = isTrack(input.track) ? input.track : DEFAULT_TRACK;
   const userId = await currentUserId();
@@ -41,8 +43,9 @@ export async function createCompany(input: CompanyInput) {
 }
 
 export async function updateCompany(id: string, input: CompanyInput) {
-  if (!input.name?.trim()) {
-    return { ok: false as const, error: "El nombre es obligatorio." };
+  const parsed = CompanySchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
   }
   const userId = await currentUserId();
   const { count } = await prisma.company.updateMany({

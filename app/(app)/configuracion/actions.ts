@@ -7,6 +7,7 @@ import { currentUserId } from "@/lib/auth";
 import { setSettings } from "@/lib/settings";
 import { generateAiText } from "@/lib/ai";
 import { TRACKS, isTrack, type Track } from "@/lib/tracks";
+import { CVVersionSchema, firstZodError } from "@/lib/validation";
 import { ACTIVE_TRACK_COOKIE, ENABLED_TRACKS_KEY } from "@/lib/active-track";
 
 export type CVVersionInput = {
@@ -17,8 +18,9 @@ export type CVVersionInput = {
 };
 
 export async function createCVVersion(input: CVVersionInput) {
-  if (!input.label?.trim()) {
-    return { ok: false as const, error: "La etiqueta es obligatoria." };
+  const parsed = CVVersionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
   }
   const userId = await currentUserId();
   const cv = await prisma.cVVersion.create({
@@ -35,8 +37,9 @@ export async function createCVVersion(input: CVVersionInput) {
 }
 
 export async function updateCVVersion(id: string, input: CVVersionInput) {
-  if (!input.label?.trim()) {
-    return { ok: false as const, error: "La etiqueta es obligatoria." };
+  const parsed = CVVersionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
   }
   const userId = await currentUserId();
   const { count } = await prisma.cVVersion.updateMany({

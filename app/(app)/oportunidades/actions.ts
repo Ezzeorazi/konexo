@@ -9,6 +9,7 @@ import { generateAiText } from "@/lib/ai";
 import { parseDateInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
+import { OpportunitySchema, firstZodError } from "@/lib/validation";
 import type { Priority } from "@/lib/generated/prisma/client";
 
 export type OpportunityInput = {
@@ -51,8 +52,9 @@ function clean(input: OpportunityInput) {
 }
 
 export async function createOpportunity(input: OpportunityInput) {
-  if (!input.title?.trim()) {
-    return { ok: false as const, error: "El título es obligatorio." };
+  const parsed = OpportunitySchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
   }
   const track = isTrack(input.track) ? input.track : DEFAULT_TRACK;
   const userId = await currentUserId();
@@ -66,8 +68,9 @@ export async function createOpportunity(input: OpportunityInput) {
 }
 
 export async function updateOpportunity(id: string, input: OpportunityInput) {
-  if (!input.title?.trim()) {
-    return { ok: false as const, error: "El título es obligatorio." };
+  const parsed = OpportunitySchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
   }
   const userId = await currentUserId();
   const { count } = await prisma.opportunity.updateMany({
