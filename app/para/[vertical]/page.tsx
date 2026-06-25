@@ -49,7 +49,7 @@ export default async function VerticalLandingPage({
             KONE<span className="text-alarm">X</span>O
           </Link>
           <Link
-            href="/"
+            href="/sign-up"
             className="btn-comic rough bg-komic px-4 py-1.5 font-display text-lg tracking-wider md:text-xl"
           >
             ¡EMPIEZA YA!
@@ -80,7 +80,7 @@ export default async function VerticalLandingPage({
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
-                href="/"
+                href="/sign-up"
                 className="btn-comic rough bg-alarm px-7 py-3 font-display text-2xl tracking-wider text-paper md:text-3xl"
               >
                 {live ? "¡EMPEZAR GRATIS!" : "PROBAR LA BETA"}
@@ -93,7 +93,7 @@ export default async function VerticalLandingPage({
               </Link>
             </div>
             <p className="mt-5 font-display text-lg tracking-wide text-ink/70">
-              🦾 LOCAL-FIRST · TUS DATOS QUEDAN EN TU MÁQUINA
+              🦾 GRATIS PARA EMPEZAR · SIN TARJETA · TUS DATOS, PRIVADOS
             </p>
           </div>
 
@@ -224,13 +224,13 @@ export default async function VerticalLandingPage({
             {landing.ctaKicker.toUpperCase()}
           </h2>
           <Link
-            href="/"
+            href="/sign-up"
             className="btn-comic rough inline-block bg-komic px-10 py-4 font-display text-3xl tracking-wider text-ink md:text-4xl"
           >
             ¡EMPEZAR CON KONEXO! →
           </Link>
           <p className="mt-6 text-xl text-paper/90">
-            Sin tarjeta. Sin spam. Local-first: tus datos quedan en tu máquina.
+            Sin tarjeta. Sin spam. Tus datos, privados.
           </p>
           {!live ? (
             <p className="mt-2 font-display tracking-wide text-paper/80">
@@ -251,6 +251,9 @@ export default async function VerticalLandingPage({
             El CRM personal de tus relaciones que importan · © 2026
           </p>
           <div className="flex flex-wrap gap-4 font-display text-base tracking-wide">
+            <Link href="/guia" className="hover:text-komic">
+              GUÍA
+            </Link>
             {LANDING_SLUGS.map((slug) => (
               <Link key={slug} href={`/para/${slug}`} className="hover:text-komic">
                 {slug.toUpperCase()}

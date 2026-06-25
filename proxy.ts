@@ -10,6 +10,7 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher([
   "/home",
   "/para(.*)",
+  "/guia",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/waitlist",
@@ -17,6 +18,14 @@ const isPublicRoute = createRouteMatcher([
 
 const proxy = process.env.CLERK_SECRET_KEY
   ? clerkMiddleware(async (auth, req) => {
+      // Puerta de calle: el visitante anónimo en "/" ve la landing, no el login.
+      // El usuario logueado en "/" sigue viendo su dashboard.
+      if (req.nextUrl.pathname === "/") {
+        const { userId } = await auth();
+        if (!userId) {
+          return NextResponse.redirect(new URL("/home", req.url));
+        }
+      }
       if (!isPublicRoute(req)) {
         await auth.protect();
       }
