@@ -93,8 +93,18 @@ Hay dos redes de seguridad para no perder datos:
 dump fechado en `backups/konexo-AAAA-MM-DD_HHmmss.sql`. La carpeta `/backups` está
 en `.gitignore` (puede contener datos reales).
 
-> **Requisito:** tener `pg_dump` instalado y en el `PATH`. En Windows viene con el
-> [instalador de PostgreSQL](https://www.postgresql.org/download/windows/) (client tools).
+> **Requisito:** `pg_dump` **versión ≥ la del servidor**. Neon corre PostgreSQL 18,
+> así que hace falta `pg_dump` 18+ (un `pg_dump` más viejo se niega a dumpear un
+> servidor más nuevo). En Windows viene con el
+> [instalador de PostgreSQL 18](https://www.postgresql.org/download/windows/).
+>
+> El script busca `pg_dump` en este orden: variable de entorno `PG_DUMP` → el `PATH`
+> → la instalación más nueva en `C:\Program Files\PostgreSQL\<ver>\bin`. Si lo tenés
+> en otro lado (ej. binarios sueltos sin instalar el servidor), apuntalo así:
+>
+> ```bash
+> PG_DUMP="C:\\ruta\\a\\pg18\\bin\\pg_dump.exe" npm run db:backup
+> ```
 
 ```bash
 npm run db:backup
