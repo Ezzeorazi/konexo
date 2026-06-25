@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus, Building2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,12 +19,13 @@ import { getVocab } from "@/lib/tracks";
 export const dynamic = "force-dynamic";
 
 export default async function EmpresasPage() {
+  const userId = await currentUserId();
   const { track } = await getActiveTrack();
   const vocab = getVocab(track);
   const singular = vocab.companySingular;
 
   const companies = await prisma.company.findMany({
-    where: { track },
+    where: { userId, track },
     orderBy: { name: "asc" },
     include: {
       _count: { select: { opportunities: true, contacts: true } },

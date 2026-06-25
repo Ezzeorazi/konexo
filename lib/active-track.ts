@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { getSetting } from "@/lib/settings";
 import { DEFAULT_TRACK, TRACKS, isTrack, type Track } from "@/lib/tracks";
 
 export const ACTIVE_TRACK_COOKIE = "konexo-track";
@@ -7,10 +7,8 @@ export const ENABLED_TRACKS_KEY = "enabledTracks";
 
 /** Tracks que el usuario habilitó en Configuración (siempre al menos uno). */
 export async function getEnabledTracks(): Promise<Track[]> {
-  const setting = await prisma.setting.findUnique({
-    where: { key: ENABLED_TRACKS_KEY },
-  });
-  const parsed = (setting?.value ?? "")
+  const value = await getSetting(ENABLED_TRACKS_KEY);
+  const parsed = (value ?? "")
     .split(",")
     .map((t) => t.trim())
     .filter(isTrack);

@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Kanban } from "@/components/oportunidades/kanban";
@@ -11,13 +12,14 @@ import { getTrackStages } from "@/lib/stages";
 export const dynamic = "force-dynamic";
 
 export default async function OportunidadesPage() {
+  const userId = await currentUserId();
   const { track } = await getActiveTrack();
   const vocab = getVocab(track);
   const stages = await getTrackStages(track);
 
   const [opportunities, companies, cvVersions] = await Promise.all([
     prisma.opportunity.findMany({
-      where: { track },
+      where: { userId, track },
       orderBy: [{ nextFollowUpAt: "asc" }, { updatedAt: "desc" }],
       select: {
         id: true,
@@ -29,11 +31,12 @@ export default async function OportunidadesPage() {
       },
     }),
     prisma.company.findMany({
-      where: { track },
+      where: { userId, track },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
     prisma.cVVersion.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
       select: { id: true, label: true },
     }),

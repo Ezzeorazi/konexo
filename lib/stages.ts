@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import {
   getStages as presetStages,
   type StageDef,
@@ -25,8 +26,9 @@ function rowToDef(r: {
  * desde los presets de código (lib/tracks.ts) y quedan editables.
  */
 export async function getTrackStages(track: Track): Promise<StageDef[]> {
+  const userId = await currentUserId();
   const rows = await prisma.pipelineStage.findMany({
-    where: { track },
+    where: { userId, track },
     orderBy: { order: "asc" },
   });
   if (rows.length > 0) return rows.map(rowToDef);
@@ -37,6 +39,7 @@ export async function getTrackStages(track: Track): Promise<StageDef[]> {
   try {
     await prisma.pipelineStage.createMany({
       data: presets.map((s, i) => ({
+        userId,
         track,
         key: s.key,
         label: s.label,
@@ -49,7 +52,7 @@ export async function getTrackStages(track: Track): Promise<StageDef[]> {
     // otra request sembró primero
   }
   const seeded = await prisma.pipelineStage.findMany({
-    where: { track },
+    where: { userId, track },
     orderBy: { order: "asc" },
   });
   return seeded.length > 0 ? seeded.map(rowToDef) : presets;
@@ -57,9 +60,10 @@ export async function getTrackStages(track: Track): Promise<StageDef[]> {
 
 /** Filas completas (con id) para el editor de etapas. */
 export async function getTrackStagesFull(track: Track) {
+  const userId = await currentUserId();
   await getTrackStages(track); // asegura el seed
   return prisma.pipelineStage.findMany({
-    where: { track },
+    where: { userId, track },
     orderBy: { order: "asc" },
   });
 }

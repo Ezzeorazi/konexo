@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 enum Priority {
@@ -30,6 +30,7 @@ enum TouchpointType {
 
 model Company {
   id        String   @id @default(cuid())
+  userId    String
   name      String
   track     String   @default("jobs")
   website   String?
@@ -42,10 +43,13 @@ model Company {
 
   opportunities Opportunity[]
   contacts      Contact[]
+
+  @@index([userId, track])
 }
 
 model Opportunity {
   id             String    @id @default(cuid())
+  userId         String
   title          String
   track          String    @default("jobs")
   companyId      String?
@@ -66,10 +70,14 @@ model Opportunity {
   company     Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
   cvVersion   CVVersion?   @relation(fields: [cvVersionId], references: [id], onDelete: SetNull)
   touchpoints Touchpoint[]
+
+  @@index([userId, track])
+  @@index([userId, track, stage])
 }
 
 model Contact {
   id                   String               @id @default(cuid())
+  userId               String
   name                 String
   track                String               @default("jobs")
   role                 String?
@@ -85,10 +93,13 @@ model Contact {
 
   company     Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
   touchpoints Touchpoint[]
+
+  @@index([userId, track])
 }
 
 model Touchpoint {
   id            String         @id @default(cuid())
+  userId        String
   type          TouchpointType
   note          String?
   occurredAt    DateTime       @default(now())
@@ -98,10 +109,13 @@ model Touchpoint {
 
   contact     Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
   opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
 }
 
 model CVVersion {
   id        String   @id @default(cuid())
+  userId    String
   label     String
   fileName  String?
   content   String?
@@ -109,18 +123,25 @@ model CVVersion {
   createdAt DateTime @default(now())
 
   opportunities Opportunity[]
+
+  @@index([userId])
 }
 
 model Setting {
-  id    String @id @default(cuid())
-  key   String @unique
-  value String
+  id     String @id @default(cuid())
+  userId String
+  key    String
+  value  String
+
+  @@unique([userId, key])
+  @@index([userId])
 }
 
 // Etapas del embudo, editables por el usuario. Cada track tiene su set.
 // Se siembran desde los presets de lib/tracks.ts la primera vez que se leen.
 model PipelineStage {
   id          String   @id @default(cuid())
+  userId      String
   track       String
   key         String
   label       String
@@ -129,6 +150,6 @@ model PipelineStage {
   probability Int      @default(0) // 0-100, para el forecast ponderado
   createdAt   DateTime @default(now())
 
-  @@unique([track, key])
-  @@index([track, order])
+  @@unique([userId, track, key])
+  @@index([userId, track, order])
 }

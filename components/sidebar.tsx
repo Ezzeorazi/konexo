@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { UserButton } from "@clerk/nextjs";
 import { setActiveTrack } from "@/app/(app)/configuracion/actions";
 import { getVocab, type Track } from "@/lib/tracks";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,8 @@ export function Sidebar({
   const [pending, startTransition] = useTransition();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const vocab = getVocab(activeTrack);
+  // NEXT_PUBLIC_* se inlinea en build: si no hay key, no montamos UI de Clerk.
+  const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -123,8 +126,9 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="border-t-[3px] border-sidebar-border p-4 font-hand text-sm text-sidebar-foreground/70">
-          Local-first · tus datos quedan en tu máquina 🦾
+        <div className="flex items-center justify-between gap-2 border-t-[3px] border-sidebar-border p-4 font-hand text-sm text-sidebar-foreground/70">
+          <span>Tu CRM personal 🦾</span>
+          {hasClerk ? <UserButton /> : null}
         </div>
       </>
   );

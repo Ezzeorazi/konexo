@@ -1,5 +1,7 @@
 import { Plus, FileText, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
+import { getSettingsMap } from "@/lib/settings";
 import { deleteCVVersion } from "@/app/(app)/configuracion/actions";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -23,9 +25,21 @@ import { getTrackStagesFull } from "@/lib/stages";
 export const dynamic = "force-dynamic";
 
 export default async function ConfiguracionPage() {
-  const [settings, cvVersions, enabledTracks] = await Promise.all([
-    prisma.setting.findMany(),
+  const userId = await currentUserId();
+  const [settingsMap, cvVersions, enabledTracks] = await Promise.all([
+    getSettingsMap([
+      "aiBusiness",
+      "aiSenderName",
+      "aiSenderEmail",
+      "aiSenderPhone",
+      "aiTone",
+      "aiProvider",
+      "aiApiKey",
+      "aiModel",
+      "aiBaseUrl",
+    ]),
     prisma.cVVersion.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { opportunities: true } } },
     }),
@@ -38,8 +52,6 @@ export default async function ConfiguracionPage() {
       stages: await getTrackStagesFull(track),
     }))
   );
-
-  const settingsMap = new Map(settings.map((s) => [s.key, s.value]));
 
   return (
     <div>

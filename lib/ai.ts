@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getSettingsMap } from "@/lib/settings";
 
 export const DEFAULT_MODELS: Record<string, string> = {
   groq: "llama-3.3-70b-versatile",
@@ -23,10 +23,12 @@ export type ChatMessage = {
 };
 
 export async function getAiConfig(): Promise<AiConfig> {
-  const settings = await prisma.setting.findMany({
-    where: { key: { in: ["aiProvider", "aiApiKey", "aiModel", "aiBaseUrl"] } },
-  });
-  const map = new Map(settings.map((s) => [s.key, s.value]));
+  const map = await getSettingsMap([
+    "aiProvider",
+    "aiApiKey",
+    "aiModel",
+    "aiBaseUrl",
+  ]);
   const provider = map.get("aiProvider") || "groq";
   return {
     provider,

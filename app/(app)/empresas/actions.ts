@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
 
@@ -31,8 +32,9 @@ export async function createCompany(input: CompanyInput) {
     return { ok: false as const, error: "El nombre es obligatorio." };
   }
   const track = isTrack(input.track) ? input.track : DEFAULT_TRACK;
+  const userId = await currentUserId();
   const company = await prisma.company.create({
-    data: { ...clean(input), track },
+    data: { ...clean(input), track, userId },
   });
   revalidatePath("/empresas");
   return { ok: true as const, id: company.id };
@@ -42,14 +44,22 @@ export async function updateCompany(id: string, input: CompanyInput) {
   if (!input.name?.trim()) {
     return { ok: false as const, error: "El nombre es obligatorio." };
   }
-  await prisma.company.update({ where: { id }, data: clean(input) });
+  const userId = await currentUserId();
+  const { count } = await prisma.company.updateMany({
+    where: { id, userId },
+    data: clean(input),
+  });
+  if (count === 0) {
+    return { ok: false as const, error: "No encontré la empresa." };
+  }
   revalidatePath("/empresas");
   revalidatePath(`/empresas/${id}`);
   return { ok: true as const, id };
 }
 
 export async function deleteCompany(id: string) {
-  await prisma.company.delete({ where: { id } });
+  const userId = await currentUserId();
+  await prisma.company.deleteMany({ where: { id, userId } });
   revalidatePath("/empresas");
   return { ok: true as const };
 }

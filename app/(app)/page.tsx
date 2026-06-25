@@ -9,6 +9,7 @@ import {
   Building2,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const userId = await currentUserId();
   const { track } = await getActiveTrack();
   const vocab = getVocab(track);
   const stages = await getTrackStages(track);
@@ -44,26 +46,27 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     prisma.opportunity.groupBy({
       by: ["stage"],
-      where: { track },
+      where: { userId, track },
       _count: { _all: true },
     }),
     prisma.opportunity.findMany({
-      where: { track, nextFollowUpAt: { not: null, lte: inTwoWeeks } },
+      where: { userId, track, nextFollowUpAt: { not: null, lte: inTwoWeeks } },
       orderBy: { nextFollowUpAt: "asc" },
       include: { company: { select: { name: true } } },
       take: 10,
     }),
     prisma.contact.findMany({
-      where: { track, nextFollowUpAt: { not: null, lte: inTwoWeeks } },
+      where: { userId, track, nextFollowUpAt: { not: null, lte: inTwoWeeks } },
       orderBy: { nextFollowUpAt: "asc" },
       include: { company: { select: { name: true } } },
       take: 10,
     }),
-    prisma.contact.count({ where: { track } }),
+    prisma.contact.count({ where: { userId, track } }),
     // Oportunidades/negocios activos sin ningún contacto en su empresa (o sin
     // empresa): ahí no hay puente posible para un referido / decisor todavía
     prisma.opportunity.findMany({
       where: {
+        userId,
         track,
         stage: { not: lastStageKey },
         OR: [{ companyId: null }, { company: { contacts: { none: {} } } }],
@@ -90,7 +93,7 @@ export default async function DashboardPage() {
   let wonValue = 0; // ya ganado
   if (vocab.hasValue) {
     const valued = await prisma.opportunity.findMany({
-      where: { track, value: { not: null } },
+      where: { userId, track, value: { not: null } },
       select: { value: true, stage: true },
     });
     for (const o of valued) {

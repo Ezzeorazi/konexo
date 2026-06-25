@@ -2,12 +2,10 @@
 // Crea datos temporales, imprime los ids a verificar y los borra al final con --cleanup.
 import "dotenv/config";
 import { PrismaClient } from "../lib/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const prisma = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({
-    url: process.env.DATABASE_URL ?? "file:./prisma/dev.db",
-  }),
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
 
 async function main() {
@@ -27,11 +25,12 @@ async function main() {
   console.log(`sinEmpresa=${noCompany?.id ?? "NINGUNA"}`);
 
   // Caso B: empresa sin contactos
+  const userId = process.env.DEV_USER_ID ?? "dev-user";
   const company = await prisma.company.create({
-    data: { name: "TEMP TestCo" },
+    data: { userId, name: "TEMP TestCo" },
   });
   const opp = await prisma.opportunity.create({
-    data: { title: "TEMP Verificación Panel", companyId: company.id },
+    data: { userId, title: "TEMP Verificación Panel", companyId: company.id },
   });
   console.log(`empresaSinContactos=${opp.id}`);
 }

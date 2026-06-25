@@ -9,6 +9,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import { deleteContact } from "@/app/(app)/contactos/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,8 +32,9 @@ export default async function ContactoDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const contact = await prisma.contact.findUnique({
-    where: { id },
+  const userId = await currentUserId();
+  const contact = await prisma.contact.findFirst({
+    where: { id, userId },
     include: {
       company: true,
       touchpoints: {
@@ -47,12 +49,12 @@ export default async function ContactoDetailPage({
   // Empresas y oportunidades del mismo track del contacto: no se cruzan modos.
   const [companies, opportunities] = await Promise.all([
     prisma.company.findMany({
-      where: { track: contact.track },
+      where: { userId, track: contact.track },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
     prisma.opportunity.findMany({
-      where: { track: contact.track },
+      where: { userId, track: contact.track },
       orderBy: { updatedAt: "desc" },
       select: { id: true, title: true },
     }),

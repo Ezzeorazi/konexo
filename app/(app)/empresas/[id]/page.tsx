@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil, ExternalLink } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import { deleteCompany } from "@/app/(app)/empresas/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +25,9 @@ export default async function EmpresaDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const company = await prisma.company.findUnique({
-    where: { id },
+  const userId = await currentUserId();
+  const company = await prisma.company.findFirst({
+    where: { id, userId },
     include: {
       opportunities: { orderBy: { updatedAt: "desc" } },
       contacts: { orderBy: { name: "asc" } },

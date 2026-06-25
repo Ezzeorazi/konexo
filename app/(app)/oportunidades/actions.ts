@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
+import { track as trackEvent } from "@/lib/analytics";
+import { maybeTrackActivation } from "@/lib/activation";
 import { generateAiText } from "@/lib/ai";
 import { parseDateInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
@@ -52,9 +55,12 @@ export async function createOpportunity(input: OpportunityInput) {
     return { ok: false as const, error: "El título es obligatorio." };
   }
   const track = isTrack(input.track) ? input.track : DEFAULT_TRACK;
+  const userId = await currentUserId();
   const opportunity = await prisma.opportunity.create({
-    data: { ...clean(input), track },
+    data: { ...clean(input), track, userId },
   });
+  await trackEvent(userId, "opportunity_created", { track });
+  await maybeTrackActivation(userId);
   revalidatePath("/oportunidades");
   return { ok: true as const, id: opportunity.id };
 }
@@ -63,21 +69,30 @@ export async function updateOpportunity(id: string, input: OpportunityInput) {
   if (!input.title?.trim()) {
     return { ok: false as const, error: "El título es obligatorio." };
   }
-  await prisma.opportunity.update({ where: { id }, data: clean(input) });
+  const userId = await currentUserId();
+  const { count } = await prisma.opportunity.updateMany({
+    where: { id, userId },
+    data: clean(input),
+  });
+  if (count === 0) {
+    return { ok: false as const, error: "No encontré la oportunidad." };
+  }
   revalidatePath("/oportunidades");
   revalidatePath(`/oportunidades/${id}`);
   return { ok: true as const, id };
 }
 
 export async function deleteOpportunity(id: string) {
-  await prisma.opportunity.delete({ where: { id } });
+  const userId = await currentUserId();
+  await prisma.opportunity.deleteMany({ where: { id, userId } });
   revalidatePath("/oportunidades");
   return { ok: true as const };
 }
 
 export async function tailorCv(opportunityId: string) {
-  const opportunity = await prisma.opportunity.findUnique({
-    where: { id: opportunityId },
+  const userId = await currentUserId();
+  const opportunity = await prisma.opportunity.findFirst({
+    where: { id: opportunityId, userId },
     include: { company: true, cvVersion: true },
   });
   if (!opportunity) {
@@ -119,16 +134,17 @@ export async function tailorCv(opportunityId: string) {
 }
 
 export async function updateOpportunityStage(id: string, stage: string) {
+  const userId = await currentUserId();
   const data: { stage: string; appliedAt?: Date } = { stage };
   // Si pasa a Aplicada y no tenía fecha, la marcamos ahora (solo búsqueda laboral).
   if (stage === "APPLIED") {
-    const current = await prisma.opportunity.findUnique({
-      where: { id },
+    const current = await prisma.opportunity.findFirst({
+      where: { id, userId },
       select: { appliedAt: true },
     });
     if (current && !current.appliedAt) data.appliedAt = new Date();
   }
-  await prisma.opportunity.update({ where: { id }, data });
+  await prisma.opportunity.updateMany({ where: { id, userId }, data });
   revalidatePath("/oportunidades");
   revalidatePath(`/oportunidades/${id}`);
   return { ok: true as const };

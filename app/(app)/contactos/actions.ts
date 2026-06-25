@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
+import { track as trackEvent } from "@/lib/analytics";
+import { maybeTrackActivation } from "@/lib/activation";
 import { parseDateInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
@@ -42,8 +45,9 @@ export async function createContact(input: ContactInput) {
     return { ok: false as const, error: "El nombre es obligatorio." };
   }
   const track = isTrack(input.track) ? input.track : DEFAULT_TRACK;
+  const userId = await currentUserId();
   const contact = await prisma.contact.create({
-    data: { ...clean(input), track },
+    data: { ...clean(input), track, userId },
   });
   revalidatePath("/contactos");
   return { ok: true as const, id: contact.id };
@@ -53,14 +57,22 @@ export async function updateContact(id: string, input: ContactInput) {
   if (!input.name?.trim()) {
     return { ok: false as const, error: "El nombre es obligatorio." };
   }
-  await prisma.contact.update({ where: { id }, data: clean(input) });
+  const userId = await currentUserId();
+  const { count } = await prisma.contact.updateMany({
+    where: { id, userId },
+    data: clean(input),
+  });
+  if (count === 0) {
+    return { ok: false as const, error: "No encontré el contacto." };
+  }
   revalidatePath("/contactos");
   revalidatePath(`/contactos/${id}`);
   return { ok: true as const, id };
 }
 
 export async function deleteContact(id: string) {
-  await prisma.contact.delete({ where: { id } });
+  const userId = await currentUserId();
+  await prisma.contact.deleteMany({ where: { id, userId } });
   revalidatePath("/contactos");
   return { ok: true as const };
 }
@@ -80,8 +92,25 @@ export async function createTouchpoint(input: TouchpointInput) {
       error: "El touchpoint tiene que estar ligado a un contacto o a una oportunidad.",
     };
   }
+  const userId = await currentUserId();
+  // Solo se puede ligar a entidades propias.
+  if (input.contactId) {
+    const owned = await prisma.contact.count({
+      where: { id: input.contactId, userId },
+    });
+    if (owned === 0)
+      return { ok: false as const, error: "No encontré ese contacto." };
+  }
+  if (input.opportunityId) {
+    const owned = await prisma.opportunity.count({
+      where: { id: input.opportunityId, userId },
+    });
+    if (owned === 0)
+      return { ok: false as const, error: "No encontré esa oportunidad." };
+  }
   await prisma.touchpoint.create({
     data: {
+      userId,
       type: input.type,
       note: input.note?.trim() || null,
       occurredAt: parseDateInput(input.occurredAt) ?? new Date(),
@@ -89,6 +118,8 @@ export async function createTouchpoint(input: TouchpointInput) {
       opportunityId: input.opportunityId || null,
     },
   });
+  await trackEvent(userId, "followup_completed", { type: input.type });
+  await maybeTrackActivation(userId);
   if (input.contactId) revalidatePath(`/contactos/${input.contactId}`);
   if (input.opportunityId)
     revalidatePath(`/oportunidades/${input.opportunityId}`);

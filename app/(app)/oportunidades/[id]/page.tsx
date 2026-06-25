@@ -10,6 +10,7 @@ import {
   FileText,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import { deleteOpportunity } from "@/app/(app)/oportunidades/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,8 +50,9 @@ export default async function OportunidadDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const opportunity = await prisma.opportunity.findUnique({
-    where: { id },
+  const userId = await currentUserId();
+  const opportunity = await prisma.opportunity.findFirst({
+    where: { id, userId },
     include: {
       company: { include: { contacts: true } },
       cvVersion: true,
@@ -68,11 +70,12 @@ export default async function OportunidadDetailPage({
   // Empresas filtradas por el track de la oportunidad: no se cruzan modos.
   const [companies, cvVersions, stages] = await Promise.all([
     prisma.company.findMany({
-      where: { track },
+      where: { userId, track },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
     prisma.cVVersion.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
       select: { id: true, label: true },
     }),

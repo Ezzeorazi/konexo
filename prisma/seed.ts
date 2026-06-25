@@ -1,11 +1,13 @@
 import "dotenv/config";
 import { PrismaClient } from "../lib/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? "file:./prisma/dev.db",
-});
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
+
+// El seed local pertenece al usuario-dev (ver lib/auth.ts). Cuando entre Clerk,
+// los datos reales se crean con el userId de la sesión.
+const userId = process.env.DEV_USER_ID ?? "dev-user";
 
 const daysFromNow = (days: number) => {
   const d = new Date();
@@ -22,6 +24,7 @@ async function main() {
 
   const cv = await prisma.cVVersion.create({
     data: {
+      userId,
       label: "CV General 2026",
       fileName: "cv-ezequiel-2026.pdf",
       notes: "Versión base, enfoque full-stack.",
@@ -30,6 +33,7 @@ async function main() {
 
   const mercadoLibre = await prisma.company.create({
     data: {
+      userId,
       name: "Mercado Libre",
       website: "https://careers.mercadolibre.com",
       location: "Buenos Aires, Argentina",
@@ -41,6 +45,7 @@ async function main() {
 
   const vercana = await prisma.company.create({
     data: {
+      userId,
       name: "Vercana Labs",
       website: "https://vercanalabs.example.com",
       location: "Remoto (LATAM)",
@@ -51,6 +56,7 @@ async function main() {
 
   const lucia = await prisma.contact.create({
     data: {
+      userId,
       name: "Lucía Fernández",
       role: "Engineering Manager",
       companyId: mercadoLibre.id,
@@ -66,6 +72,7 @@ async function main() {
   // de relación en el panel de referidos
   await prisma.contact.create({
     data: {
+      userId,
       name: "Diego Paz",
       role: "Talent Sourcer",
       companyId: mercadoLibre.id,
@@ -77,6 +84,7 @@ async function main() {
 
   const marcos = await prisma.contact.create({
     data: {
+      userId,
       name: "Marcos Oliveira",
       role: "Tech Recruiter",
       companyId: vercana.id,
@@ -88,6 +96,7 @@ async function main() {
 
   const oppMeli = await prisma.opportunity.create({
     data: {
+      userId,
       title: "Backend Engineer Ssr",
       companyId: mercadoLibre.id,
       stage: "INTERVIEW",
@@ -106,6 +115,7 @@ async function main() {
 
   const oppVercana = await prisma.opportunity.create({
     data: {
+      userId,
       title: "Full-stack Developer (Next.js)",
       companyId: vercana.id,
       stage: "APPLIED",
@@ -122,6 +132,7 @@ async function main() {
 
   await prisma.opportunity.create({
     data: {
+      userId,
       title: "Frontend Engineer",
       stage: "SAVED",
       url: "https://example.com/jobs/frontend",
@@ -133,6 +144,7 @@ async function main() {
 
   await prisma.touchpoint.create({
     data: {
+      userId,
       type: "REFERRAL_ASK",
       note: "Le pedí a Lucía que me refiera para la posición de backend. Dijo que sí, lo carga esta semana.",
       occurredAt: daysFromNow(-5),
@@ -143,6 +155,7 @@ async function main() {
 
   await prisma.touchpoint.create({
     data: {
+      userId,
       type: "LINKEDIN",
       note: "Mensaje inicial de Marcos con la propuesta. Le respondí con mi CV.",
       occurredAt: daysFromNow(-4),
@@ -153,6 +166,7 @@ async function main() {
 
   await prisma.touchpoint.create({
     data: {
+      userId,
       type: "MEETING",
       note: "Entrevista técnica con el equipo de pagos. Salió bien.",
       occurredAt: daysFromNow(-2),

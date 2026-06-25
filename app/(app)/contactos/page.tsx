@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,15 +20,16 @@ import { getActiveTrack } from "@/lib/active-track";
 export const dynamic = "force-dynamic";
 
 export default async function ContactosPage() {
+  const userId = await currentUserId();
   const { track } = await getActiveTrack();
   const [contacts, companies] = await Promise.all([
     prisma.contact.findMany({
-      where: { track },
+      where: { userId, track },
       orderBy: { name: "asc" },
       include: { company: true },
     }),
     prisma.company.findMany({
-      where: { track },
+      where: { userId, track },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),

@@ -6,6 +6,8 @@
 // Las Server Actions que lo usan viven en actions.ts y agent-actions.ts.
 
 import { prisma } from "@/lib/prisma";
+import { currentUserId } from "@/lib/auth";
+import { getSettingsMap } from "@/lib/settings";
 import { getActiveTrack } from "@/lib/active-track";
 import { getVocab, type StageDef, type Track, type TrackVocab } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
@@ -85,6 +87,7 @@ export function profilePromptBlock(p: BusinessProfile): string {
 /** Una sola foto del embudo del track activo, lista para alimentar a la IA. */
 export async function gatherPipeline(): Promise<PipelineData> {
   const now = new Date();
+  const userId = await currentUserId();
   const { track } = await getActiveTrack();
   const vocab = getVocab(track);
   const stages = await getTrackStages(track);
@@ -92,10 +95,10 @@ export async function gatherPipeline(): Promise<PipelineData> {
   const labelOf = (key: string) => stageByKey.get(key)?.label ?? key;
   const openKeys = stages.filter((s) => s.type === "open").map((s) => s.key);
 
-  const [opportunities, contacts, companyCount, stageGroups, valued, profileRows] =
+  const [opportunities, contacts, companyCount, stageGroups, valued, profileMap] =
     await Promise.all([
       prisma.opportunity.findMany({
-        where: { track, stage: { in: openKeys } },
+        where: { userId, track, stage: { in: openKeys } },
         orderBy: [{ nextFollowUpAt: "asc" }, { updatedAt: "desc" }],
         take: 40,
         select: {
@@ -125,7 +128,7 @@ export async function gatherPipeline(): Promise<PipelineData> {
         },
       }),
       prisma.contact.findMany({
-        where: { track },
+        where: { userId, track },
         orderBy: { updatedAt: "desc" },
         take: 40,
         select: {
@@ -136,25 +139,21 @@ export async function gatherPipeline(): Promise<PipelineData> {
           company: { select: { name: true } },
         },
       }),
-      prisma.company.count({ where: { track } }),
+      prisma.company.count({ where: { userId, track } }),
       prisma.opportunity.groupBy({
         by: ["stage"],
-        where: { track },
+        where: { userId, track },
         _count: { _all: true },
       }),
       vocab.hasValue
         ? prisma.opportunity.findMany({
-            where: { track, value: { not: null } },
+            where: { userId, track, value: { not: null } },
             select: { value: true, stage: true },
           })
         : Promise.resolve([] as { value: number | null; stage: string }[]),
-      prisma.setting.findMany({
-        where: { key: { in: [...BUSINESS_PROFILE_KEYS] } },
-        select: { key: true, value: true },
-      }),
+      getSettingsMap([...BUSINESS_PROFILE_KEYS]),
     ]);
 
-  const profileMap = new Map(profileRows.map((r) => [r.key, r.value]));
   const profile: BusinessProfile = {
     business: profileMap.get("aiBusiness") ?? "",
     senderName: profileMap.get("aiSenderName") ?? "",
