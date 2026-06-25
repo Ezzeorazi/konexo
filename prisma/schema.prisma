@@ -127,6 +127,15 @@ model CVVersion {
   @@index([userId])
 }
 
+// Captura de emails de la landing (lead magnet / señal de demanda). No está
+// scopeada por usuario: son leads anónimos previos al signup.
+model WaitlistSignup {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String? // de dónde vino (ej. "hero", "cta-final")
+  createdAt DateTime @default(now())
+}
+
 model Setting {
   id     String @id @default(cuid())
   userId String

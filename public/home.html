@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Konexo — Un pipeline, cualquier misión</title>
-<meta name="description" content="El CRM personal local-first para cerrar lo que importa: trabajos, clientes, propiedades, inversores o candidatos. Incluye un equipo de agentes de IA gratis que califica tu embudo y redacta los borradores por vos. Un mismo motor de pipeline, vestido para tu misión.">
+<title>Konexo — Organizá tu búsqueda de empleo como un pipeline</title>
+<meta name="description" content="Konexo organiza tu búsqueda laboral como un pipeline: postulaciones, entrevistas y referidos panel por panel. Nunca más se te escapa un follow-up. Gratis para empezar — y cuando consigas el laburo, crece con vos (ventas, freelance y más).">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&family=Archivo+Black&display=swap" rel="stylesheet">
@@ -225,26 +225,35 @@ tailwind.config = {
     <!-- Title block -->
     <div class="md:col-span-7 relative z-10">
       <div class="inline-block bg-ink text-paper font-bangers text-lg md:text-xl tracking-widest px-4 py-1 rotate-[-2deg] mb-5 reveal" data-anim="rip">
-        TU CRM PERSONAL · NIVEL HÉROE
+        TU BÚSQUEDA DE EMPLEO · NIVEL HÉROE
       </div>
       <h1 class="font-bangers leading-[0.92] text-6xl md:text-8xl lg:text-9xl text-komic stroke-ink reveal" data-anim="pop">
-        UN PIPELINE.<br>
-        <span class="text-alarm">CUALQUIER</span><br>
-        MISIÓN.
+        TU BÚSQUEDA<br>
+        <span class="text-alarm">DE EMPLEO,</span><br>
+        NIVEL HÉROE.
       </h1>
       <p class="mt-7 text-2xl md:text-3xl max-w-xl leading-snug reveal" data-anim="rip" data-delay="150">
-        Konexo convierte el caos de a quién perseguir, qué decir y cuándo seguir en un plan de ataque panel por panel. ¿Buscás trabajo o cerrás ventas? El mismo motor, vestido para tu misión.
+        Postulaciones, entrevistas y referidos en un plan de ataque panel por panel. Konexo te dice a quién seguir y cuándo — <b>nunca más se te escapa un follow-up</b>.
       </p>
-      <div class="mt-8 flex flex-wrap gap-4 reveal" data-anim="pop" data-delay="300">
-        <a href="/" target="_top" class="btn-comic font-bangers text-2xl md:text-3xl tracking-wider bg-alarm text-paper border-4 border-ink px-7 py-3 rough" style="box-shadow:6px 6px 0 var(--ink)">
-          ¡CREA TU CUENTA GRATIS!
+
+      <!-- Captura de email (lead magnet) -->
+      <form id="waitlist-form" data-source="hero" class="mt-8 flex flex-col sm:flex-row gap-3 max-w-lg reveal" data-anim="pop" data-delay="300">
+        <input type="email" name="email" required placeholder="tu@email.com" aria-label="Tu email"
+          class="flex-1 font-hand text-xl bg-white border-4 border-ink px-4 py-3 rough placeholder:text-ink/40 focus:outline-none" style="box-shadow:4px 4px 0 var(--ink)">
+        <button type="submit" class="btn-comic font-bangers text-xl md:text-2xl tracking-wider bg-alarm text-paper border-4 border-ink px-6 py-3 rough-2 whitespace-nowrap" style="box-shadow:5px 5px 0 var(--ink)">
+          ¡QUIERO ENTRAR!
+        </button>
+      </form>
+      <p id="waitlist-msg" class="mt-3 font-bangers tracking-wide text-lg hidden"></p>
+
+      <div class="mt-4 flex flex-wrap items-center gap-3 reveal" data-anim="rip" data-delay="380">
+        <a href="/" target="_top" class="btn-comic font-bangers text-xl tracking-wider bg-komic border-4 border-ink px-5 py-2 rough">
+          O CREÁ TU CUENTA GRATIS →
         </a>
-        <a href="#misiones" class="btn-comic font-bangers text-2xl md:text-3xl tracking-wider bg-panelw border-4 border-ink px-7 py-3 rough-2" style="box-shadow:6px 6px 0 var(--ink)">
-          ELEGIR MISIÓN
-        </a>
+        <span class="font-bangers tracking-wide text-base text-ink/70">SIN TARJETA · GRATIS PARA EMPEZAR</span>
       </div>
-      <p class="mt-5 font-bangers tracking-wide text-lg text-ink/70 reveal" data-anim="rip" data-delay="380">
-        🦾 LOCAL-FIRST · TUS DATOS QUEDAN EN TU MÁQUINA
+      <p class="mt-5 font-hand text-xl text-ink/70 reveal" data-anim="rip" data-delay="420">
+        🦾 ¿Ya conseguiste el laburo? Konexo <b>crece con vos</b>: ventas, freelance y más.
       </p>
     </div>
 
@@ -308,10 +317,10 @@ tailwind.config = {
 <section id="misiones" class="halftone bg-paper relative">
   <div class="max-w-6xl mx-auto px-4 py-20">
     <h2 class="font-bangers text-5xl md:text-7xl text-center stroke-ink text-hero mb-3 reveal" data-anim="pop">
-      ELEGÍ TU MISIÓN
+      Y CRECE CON VOS
     </h2>
     <p class="text-center text-2xl max-w-2xl mx-auto mb-14 reveal" data-anim="rip">
-      El mismo motor de pipeline, vestido para lo que estés cerrando. Los <b>6 modos ya corren</b> — el tablero, los seguimientos y los contactos son los mismos. Y cada misión trae su <b>Escuadrón IA</b>, afinado para ese terreno.
+      Empezás ordenando tu <b>búsqueda de empleo</b>. El día que arranques a vender, freelancear o levantar una ronda, el <b>mismo motor</b> ya está listo: solo cambiás de modo. <b>6 modos ya corren</b>, cada uno con su Escuadrón IA.
     </p>
 
     <div class="grid md:grid-cols-3 gap-x-8 gap-y-10">
@@ -600,12 +609,12 @@ tailwind.config = {
       EL PRÓXIMO CAPÍTULO<br>LO ESCRIBÍS VOS
     </h2>
     <p class="text-2xl md:text-3xl text-paper max-w-2xl mx-auto mb-10 reveal" data-anim="rip">
-      Creá tu cuenta, elegí tu misión y tomá el control de tu pipeline hoy mismo.
+      Creá tu cuenta gratis y tomá el control de tu búsqueda hoy mismo.
     </p>
     <a href="/" target="_top" class="btn-comic inline-block font-bangers text-3xl md:text-4xl tracking-wider bg-komic text-ink border-4 border-ink px-10 py-4 rough reveal" data-anim="pop" data-delay="150" style="box-shadow:7px 7px 0 var(--ink)">
       ¡EMPEZAR CON KONEXO! →
     </a>
-    <p class="mt-6 text-xl text-paper/90 reveal" data-anim="rip" data-delay="250">Sin tarjeta. Sin spam. Local-first: tus datos quedan en tu máquina.</p>
+    <p class="mt-6 text-xl text-paper/90 reveal" data-anim="rip" data-delay="250">Sin tarjeta. Sin spam. Tus datos, privados.</p>
   </div>
   <div class="torn"></div>
 </section>
@@ -642,6 +651,43 @@ tailwind.config = {
       });
     }, { threshold: 0.15 });
     els.forEach(el => io.observe(el));
+  }
+</script>
+
+<script>
+  // Captura de email → /api/waitlist (ruta pública). Muestra feedback inline.
+  const wlForm = document.getElementById('waitlist-form');
+  if (wlForm) {
+    const msg = document.getElementById('waitlist-msg');
+    wlForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = wlForm.email.value.trim();
+      const btn = wlForm.querySelector('button');
+      btn.disabled = true;
+      const show = (text, ok) => {
+        msg.textContent = text;
+        msg.classList.remove('hidden', 'text-hero', 'text-alarm');
+        msg.classList.add(ok ? 'text-hero' : 'text-alarm');
+      };
+      try {
+        const res = await fetch('/api/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, source: wlForm.dataset.source || 'landing' }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          show('¡Listo! Te avisamos. Mientras, podés crear tu cuenta gratis. 🚀', true);
+          wlForm.reset();
+        } else {
+          show(data.error || 'Algo salió mal. Probá de nuevo.', false);
+        }
+      } catch {
+        show('No pudimos conectar. Probá de nuevo.', false);
+      } finally {
+        btn.disabled = false;
+      }
+    });
   }
 </script>
 </body>

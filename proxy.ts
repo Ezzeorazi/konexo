@@ -12,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   "/para(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/api/waitlist",
 ]);
 
 const proxy = process.env.CLERK_SECRET_KEY
