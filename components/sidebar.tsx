@@ -36,7 +36,7 @@ export function Sidebar({
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/oportunidades", label: vocab.oppPlural, icon: KanbanSquare },
     { href: "/empresas", label: vocab.companyPlural, icon: Building2 },
     { href: "/contactos", label: "Contactos", icon: Users },
@@ -93,7 +93,7 @@ export function Sidebar({
         <nav className="flex flex-1 flex-col gap-1.5 p-3">
           {navItems.map(({ href, label, icon: Icon }) => {
             const active =
-              href === "/" ? pathname === "/" : pathname.startsWith(href);
+              pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
                 key={href}
@@ -134,7 +134,7 @@ export function Sidebar({
   );
 
   const logo = (
-    <Link href="/" className="flex items-center gap-2" onClick={() => setDrawerOpen(false)}>
+    <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setDrawerOpen(false)}>
       <span className="flex size-9 rotate-[-4deg] items-center justify-center rounded-md border-[2.5px] border-paper bg-komic font-display text-2xl text-ink shadow-[3px_3px_0_var(--color-paper)]">
         K
       </span>

@@ -11,7 +11,7 @@ import { StageSchema, firstZodError } from "@/lib/validation";
 function revalidateStages() {
   revalidatePath("/configuracion");
   revalidatePath("/oportunidades");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
 }
 
 const TYPES: StageType[] = ["open", "won", "lost"];

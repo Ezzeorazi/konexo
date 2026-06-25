@@ -24,13 +24,11 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 const proxy = process.env.CLERK_SECRET_KEY || IS_PRODUCTION
   ? clerkMiddleware(async (auth, req) => {
-      // Puerta de calle: el visitante anónimo en "/" ve la landing, no el login.
-      // El usuario logueado en "/" sigue viendo su dashboard.
+      // La raíz "/" es la puerta de calle: siempre muestra la landing. El
+      // dashboard vive en "/dashboard" (ruta propia). Redirigimos antes de
+      // auth.protect() para que el visitante anónimo vea la landing, no el login.
       if (req.nextUrl.pathname === "/") {
-        const { userId } = await auth();
-        if (!userId) {
-          return NextResponse.redirect(new URL("/home", req.url));
-        }
+        return NextResponse.redirect(new URL("/home", req.url));
       }
       if (!isPublicRoute(req)) {
         await auth.protect();

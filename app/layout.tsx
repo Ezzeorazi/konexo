@@ -47,7 +47,11 @@ export default function RootLayout({
     >
       <body className="min-h-full">
         {hasClerk ? (
-          <ClerkProvider afterSignOutUrl="/home">
+          <ClerkProvider
+            afterSignOutUrl="/home"
+            signInFallbackRedirectUrl="/dashboard"
+            signUpFallbackRedirectUrl="/dashboard"
+          >
             <PostHogProvider>{children}</PostHogProvider>
           </ClerkProvider>
         ) : (
