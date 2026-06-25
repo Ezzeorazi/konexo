@@ -43,3 +43,14 @@ export const touchpointTypeLabels: Record<TouchpointType, string> = {
   REFERRAL_ASK: "Pedido de referido",
   NOTE: "Nota",
 };
+
+// Bitácora de ejecución del proyecto (track con hasDelivery). No es un enum de
+// Prisma: el campo `kind` es String, lo acotamos acá y en validation.ts.
+export type ProjectNoteKind = "idea" | "avance";
+
+export const PROJECT_NOTE_KINDS: ProjectNoteKind[] = ["idea", "avance"];
+
+export const projectNoteKindLabels: Record<ProjectNoteKind, string> = {
+  idea: "Idea",
+  avance: "Avance",
+};

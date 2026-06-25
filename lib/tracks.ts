@@ -64,6 +64,10 @@ export type TrackVocab = {
   /** Solo búsqueda laboral usa versiones de CV + adaptación con IA. */
   usesCv: boolean;
 
+  /** ¿El proyecto tiene una fase de EJECUCIÓN con bitácora (ideas/avances) y
+   * checklist de tareas? Distinto del embudo comercial. Hoy solo freelance. */
+  hasDelivery: boolean;
+
   descriptionLabel: string;
   descriptionPlaceholder: string;
   firstDateLabel: string;
@@ -95,6 +99,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     valueLabel: "Rango salarial",
     valuePlaceholder: "Ej.: USD 3.000 - 4.000",
     usesCv: true,
+    hasDelivery: false,
     descriptionLabel: "Descripción del puesto",
     descriptionPlaceholder: "Pegá acá la descripción del aviso...",
     firstDateLabel: "Fecha de aplicación",
@@ -126,6 +131,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     valueLabel: "Monto del negocio",
     valuePlaceholder: "Ej.: 15000",
     usesCv: false,
+    hasDelivery: false,
     descriptionLabel: "Necesidad / contexto",
     descriptionPlaceholder:
       "Qué necesita el prospecto, dolor que resolvés, presupuesto...",
@@ -159,6 +165,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     valueLabel: "Valor de la propiedad",
     valuePlaceholder: "Ej.: 120000",
     usesCv: false,
+    hasDelivery: false,
     descriptionLabel: "Ficha de la propiedad",
     descriptionPlaceholder:
       "Tipo, ubicación, m², ambientes, condiciones, expensas...",
@@ -191,6 +198,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     valueLabel: "Monto del proyecto",
     valuePlaceholder: "Ej.: 2500",
     usesCv: false,
+    hasDelivery: true,
     descriptionLabel: "Alcance del trabajo",
     descriptionPlaceholder:
       "Qué pide el cliente, entregables, plazos, presupuesto...",
@@ -223,6 +231,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     valueLabel: "Ticket potencial",
     valuePlaceholder: "Ej.: 250000",
     usesCv: false,
+    hasDelivery: false,
     descriptionLabel: "Tesis / fit",
     descriptionPlaceholder:
       "Por qué encaja, tesis del fondo, tickets típicos, intros...",
@@ -255,6 +264,7 @@ const VOCAB: Record<Track, TrackVocab> = {
     valueLabel: "Pretensión salarial",
     valuePlaceholder: "Ej.: USD 4.000",
     usesCv: false,
+    hasDelivery: false,
     descriptionLabel: "Perfil de la búsqueda",
     descriptionPlaceholder: "Seniority, stack, must-haves, rango, modalidad...",
     firstDateLabel: "Primer contacto",

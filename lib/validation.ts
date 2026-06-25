@@ -82,6 +82,22 @@ export const TouchpointSchema = z.object({
   opportunityId: optionalId,
 });
 
+export const ProjectNoteSchema = z.object({
+  opportunityId: requiredText(64),
+  kind: z.enum(["idea", "avance"]),
+  body: requiredText(20000),
+});
+
+export const ProjectNoteUpdateSchema = z.object({
+  kind: z.enum(["idea", "avance"]),
+  body: requiredText(20000),
+});
+
+export const ProjectTaskSchema = z.object({
+  opportunityId: requiredText(64),
+  title: requiredText(300),
+});
+
 export const StageSchema = z.object({
   label: requiredText(120),
   type: z.string().max(20),

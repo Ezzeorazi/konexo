@@ -12,7 +12,12 @@ import { getActiveTrack } from "@/lib/active-track";
 import { getVocab, type StageDef, type Track, type TrackVocab } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
 import { relationshipStrengthLabels } from "@/lib/labels";
-import { priorityLabels, touchpointTypeLabels } from "@/lib/labels";
+import {
+  priorityLabels,
+  touchpointTypeLabels,
+  projectNoteKindLabels,
+  type ProjectNoteKind,
+} from "@/lib/labels";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 export const money = (n: number) =>
@@ -22,6 +27,14 @@ export type PipelineContact = {
   name: string;
   role: string | null;
   strength: string;
+};
+
+/** Estado de EJECUCIÓN del proyecto (solo tracks con hasDelivery). */
+export type PipelineDelivery = {
+  tasksDone: number;
+  tasksTotal: number;
+  pendingTasks: string[];
+  notes: { kind: string; body: string }[];
 };
 
 export type PipelineOpportunity = {
@@ -36,6 +49,7 @@ export type PipelineOpportunity = {
   description: string | null;
   lastTouch: string | null;
   contacts: PipelineContact[];
+  delivery: PipelineDelivery | null;
 };
 
 /** Quién sos, qué vendés y cómo querés que la IA escriba. Editable en Configuración. */
@@ -68,6 +82,28 @@ export type PipelineData = {
   counts: { opps: number; companies: number; contacts: number };
   profile: BusinessProfile;
 };
+
+/** Resume el estado de ejecución del proyecto en una línea para la IA. "" si no hay nada. */
+export function deliveryBrief(d: PipelineDelivery | null): string {
+  if (!d || (d.tasksTotal === 0 && d.notes.length === 0)) return "";
+  const parts: string[] = [];
+  if (d.tasksTotal > 0) {
+    parts.push(`tareas: ${d.tasksDone}/${d.tasksTotal} hechas`);
+    if (d.pendingTasks.length)
+      parts.push(`pendientes: ${d.pendingTasks.slice(0, 5).join(", ")}`);
+  }
+  if (d.notes.length)
+    parts.push(
+      `bitácora reciente: ${d.notes
+        .slice(0, 3)
+        .map(
+          (n) =>
+            `[${projectNoteKindLabels[n.kind as ProjectNoteKind] ?? n.kind}] ${n.body.slice(0, 140)}`
+        )
+        .join(" · ")}`
+    );
+  return parts.join(" · ");
+}
 
 /** Bloque de texto con el perfil, para inyectar en cualquier prompt. "" si está vacío. */
 export function profilePromptBlock(p: BusinessProfile): string {
@@ -124,6 +160,16 @@ export async function gatherPipeline(): Promise<PipelineData> {
             orderBy: { occurredAt: "desc" },
             take: 1,
             select: { type: true, note: true, occurredAt: true },
+          },
+          projectTasks: {
+            orderBy: [{ done: "asc" }, { order: "asc" }],
+            take: 50,
+            select: { title: true, done: true },
+          },
+          projectNotes: {
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: { kind: true, body: true },
           },
         },
       }),
@@ -202,6 +248,16 @@ export async function gatherPipeline(): Promise<PipelineData> {
     const lastTouch = last
       ? `${touchpointTypeLabels[last.type]} (${iso(last.occurredAt)})${last.note ? `: ${last.note}` : ""}`
       : null;
+    const delivery: PipelineDelivery | null = vocab.hasDelivery
+      ? {
+          tasksTotal: o.projectTasks.length,
+          tasksDone: o.projectTasks.filter((t) => t.done).length,
+          pendingTasks: o.projectTasks
+            .filter((t) => !t.done)
+            .map((t) => t.title),
+          notes: o.projectNotes.map((n) => ({ kind: n.kind, body: n.body })),
+        }
+      : null;
     return {
       title: o.title,
       company: o.company?.name ?? null,
@@ -214,6 +270,7 @@ export async function gatherPipeline(): Promise<PipelineData> {
       description: o.jobDescription,
       lastTouch,
       contacts,
+      delivery,
     };
   });
 
@@ -276,6 +333,8 @@ export function buildChatSystemPrompt(data: PipelineData): string {
     } else {
       parts.push("sin follow-up agendado");
     }
+    const delivery = deliveryBrief(o.delivery);
+    if (delivery) parts.push(delivery);
     return parts.join(" · ");
   });
 

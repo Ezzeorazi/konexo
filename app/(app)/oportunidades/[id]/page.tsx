@@ -28,6 +28,7 @@ import {
 } from "@/components/badges";
 import { OpportunityDialog } from "@/components/oportunidades/opportunity-dialog";
 import { CvTailorCard } from "@/components/oportunidades/cv-tailor-card";
+import { ProjectTracker } from "@/components/oportunidades/project-tracker";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
 import { ContactDialog } from "@/components/contactos/contact-dialog";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
@@ -60,6 +61,8 @@ export default async function OportunidadDetailPage({
         orderBy: { occurredAt: "desc" },
         include: { contact: { select: { id: true, name: true } } },
       },
+      projectNotes: { orderBy: { createdAt: "desc" } },
+      projectTasks: { orderBy: [{ done: "asc" }, { order: "asc" }] },
     },
   });
 
@@ -388,6 +391,23 @@ export default async function OportunidadDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {vocab.hasDelivery ? (
+        <ProjectTracker
+          opportunityId={opportunity.id}
+          tasks={opportunity.projectTasks.map((t) => ({
+            id: t.id,
+            title: t.title,
+            done: t.done,
+          }))}
+          notes={opportunity.projectNotes.map((n) => ({
+            id: n.id,
+            kind: n.kind,
+            body: n.body,
+            createdAt: n.createdAt,
+          }))}
+        />
+      ) : null}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import { getAgentPlaybook } from "@/lib/agent-playbooks";
 import {
   money,
   profilePromptBlock,
+  deliveryBrief,
   type PipelineData,
   type PipelineOpportunity,
 } from "@/app/(app)/asistente/pipeline";
@@ -113,6 +114,8 @@ function oppToBrief(o: PipelineOpportunity, vocabHasValue: boolean): string {
       : "sin contacto identificado"
   );
   if (o.lastTouch) parts.push(`último toque: ${o.lastTouch}`);
+  const delivery = deliveryBrief(o.delivery);
+  if (delivery) parts.push(`ejecución → ${delivery}`);
   if (o.description) parts.push(`contexto: ${o.description.slice(0, 280)}`);
   return parts.join(" · ");
 }
@@ -201,6 +204,7 @@ async function runRedactor(
       ? `Contacto: ${contact.name}${contact.role ? `, ${contact.role}` : ""} (vínculo ${contact.strength})`
       : "Sin contacto identificado todavía.",
     opp.lastTouch ? `Último toque: ${opp.lastTouch}` : "Sin interacciones registradas.",
+    deliveryBrief(opp.delivery) ? `Estado de ejecución: ${deliveryBrief(opp.delivery)}` : "",
     opp.description ? `Contexto: ${opp.description.slice(0, 400)}` : "",
     `El calificador dijo: ${q.reason}. Próximo paso sugerido: ${q.nextAction}.`,
     "",
