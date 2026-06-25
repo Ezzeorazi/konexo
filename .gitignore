@@ -38,6 +38,9 @@ yarn-error.log*
 /prisma/dev.db
 /prisma/dev.db-journal
 
+# backups locales de la base (pueden contener datos reales)
+/backups
+
 # vercel
 .vercel
 

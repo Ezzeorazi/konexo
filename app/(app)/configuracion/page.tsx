@@ -1,10 +1,10 @@
-import { Plus, FileText, Pencil } from "lucide-react";
+import { Plus, FileText, Pencil, Download } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import { getSettingsMap } from "@/lib/settings";
 import { deleteCVVersion } from "@/app/(app)/configuracion/actions";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -207,6 +207,29 @@ export default async function ConfiguracionPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-6 h-fit">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <CardTitle className="text-base">Mis datos</CardTitle>
+              <CardDescription className="mt-1.5">
+                Descargá una copia de todo lo tuyo (empresas, oportunidades,
+                contactos, seguimientos, CVs y configuración) en un único archivo
+                JSON. Es tuyo: guardalo donde quieras como respaldo.
+              </CardDescription>
+            </div>
+            <a
+              href="/api/export"
+              download
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <Download className="size-4" />
+              Exportar a JSON
+            </a>
+          </div>
+        </CardHeader>
+      </Card>
     </div>
   );
 }
