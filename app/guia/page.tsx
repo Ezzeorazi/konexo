@@ -156,27 +156,107 @@ const SECTIONS: Section[] = [
     id: "ia",
     title: "7 · La IA de tu lado",
     body: (
-      <ul className="space-y-3">
-        <li>
-          <b>Adaptar CV</b> (modo empleo) — compara tu CV con el aviso y sugiere
-          keywords faltantes, bullets a reescribir y un resumen adaptado.
-        </li>
-        <li>
-          <b>Asistente</b> — un chat que conoce tu embudo real y te ayuda a
-          redactar mensajes (LinkedIn, email, follow-up, pedido de referido) y a
-          decidir próximos pasos.
-        </li>
-        <li>
-          <b>Equipo de agentes</b> — un Calificador ordena tu embudo por
-          prioridad y un Redactor escribe los borradores de las más calientes, en
-          paralelo. Vos revisás y enviás.
-        </li>
-        <li>
-          Funciona <b>gratis</b> con Groq u Ollama (local), o con tu propia API
-          key de Anthropic, OpenAI o Google. Se configura en{" "}
-          <b>Configuración → Inteligencia artificial</b>.
-        </li>
-      </ul>
+      <>
+        <p>Konexo trae IA en tres lugares:</p>
+        <ul className="space-y-3">
+          <li>
+            <b>Adaptar CV</b> (modo empleo) — compara tu CV con el aviso y
+            sugiere keywords faltantes, bullets a reescribir y un resumen
+            adaptado.
+          </li>
+          <li>
+            <b>Asistente</b> — un chat que conoce tu embudo real y te ayuda a
+            redactar mensajes (LinkedIn, email, follow-up, pedido de referido) y
+            a decidir próximos pasos.
+          </li>
+          <li>
+            <b>Equipo de agentes</b> — un Calificador ordena tu embudo por
+            prioridad y un Redactor escribe los borradores de las más calientes,
+            en paralelo. Vos revisás y enviás.
+          </li>
+        </ul>
+
+        <h3 className="mt-6 font-display text-2xl tracking-wide text-alarm">
+          Activar la IA gratis con Groq (recomendado)
+        </h3>
+        <p>
+          <b>Groq</b> es un servicio en la nube que corre modelos de IA muy
+          rápido y tiene un <b>plan gratis, sin tarjeta</b>.{" "}
+          <b>No se instala nada</b>: solo necesitás una API key.
+        </p>
+        <ol className="list-decimal space-y-2 pl-5">
+          <li>
+            Entrá a{" "}
+            <a
+              href="https://console.groq.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-hero underline"
+            >
+              console.groq.com
+            </a>{" "}
+            y creá una cuenta gratis (podés entrar con Google).
+          </li>
+          <li>
+            Andá a <b>API Keys → Create API Key</b>, ponele un nombre y{" "}
+            <b>copiá la key</b> (empieza con{" "}
+            <code className="rounded bg-ink/10 px-1 font-mono text-base">gsk_</code>
+            ). Guardala: se muestra una sola vez.
+          </li>
+          <li>
+            En Konexo: <b>Configuración → Inteligencia artificial</b> → elegí{" "}
+            <b>Groq</b> como proveedor, pegá la key y tocá{" "}
+            <b>Probar conexión</b>.
+          </li>
+          <li>¡Listo! Ya podés adaptar tu CV y usar el asistente y los agentes.</li>
+        </ol>
+
+        <h3 className="mt-6 font-display text-2xl tracking-wide text-alarm">
+          Limitaciones de Groq (plan gratis)
+        </h3>
+        <ul className="space-y-2">
+          <li>
+            <b>Límites de uso</b>: hay topes de pedidos y de tokens por minuto y
+            por día. Si los superás, esperás un momento y reintentás. Para uso
+            personal alcanza de sobra.
+          </li>
+          <li>
+            <b>Modelos</b>: usa modelos open source (ej. Llama). Son muy buenos,
+            pero la disponibilidad puede cambiar; si un modelo se discontinúa,
+            elegís otro en Configuración.
+          </li>
+          <li>
+            <b>Privacidad</b>: tus textos (CV, descripción del aviso, mensajes)
+            se envían a los servidores de Groq para procesarlos. No es 100%
+            local.
+          </li>
+          <li>
+            <b>Necesita internet</b>: es un servicio en la nube.
+          </li>
+        </ul>
+
+        <h3 className="mt-6 font-display text-2xl tracking-wide text-hero">
+          Alternativas
+        </h3>
+        <p>
+          Si querés que <b>nada salga de tu máquina</b>, instalá{" "}
+          <a
+            href="https://ollama.com"
+            target="_blank"
+            rel="noreferrer"
+            className="text-hero underline"
+          >
+            Ollama
+          </a>
+          , descargá un modelo (ej.{" "}
+          <code className="rounded bg-ink/10 px-1 font-mono text-base">
+            ollama pull llama3.2
+          </code>
+          ) y en Configuración elegí <b>Ollama</b>: gratis y 100% privado (la
+          velocidad depende de tu compu). También podés usar tu propia API key de{" "}
+          <b>Anthropic, OpenAI o Google</b>.
+        </p>
+      </>
     ),
   },
   {
