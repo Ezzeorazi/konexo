@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { TRACKS, getVocab } from "@/lib/tracks";
 
 export const metadata: Metadata = {
   title: "Guía de uso — Konexo",
   description:
-    "Cómo usar Konexo de punta a punta: oportunidades, contactos, follow-ups, el tablero, los modos, la IA y la configuración.",
+    "Cómo usar Konexo de punta a punta: oportunidades, contactos, follow-ups, el tablero, el seguimiento de proyectos, los modos, la IA y la configuración.",
 };
 
 // Página pública (ver proxy.ts). Vive fuera del grupo (app), así no lleva el
@@ -153,8 +154,48 @@ const SECTIONS: Section[] = [
     ),
   },
   {
+    id: "seguimiento",
+    title: "7 · Seguimiento del proyecto",
+    body: (
+      <>
+        <p>
+          Cerrar el trato es la mitad del juego: después hay que{" "}
+          <b>entregar</b>. En los modos con fase de ejecución (hoy{" "}
+          <b>Freelance</b>), el detalle de cada oportunidad suma dos herramientas
+          para que ningún proyecto se enfríe ni se pierdan las ideas:
+        </p>
+        <ul className="space-y-3">
+          <li>
+            <b>Tareas del proyecto</b> — un checklist de hitos y entregables.
+            Marcá lo hecho, <b>arrastrá para reordenar</b> por prioridad y las
+            completadas caen al fondo. Siempre a la vista cuántas llevás (“2 de 5
+            hechas”).
+          </li>
+          <li>
+            <b>Bitácora</b> — un registro cronológico de <b>ideas</b> y{" "}
+            <b>avances</b>. Anotá lo que se te ocurre y lo que vas logrando;
+            podés <b>editar</b> cualquier entrada. Es la memoria viva del
+            proyecto.
+          </li>
+        </ul>
+        <p>
+          Lo mejor: <b>la IA lo lee</b>. El asistente y los agentes ven el estado
+          de ejecución —qué falta y qué avanzaste— y lo usan para priorizar y
+          redactar con contexto real (por ejemplo, un mensaje de avance al
+          cliente con lo que ya entregaste).
+        </p>
+        <p className="text-base text-ink/70">
+          Este eje es <b>independiente del embudo comercial</b>: una cosa es{" "}
+          <i>conseguir</i> el proyecto (las etapas) y otra <i>ejecutarlo</i>{" "}
+          (tareas y bitácora). Cualquier modo nuevo con fase de entrega lo hereda
+          con solo activarlo.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "ia",
-    title: "7 · La IA de tu lado",
+    title: "8 · La IA de tu lado",
     body: (
       <>
         <p>Konexo trae IA en tres lugares:</p>
@@ -165,14 +206,15 @@ const SECTIONS: Section[] = [
             adaptado.
           </li>
           <li>
-            <b>Asistente</b> — un chat que conoce tu embudo real y te ayuda a
-            redactar mensajes (LinkedIn, email, follow-up, pedido de referido) y
-            a decidir próximos pasos.
+            <b>Asistente</b> — un chat que conoce tu embudo real (y el estado de
+            ejecución de tus proyectos) y te ayuda a redactar mensajes (LinkedIn,
+            email, follow-up, pedido de referido) y a decidir próximos pasos.
           </li>
           <li>
             <b>Equipo de agentes</b> — un Calificador ordena tu embudo por
             prioridad y un Redactor escribe los borradores de las más calientes,
-            en paralelo. Vos revisás y enviás.
+            en paralelo, teniendo en cuenta qué avanzaste en cada una. Vos
+            revisás y enviás.
           </li>
         </ul>
 
@@ -261,7 +303,7 @@ const SECTIONS: Section[] = [
   },
   {
     id: "configuracion",
-    title: "8 · Configuración",
+    title: "9 · Configuración",
     body: (
       <ul className="space-y-3">
         <li>
@@ -285,19 +327,12 @@ const SECTIONS: Section[] = [
   },
   {
     id: "modos",
-    title: "9 · Cambiar de modo",
-    body: (
-      <p>
-        Si activaste más de un modo, el <b>switcher</b> aparece arriba del menú
-        lateral. Cambiar de modo cambia todo el vocabulario, las etapas y los
-        datos que ves — cada modo es su propio espacio. Empezás por empleo y, el
-        día que arranques a vender o freelancear, el motor ya está listo.
-      </p>
-    ),
+    title: "10 · Los modos",
+    body: <ModesReference />,
   },
   {
     id: "datos",
-    title: "10 · Tus datos",
+    title: "11 · Tus datos",
     body: (
       <p>
         Tu información (oportunidades, contactos, notas y la API key de IA que
@@ -307,6 +342,69 @@ const SECTIONS: Section[] = [
     ),
   },
 ];
+
+// Referencia de modos generada desde la fuente de verdad (lib/tracks.ts).
+// Sumar un modo nuevo ahí lo hace aparecer acá solo, con sus capacidades.
+function ModesReference() {
+  return (
+    <>
+      <p>
+        Konexo es un solo motor con varios <b>lentes</b>. Activás los que uses en{" "}
+        <b>Configuración → ¿Para qué usás Konexo?</b> y, si tenés más de uno, el{" "}
+        <b>switcher</b> arriba del menú lateral te deja saltar entre ellos. Cada
+        modo es <b>su propio espacio</b>: cambia el vocabulario, las etapas y los
+        datos que ves. El motor —oportunidades → personas → seguimiento— es
+        siempre el mismo.
+      </p>
+      <div className="space-y-4">
+        {TRACKS.map((t) => {
+          const v = getVocab(t);
+          const caps = [
+            v.hasValue && "💰 Forecast por monto",
+            v.usesCv && "📄 Adapta tu CV con IA",
+            v.hasDelivery && "🗂️ Tareas + bitácora del proyecto",
+          ].filter(Boolean) as string[];
+          return (
+            <div key={t} className="panel rough p-5">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{v.emoji}</span>
+                <h3 className="font-display text-2xl tracking-wide">{v.name}</h3>
+              </div>
+              <p className="mt-1 text-base text-ink/80">{v.tagline}</p>
+              <div className="mt-3 grid gap-1 text-base sm:grid-cols-2">
+                <p>
+                  La oportunidad se llama <b>{v.oppSingular}</b>.
+                </p>
+                <p>
+                  La empresa se llama <b>{v.companySingular}</b>.
+                </p>
+              </div>
+              <p className="mt-2 text-base">
+                <b>Etapas:</b> {v.stages.map((s) => s.label).join(" → ")}
+              </p>
+              {caps.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {caps.map((c) => (
+                    <span
+                      key={c}
+                      className="rounded-md border-2 border-ink bg-paper px-2 py-0.5 text-sm"
+                    >
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-base text-ink/70">
+        Konexo crece sin reescribir nada: cada modo se define en un solo lugar y
+        esta guía lo refleja al instante.
+      </p>
+    </>
+  );
+}
 
 export default function GuiaPage() {
   return (

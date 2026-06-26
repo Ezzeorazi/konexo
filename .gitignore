@@ -41,6 +41,9 @@ yarn-error.log*
 # backups locales de la base (pueden contener datos reales)
 /backups
 
+# planillas de prospección locales (datos reales de contactos/empresas)
+/Prospeccion_*.xlsx
+
 # vercel
 .vercel
 
