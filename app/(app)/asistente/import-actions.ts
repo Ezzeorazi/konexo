@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import { getActiveTrack } from "@/lib/active-track";
@@ -162,8 +161,11 @@ export async function importFromExcel(
     contactosCreados++;
   }
 
-  if (empresasCreadas > 0) revalidatePath("/empresas");
-  if (contactosCreados > 0) revalidatePath("/contactos");
+  // No revalidamos acá: /empresas y /contactos son rutas dinámicas (se
+  // reconsultan al navegar) y un revalidatePath dentro de la action refresca la
+  // ruta actual, lo que remontaba el ChatWidget y borraba la conversación. El
+  // refresco de datos lo dispara el cliente con router.refresh() DESPUÉS de
+  // persistir el chat (ver chat-widget.tsx).
 
   return {
     ok: true,

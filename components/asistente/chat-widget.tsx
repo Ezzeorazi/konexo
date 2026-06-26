@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   MessageCircle,
@@ -19,6 +20,35 @@ import {
   type ImportSummary,
 } from "@/app/(app)/asistente/import-actions";
 import type { ChatMessage } from "@/lib/ai";
+
+// La conversación se persiste en sessionStorage para que sobreviva a refrescos
+// de datos (router.refresh) y a la navegación entre páginas: el chat vive en el
+// layout y, sin esto, cualquier remonte borraría los mensajes.
+const STORAGE_KEY = "konexo-chat-v1";
+
+function loadPersisted(): { open: boolean; messages: ChatMessage[] } {
+  if (typeof window === "undefined") return { open: false, messages: [] };
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return { open: false, messages: [] };
+    const data = JSON.parse(raw) as { open?: boolean; messages?: ChatMessage[] };
+    return {
+      open: Boolean(data.open),
+      messages: Array.isArray(data.messages) ? data.messages : [],
+    };
+  } catch {
+    return { open: false, messages: [] };
+  }
+}
+
+function persist(open: boolean, messages: ChatMessage[]) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ open, messages }));
+  } catch {
+    // sin storage (modo privado, cuota): el chat sigue andando, sin persistir.
+  }
+}
 
 function summaryToText(s: ImportSummary): string {
   const lines = [
@@ -53,12 +83,47 @@ const SUGGESTIONS = [
 ];
 
 export function ChatWidget() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [pending, startTransition] = useTransition();
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Espejos del estado para leer el valor más fresco dentro de callbacks async
+  // y persistir de forma sincrónica antes de cualquier refresh/remonte.
+  const openRef = useRef(open);
+  const messagesRef = useRef(messages);
+  // Mantenemos los espejos sincronizados tras cada commit (no durante el render).
+  useEffect(() => {
+    openRef.current = open;
+    messagesRef.current = messages;
+  });
+
+  // Restaurar conversación al montar (después de hidratar, para no romper SSR).
+  // Leer sessionStorage en el initializer del useState provocaría desajuste de
+  // hidratación (el server no tiene window); hacerlo en un effect de montaje es
+  // el patrón correcto para estado que solo existe en el cliente.
+  useEffect(() => {
+    const p = loadPersisted();
+    if (!p.messages.length && !p.open) return;
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setMessages(p.messages);
+    setOpen(p.open);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  // Actualiza mensajes y persiste sincrónicamente (sobrevive a router.refresh).
+  function saveMessages(next: ChatMessage[]) {
+    messagesRef.current = next;
+    persist(openRef.current, next);
+    setMessages(next);
+  }
+  function changeOpen(value: boolean) {
+    openRef.current = value;
+    persist(value, messagesRef.current);
+    setOpen(value);
+  }
 
   function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -66,23 +131,28 @@ export function ChatWidget() {
     if (!file || pending) return;
     const fd = new FormData();
     fd.set("file", file);
-    setMessages((prev) => [
-      ...prev,
+    saveMessages([
+      ...messagesRef.current,
       { role: "user", content: `📎 ${file.name}` },
     ]);
     startTransition(async () => {
       const res = await importFromExcel(fd);
       if (res.ok) {
-        setMessages((prev) => [
-          ...prev,
+        saveMessages([
+          ...messagesRef.current,
           { role: "assistant", content: summaryToText(res.summary) },
         ]);
-        toast.success("Importación completada.");
+        toast.success("¡Importación lista! Empresas y contactos cargados.");
+        // Refrescamos los datos del server SIN perder el chat (ya persistido).
+        router.refresh();
       } else {
         toast.error(res.error, { duration: 10000 });
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: `No pude importar el Excel: ${res.error}` },
+        saveMessages([
+          ...messagesRef.current,
+          {
+            role: "assistant",
+            content: `No pude importar el Excel: ${res.error}`,
+          },
         ]);
       }
     });
@@ -95,17 +165,18 @@ export function ChatWidget() {
   function send(text: string) {
     const content = text.trim();
     if (!content || pending) return;
-    const next: ChatMessage[] = [...messages, { role: "user", content }];
-    setMessages(next);
+    const prev = messagesRef.current;
+    const next: ChatMessage[] = [...prev, { role: "user", content }];
+    saveMessages(next);
     setInput("");
     startTransition(async () => {
       const result = await sendChatMessage(next);
       if (result.ok) {
-        setMessages([...next, { role: "assistant", content: result.text }]);
+        saveMessages([...next, { role: "assistant", content: result.text }]);
       } else {
         toast.error(result.error, { duration: 10000 });
         // Devolvemos el texto al input para que no se pierda lo escrito.
-        setMessages(messages);
+        saveMessages(prev);
         setInput(content);
       }
     });
@@ -128,7 +199,7 @@ export function ChatWidget() {
       <Button
         size="icon-lg"
         className="fixed right-5 bottom-5 z-40 size-12 rounded-full shadow-lg"
-        onClick={() => setOpen(true)}
+        onClick={() => changeOpen(true)}
       >
         <MessageCircle className="size-5" />
         <span className="sr-only">Abrir asistente</span>
@@ -143,7 +214,7 @@ export function ChatWidget() {
           <Sparkles className="size-4 text-primary" />
           <p className="text-sm font-medium">Asistente</p>
         </div>
-        <Button variant="ghost" size="icon-sm" onClick={() => setOpen(false)}>
+        <Button variant="ghost" size="icon-sm" onClick={() => changeOpen(false)}>
           <X className="size-4" />
           <span className="sr-only">Cerrar</span>
         </Button>
