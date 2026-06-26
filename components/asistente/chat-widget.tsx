@@ -2,11 +2,49 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { MessageCircle, X, Send, Copy, Sparkles } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  Send,
+  Copy,
+  Sparkles,
+  Paperclip,
+  Download,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { sendChatMessage } from "@/app/(app)/asistente/actions";
+import {
+  importFromExcel,
+  type ImportSummary,
+} from "@/app/(app)/asistente/import-actions";
 import type { ChatMessage } from "@/lib/ai";
+
+function summaryToText(s: ImportSummary): string {
+  const lines = [
+    `Listo, importé tu Excel en el modo ${s.trackLabel}:`,
+    `• Empresas: ${s.empresasCreadas} nuevas${
+      s.empresasDuplicadas ? `, ${s.empresasDuplicadas} ya existían` : ""
+    }`,
+    `• Contactos: ${s.contactosCreados} nuevos${
+      s.contactosDuplicados ? `, ${s.contactosDuplicados} ya existían` : ""
+    }`,
+  ];
+  if (s.contactosLinkeados || s.contactosSinEmpresa) {
+    lines.push(
+      `• Vínculos: ${s.contactosLinkeados} linkeados a su empresa${
+        s.contactosSinEmpresa ? `, ${s.contactosSinEmpresa} sin empresa` : ""
+      }`
+    );
+  }
+  if (s.warnings.length) {
+    lines.push("", "Avisos:");
+    for (const w of s.warnings.slice(0, 8)) lines.push(`• ${w}`);
+    if (s.warnings.length > 8)
+      lines.push(`• …y ${s.warnings.length - 8} aviso(s) más`);
+  }
+  return lines.join("\n");
+}
 
 const SUGGESTIONS = [
   "¿Qué follow-ups tengo vencidos y qué les escribo?",
@@ -20,6 +58,35 @@ export function ChatWidget() {
   const [input, setInput] = useState("");
   const [pending, startTransition] = useTransition();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // permite volver a elegir el mismo archivo
+    if (!file || pending) return;
+    const fd = new FormData();
+    fd.set("file", file);
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: `📎 ${file.name}` },
+    ]);
+    startTransition(async () => {
+      const res = await importFromExcel(fd);
+      if (res.ok) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: summaryToText(res.summary) },
+        ]);
+        toast.success("Importación completada.");
+      } else {
+        toast.error(res.error, { duration: 10000 });
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: `No pude importar el Excel: ${res.error}` },
+        ]);
+      }
+    });
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -89,6 +156,22 @@ export function ChatWidget() {
               Conozco tus oportunidades y contactos. Te ayudo a redactar
               mensajes, notas y a decidir próximos pasos.
             </p>
+            <div className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
+              <p className="mb-2 font-medium text-foreground">
+                Importar empresas y contactos
+              </p>
+              <p className="mb-2">
+                Descargá la plantilla, completala y subila con el clip 📎. Se
+                cargan en el modo activo.
+              </p>
+              <a
+                href="/api/plantilla"
+                className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                <Download className="size-3.5" />
+                Descargar plantilla Excel
+              </a>
+            </div>
             <div className="space-y-2">
               {SUGGESTIONS.map((s) => (
                 <button
@@ -140,6 +223,24 @@ export function ChatWidget() {
           send(input);
         }}
       >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx"
+          className="hidden"
+          onChange={onPickFile}
+        />
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          disabled={pending}
+          onClick={() => fileInputRef.current?.click()}
+          title="Importar empresas y contactos desde Excel"
+        >
+          <Paperclip className="size-4" />
+          <span className="sr-only">Adjuntar Excel</span>
+        </Button>
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
