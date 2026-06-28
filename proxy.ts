@@ -18,6 +18,9 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/waitlist",
+  // Feed iCalendar: lo consumen apps de calendario sin cookies; se autentica
+  // con el token secreto del path (ver app/api/calendario/[token]/route.ts).
+  "/api/calendario(.*)",
 ]);
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";

@@ -9,6 +9,7 @@ import {
   KanbanSquare,
   Building2,
   Users,
+  CalendarClock,
   Settings,
   Home,
   Bot,
@@ -41,6 +42,7 @@ export function Sidebar({
     { href: "/oportunidades", label: vocab.oppPlural, icon: KanbanSquare },
     { href: "/empresas", label: vocab.companyPlural, icon: Building2 },
     { href: "/contactos", label: "Contactos", icon: Users },
+    { href: "/calendario", label: "Calendario", icon: CalendarClock },
     { href: "/asistente", label: "Asistente IA", icon: Bot },
     { href: "/configuracion", label: "Configuración", icon: Settings },
   ];
