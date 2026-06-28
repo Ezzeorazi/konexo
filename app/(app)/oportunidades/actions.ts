@@ -8,7 +8,14 @@ import { maybeTrackActivation } from "@/lib/activation";
 import { generateAiText } from "@/lib/ai";
 import { parseDateInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
-import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
+import { isTrack, DEFAULT_TRACK, getVocab, type Track } from "@/lib/tracks";
+import {
+  projectKindLabels,
+  projectNoteKindLabels,
+  touchpointTypeLabels,
+  type ProjectKind,
+  type ProjectNoteKind,
+} from "@/lib/labels";
 import { OpportunitySchema, firstZodError } from "@/lib/validation";
 import type { Priority } from "@/lib/generated/prisma/client";
 
@@ -17,6 +24,7 @@ export type OpportunityInput = {
   track?: string;
   companyId?: string;
   stage: string;
+  kind?: string; // client | own (solo aplica a tracks con entrega)
   url?: string;
   location?: string;
   salaryRange?: string;
@@ -38,6 +46,7 @@ function clean(input: OpportunityInput) {
     title: input.title.trim(),
     companyId: input.companyId || null,
     stage: input.stage,
+    kind: input.kind === "own" ? "own" : "client",
     url: normalizeUrl(input.url),
     location: input.location?.trim() || null,
     salaryRange: input.salaryRange?.trim() || null,
@@ -134,6 +143,85 @@ export async function tailorCv(opportunityId: string) {
       "3. Proponé un resumen profesional de 2-3 líneas adaptado a este puesto.",
     ].join("\n"),
   });
+}
+
+/**
+ * "Ponme al día": en vez de redactar un mensaje, la IA resume el estado real de
+ * UN proyecto (tareas, bitácora, timeline) y te da una guía para retomarlo.
+ * Pensado para el modo freelance, donde un proyecto puede ser propio o de cliente.
+ */
+export async function catchMeUp(opportunityId: string): Promise<
+  { ok: true; text: string } | { ok: false; error: string }
+> {
+  const userId = await currentUserId();
+  const o = await prisma.opportunity.findFirst({
+    where: { id: opportunityId, userId },
+    include: {
+      company: true,
+      projectTasks: { orderBy: [{ done: "asc" }, { order: "asc" }] },
+      projectNotes: { orderBy: { createdAt: "desc" }, take: 10 },
+      touchpoints: { orderBy: { occurredAt: "desc" }, take: 5 },
+    },
+  });
+  if (!o) return { ok: false as const, error: "No encontré el proyecto." };
+
+  const track = (isTrack(o.track) ? o.track : DEFAULT_TRACK) as Track;
+  const vocab = getVocab(track);
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const isOwn = o.kind === "own";
+
+  const pending = o.projectTasks.filter((t) => !t.done);
+  const done = o.projectTasks.filter((t) => t.done);
+
+  const ctx = [
+    `Proyecto: ${o.title}${o.company ? ` (${o.company.name})` : ""}`,
+    vocab.hasDelivery
+      ? `Tipo: ${projectKindLabels[(o.kind as ProjectKind) ?? "client"]}`
+      : "",
+    `Etapa: ${o.stage}`,
+    o.value != null ? `Monto: ${o.value.toLocaleString("es-AR")}` : "",
+    o.nextFollowUpAt
+      ? `Próximo follow-up: ${iso(o.nextFollowUpAt)}${o.nextFollowUpAt < new Date() ? " (VENCIDO)" : ""}`
+      : "Sin follow-up agendado.",
+    o.jobDescription ? `Alcance/contexto: ${o.jobDescription.slice(0, 800)}` : "",
+    o.notes ? `Notas: ${o.notes.slice(0, 800)}` : "",
+    "",
+    `Tareas hechas (${done.length}): ${done.map((t) => t.title).join("; ") || "—"}`,
+    `Tareas pendientes (${pending.length}): ${pending.map((t) => t.title).join("; ") || "—"}`,
+    "",
+    "Bitácora (más reciente primero):",
+    o.projectNotes.length
+      ? o.projectNotes
+          .map(
+            (n) =>
+              `- [${projectNoteKindLabels[n.kind as ProjectNoteKind] ?? n.kind}] ${iso(n.createdAt)}: ${n.body.slice(0, 300)}`
+          )
+          .join("\n")
+      : "(sin entradas)",
+    "",
+    "Timeline reciente:",
+    o.touchpoints.length
+      ? o.touchpoints
+          .map(
+            (t) =>
+              `- ${touchpointTypeLabels[t.type]} (${iso(t.occurredAt)})${t.note ? `: ${t.note.slice(0, 200)}` : ""}`
+          )
+          .join("\n")
+      : "(sin interacciones)",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const system = [
+    "Sos el asistente de Konexo, un CRM personal local-first. Tu tarea ahora NO es redactar un mensaje: es poner al usuario al día con UN proyecto leyendo su estado real, para que pueda retomarlo en minutos.",
+    "Respondé en español, en texto plano sin Markdown (la interfaz no lo renderiza). Sé concreto y breve. No inventes datos que no estén en el contexto.",
+    isOwn
+      ? "Este es un proyecto PROPIO del usuario (lo trabaja él, usa Konexo para registrar avances). No hay un cliente a quien escribirle: no propongas mensajes de outreach, enfocate en la ejecución."
+      : "Este es un proyecto DE CLIENTE. No redactes un mensaje para el cliente salvo que el usuario lo pida después; ahora solo ponelo al día.",
+    "Estructurá la respuesta así: 1) Estado en 2-3 líneas. 2) Último avance. 3) Qué falta (pendientes). 4) Próximos 2-3 pasos concretos. 5) Riesgos o cosas trabadas (si hay).",
+  ].join("\n");
+
+  return generateAiText({ system, prompt: ctx });
 }
 
 export async function updateOpportunityStage(id: string, stage: string) {

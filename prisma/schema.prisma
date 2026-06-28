@@ -54,6 +54,10 @@ model Opportunity {
   track          String    @default("jobs")
   companyId      String?
   stage          String    @default("SAVED")
+  // Solo relevante en tracks con entrega (freelance): distingue un proyecto
+  // PROPIO (lo trabajás vos, Konexo registra avances) de uno DE CLIENTE.
+  // Cambia cómo lo trata la IA: propio = gestión interna, cliente = también outreach.
+  kind           String    @default("client") // client | own
   url            String?
   location       String?
   salaryRange    String?

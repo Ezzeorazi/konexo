@@ -40,6 +40,8 @@ export type PipelineDelivery = {
 export type PipelineOpportunity = {
   title: string;
   company: string | null;
+  /** Solo relevante en tracks con entrega: "own" = propio, "client" = de cliente. */
+  kind: "client" | "own";
   stageKey: string;
   stageLabel: string;
   priority: string;
@@ -140,6 +142,7 @@ export async function gatherPipeline(): Promise<PipelineData> {
         select: {
           title: true,
           stage: true,
+          kind: true,
           priority: true,
           value: true,
           jobDescription: true,
@@ -261,6 +264,7 @@ export async function gatherPipeline(): Promise<PipelineData> {
     return {
       title: o.title,
       company: o.company?.name ?? null,
+      kind: o.kind === "own" ? "own" : "client",
       stageKey: o.stage,
       stageLabel: labelOf(o.stage),
       priority: priorityLabels[o.priority],
@@ -322,8 +326,13 @@ export async function gatherPipeline(): Promise<PipelineData> {
 export function buildChatSystemPrompt(data: PipelineData): string {
   const { vocab, stages } = data;
   const oppLines = data.opportunities.map((o) => {
+    const typeTag = vocab.hasDelivery
+      ? o.kind === "own"
+        ? " [PROPIO]"
+        : " [DE CLIENTE]"
+      : "";
     const parts = [
-      `- ${o.title}${o.company ? ` (${o.company})` : ""}`,
+      `- ${o.title}${o.company ? ` (${o.company})` : ""}${typeTag}`,
       `etapa: ${o.stageLabel}`,
       `prioridad: ${o.priority.toLowerCase()}`,
     ];
@@ -358,14 +367,27 @@ export function buildChatSystemPrompt(data: PipelineData): string {
     .filter(Boolean)
     .join("\n");
 
+  // Reglas extra solo para tracks con fase de ejecución (hoy: freelance), donde
+  // un proyecto puede ser PROPIO (lo trabajás vos) o DE CLIENTE.
+  const deliveryRules = vocab.hasDelivery
+    ? [
+        "",
+        "TIPO DE PROYECTO (importante): cada proyecto está marcado [PROPIO] o [DE CLIENTE].",
+        "- [PROPIO]: es un proyecto del propio usuario; usa Konexo para registrar avances. NO hay un cliente a quien escribirle: no ofrezcas redactar mensajes de outreach. Ayudá a gestionarlo: resumí el estado, decí qué se hizo y qué falta según sus tareas y su bitácora, proponé los próximos pasos y desbloqueos. Si te lo pide, ayudá con notas, ideas o planificación interna.",
+        "- [DE CLIENTE]: hay un cliente real. Por defecto NO redactes mensajes salvo que el usuario lo pida explícitamente. Por defecto ayudá a gestionar: dale un resumen del proyecto y una guía para ponerse al día (estado, último avance, qué falta, próximos pasos, riesgos). Solo cuando te pida un mensaje, redactalo listo para enviar.",
+      ]
+    : [];
+
   return [
     "Sos el asistente de Konexo, un CRM personal local-first que corre en la máquina del usuario.",
     "Konexo es multi-modo: la misma estructura (empresas/cuentas → oportunidades → contactos → seguimientos) sirve para distintos objetivos. Hoy el usuario está en un modo concreto; usá SIEMPRE su vocabulario y sus etapas (te los paso abajo).",
-    `Tu trabajo: ayudarlo a avanzar su embudo en modo "${vocab.name}". Eso incluye: redactar mensajes (LinkedIn, email, follow-up, propuestas, pedidos de referido), decidir próximos pasos, priorizar, y dar recomendaciones proactivas basadas en sus datos reales.`,
-    "Cuando tenga sentido, recomendá acciones concretas: empezá por los follow-ups vencidos, después las oportunidades sin contacto, y aprovechá el forecast para priorizar por monto.",
-    "Respondé en español, en texto plano sin Markdown (la interfaz no lo renderiza). Sé concreto y breve; cuando redactes un mensaje, entregalo listo para copiar y pegar.",
+    `Tu trabajo es ayudarlo a GESTIONAR su trabajo en modo "${vocab.name}", no solo a escribir mensajes. Eso incluye: resumir el estado de un proyecto u oportunidad, ponerlo al día sobre dónde quedó algo, priorizar, decidir próximos pasos, y dar recomendaciones proactivas sobre sus datos reales.`,
+    "Redactar mensajes (LinkedIn, email, follow-up, propuestas, pedidos de referido) es UNA de tus capacidades, pero NO la que ofrecés por defecto: redactá un mensaje cuando el usuario lo pida explícitamente. Si te piden un resumen o ayuda para ponerse al día, no devuelvas un mensaje para enviar: devolvé el resumen y los próximos pasos.",
+    "Cuando tenga sentido, recomendá acciones concretas: empezá por los follow-ups vencidos, después lo que esté trabado, y aprovechá el forecast para priorizar por monto.",
+    "Respondé en español, en texto plano sin Markdown (la interfaz no lo renderiza). Sé concreto y breve; cuando SÍ redactes un mensaje, entregalo listo para copiar y pegar.",
     "Usá el contexto real cuando sea relevante, pero no lo recites entero ni inventes datos que no estén. Si te falta info para una recomendación, pedila.",
     "Cuando redactes mensajes, respetá el estilo del usuario y firmá con sus datos si los tenés (te los paso en su perfil).",
+    ...deliveryRules,
     profilePromptBlock(data.profile),
     "",
     "--- CONTEXTO REAL DEL USUARIO ---",

@@ -54,3 +54,15 @@ export const projectNoteKindLabels: Record<ProjectNoteKind, string> = {
   idea: "Idea",
   avance: "Avance",
 };
+
+// Tipo de proyecto (track con hasDelivery). No es un enum de Prisma: el campo
+// `kind` en Opportunity es String, lo acotamos acá y en validation.ts.
+// "own" = proyecto propio (lo trabajás vos); "client" = trabajo para un cliente.
+export type ProjectKind = "client" | "own";
+
+export const PROJECT_KINDS: ProjectKind[] = ["client", "own"];
+
+export const projectKindLabels: Record<ProjectKind, string> = {
+  client: "De un cliente",
+  own: "Propio",
+};

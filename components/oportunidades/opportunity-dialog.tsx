@@ -30,7 +30,7 @@ import {
   type OpportunityInput,
 } from "@/app/(app)/oportunidades/actions";
 import { createCVVersion } from "@/app/(app)/configuracion/actions";
-import { PRIORITIES, priorityLabels } from "@/lib/labels";
+import { PRIORITIES, priorityLabels, PROJECT_KINDS, projectKindLabels } from "@/lib/labels";
 import {
   getVocab,
   isTrack,
@@ -103,6 +103,7 @@ export function OpportunityDialog({
       track: formTrack,
       companyId: String(form.get("companyId") ?? ""),
       stage: String(form.get("stage") ?? defaultStageKeyOf(stages)),
+      kind: String(form.get("kind") ?? "client"),
       url: String(form.get("url") ?? ""),
       location: String(form.get("location") ?? ""),
       salaryRange: String(form.get("salaryRange") ?? ""),
@@ -225,6 +226,30 @@ export function OpportunityDialog({
                 </SelectContent>
               </Select>
             </div>
+            {vocab.hasDelivery ? (
+              <div className="space-y-2">
+                <Label>Tipo de proyecto</Label>
+                <Select
+                  name="kind"
+                  defaultValue={opportunity?.kind ?? "client"}
+                  items={PROJECT_KINDS.map((k) => ({
+                    value: k,
+                    label: projectKindLabels[k],
+                  }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROJECT_KINDS.map((k) => (
+                      <SelectItem key={k} value={k}>
+                        {projectKindLabels[k]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label htmlFor="location">Ubicación</Label>
               <Input

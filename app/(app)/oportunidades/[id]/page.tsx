@@ -32,7 +32,9 @@ import { ProjectTracker } from "@/components/oportunidades/project-tracker";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
 import { ContactDialog } from "@/components/contactos/contact-dialog";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { CatchMeUpButton } from "@/components/oportunidades/catch-me-up";
 import { formatDate, formatRelative } from "@/lib/dates";
+import { projectKindLabels, type ProjectKind } from "@/lib/labels";
 import { getVocab, type Track } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
 import type { RelationshipStrength } from "@/lib/generated/prisma/client";
@@ -97,6 +99,15 @@ export default async function OportunidadDetailPage({
       <StageBadge key="s" stage={opportunity.stage} track={track} stages={stages} />,
     ],
     ["Prioridad", <PriorityBadge key="p" priority={opportunity.priority} />],
+    ...(vocab.hasDelivery
+      ? ([
+          [
+            "Tipo de proyecto",
+            projectKindLabels[(opportunity.kind as ProjectKind) ?? "client"] ??
+              projectKindLabels.client,
+          ],
+        ] as [string, React.ReactNode][])
+      : []),
     ["Ubicación", opportunity.location ?? "—"],
     vocab.hasValue
       ? [
@@ -180,6 +191,9 @@ export default async function OportunidadDetailPage({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {vocab.hasDelivery ? (
+              <CatchMeUpButton opportunityId={opportunity.id} />
+            ) : null}
             <TouchpointDialog
               opportunityId={opportunity.id}
               contacts={companyContacts.map((c) => ({

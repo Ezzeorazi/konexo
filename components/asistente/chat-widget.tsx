@@ -77,9 +77,10 @@ function summaryToText(s: ImportSummary): string {
 }
 
 const SUGGESTIONS = [
-  "¿Qué follow-ups tengo vencidos y qué les escribo?",
-  "Redactame un mensaje de LinkedIn para pedir un referido",
-  "¿En qué proceso me conviene enfocarme esta semana?",
+  "Ponme al día: ¿cómo vienen mis proyectos y qué está trabado?",
+  "¿En qué me conviene enfocarme esta semana?",
+  "Resumime el estado de mi proyecto más importante",
+  "Redactame un mensaje de follow-up para un cliente",
 ];
 
 export function ChatWidget() {
@@ -224,8 +225,9 @@ export function ChatWidget() {
         {messages.length === 0 ? (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Conozco tus oportunidades y contactos. Te ayudo a redactar
-              mensajes, notas y a decidir próximos pasos.
+              Conozco tus proyectos y contactos. Te ayudo a gestionar: resúmenes,
+              ponerte al día, próximos pasos y prioridades. Y si lo pedís, también
+              redacto mensajes.
             </p>
             <div className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
               <p className="mb-2 font-medium text-foreground">

@@ -97,14 +97,19 @@ function extractJson<T>(text: string): T | null {
   return null;
 }
 
-function oppToBrief(o: PipelineOpportunity, vocabHasValue: boolean): string {
+function oppToBrief(
+  o: PipelineOpportunity,
+  vocabHasValue: boolean,
+  vocabHasDelivery: boolean
+): string {
   const parts = [
+    vocabHasDelivery ? `tipo: ${o.kind === "own" ? "PROPIO" : "DE CLIENTE"}` : "",
     `etapa: ${o.stageLabel}`,
     `prioridad: ${o.priority}`,
     o.followUp
       ? `follow-up: ${o.followUp}${o.overdue ? " (VENCIDO)" : ""}`
       : "sin follow-up agendado",
-  ];
+  ].filter(Boolean) as string[];
   if (vocabHasValue && o.value != null) parts.push(`monto: ${money(o.value)}`);
   parts.push(
     o.contacts.length
@@ -127,7 +132,10 @@ async function runCalificador(
 ): Promise<Qualification[] | null> {
   const { vocab } = data;
   const list = opps
-    .map((o, i) => `${i}. ${o.title}${o.company ? ` — ${o.company}` : ""} · ${oppToBrief(o, vocab.hasValue)}`)
+    .map(
+      (o, i) =>
+        `${i}. ${o.title}${o.company ? ` — ${o.company}` : ""} · ${oppToBrief(o, vocab.hasValue, vocab.hasDelivery)}`
+    )
     .join("\n");
 
   const system = [
@@ -135,6 +143,9 @@ async function runCalificador(
     `Tu ÚNICA función es calificar y priorizar las ${vocab.oppPlural.toLowerCase()} abiertas del usuario. NO redactás mensajes: de eso se encarga otro agente.`,
     "Calificá según probabilidad de avanzar Y urgencia. Un follow-up VENCIDO o una oportunidad de alto monto sin avance reciente sube la prioridad. Una sin contacto identificado puede ser caliente igual, pero el próximo paso será conseguir ese contacto.",
     `Criterio para modo ${vocab.name}: ${getAgentPlaybook(data.track).qualifier}`,
+    vocab.hasDelivery
+      ? "Cada proyecto viene marcado PROPIO o DE CLIENTE. Para los PROPIOS no hay outreach: su nextAction es siempre un paso interno de ejecución (avanzar/desbloquear una tarea, registrar un avance), nunca contactar a nadie. Para los DE CLIENTE, el nextAction puede ser de gestión o de contacto."
+      : "",
     "Usá el perfil del usuario (qué vende) para juzgar el fit: una oportunidad alineada con lo que ofrece vale más.",
     "Devolvé SOLO un JSON válido (sin texto antes ni después, sin Markdown) con esta forma:",
     `[{"i": <número de la lista>, "tier": "hot"|"warm"|"cold", "score": <0-100>, "reason": "<por qué, máx 18 palabras>", "nextAction": "<próximo paso concreto, imperativo, máx 14 palabras>"}]`,
@@ -272,13 +283,23 @@ export async function runAgentTeam(data: PipelineData): Promise<AgentTeamResult>
     } frías.`,
   });
 
-  // El orquestador elige a quién contactar primero.
-  const top = qualifications.slice(0, MAX_TO_DRAFT);
+  // El orquestador elige a quién contactar primero. Los proyectos PROPIOS no se
+  // redactan (no hay cliente a quien escribir): se quedan en la calificación con
+  // su próximo paso interno, pero no van al Redactor.
   const byTitle = new Map(opps.map((o) => [o.title, o]));
+  const draftable = qualifications.filter(
+    (q) => !vocab.hasDelivery || byTitle.get(q.title)?.kind !== "own"
+  );
+  const top = draftable.slice(0, MAX_TO_DRAFT);
+  const skippedOwn = qualifications.length - draftable.length;
 
   steps.push({
     agent: "orquestador",
-    text: `Selecciono las ${top.length} más prioritarias y se las paso al Redactor para que escriba los borradores en paralelo.`,
+    text:
+      `Selecciono las ${top.length} más prioritarias y se las paso al Redactor para que escriba los borradores en paralelo.` +
+      (skippedOwn > 0
+        ? ` Dejo fuera ${skippedOwn} proyecto${skippedOwn > 1 ? "s" : ""} propio${skippedOwn > 1 ? "s" : ""}: no llevan mensaje, solo próximo paso interno.`
+        : ""),
     parallel: true,
   });
 
