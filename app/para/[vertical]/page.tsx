@@ -200,7 +200,7 @@ export default async function VerticalLandingPage({
             <div className="panel rough-2 p-6">
               <h3 className="mb-2 font-display text-3xl tracking-wide text-hero">RECORDATORIOS QUE GOLPEAN</h3>
               <p className="text-xl leading-snug">
-                Follow-ups y fechas clave. Konexo te avisa antes de que el villano del olvido ataque tu mejor oportunidad.
+                Follow-ups y fechas clave, con un calendario que sincronizás al teléfono. Konexo te avisa antes de que el villano del olvido ataque tu mejor oportunidad.
               </p>
             </div>
             <div className="panel rough-2 p-6">
@@ -212,7 +212,7 @@ export default async function VerticalLandingPage({
             <div className="panel rough p-6">
               <h3 className="mb-2 font-display text-3xl tracking-wide text-alarm">IA DE TU LADO</h3>
               <p className="text-xl leading-snug">
-                Redactá y adaptá tus mensajes con un clic. Con tu propia API key o con Ollama gratis y local: tus datos no salen de tu máquina.
+                Te resume el estado, te pone al día y decide próximos pasos; y si lo pedís, redacta tus mensajes. Con tu propia API key o con Ollama gratis y local: tus datos no salen de tu máquina.
               </p>
             </div>
           </div>

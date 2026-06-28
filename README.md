@@ -1,6 +1,6 @@
 # Konexo
 
-**Konexo es un CRM multi-vertical que organiza tu trabajo de relación como un pipeline.** La misma estructura — empresa → oportunidad → contacto → interacción — se "viste" para seis objetivos distintos (búsqueda de empleo, ventas, inmobiliaria, freelance, fundraising y reclutamiento), con un asistente y un equipo de agentes de IA que priorizan tu embudo y te escriben los próximos mensajes. Empezás gratis y crece con vos.
+**Konexo es un CRM multi-vertical que organiza tu trabajo de relación como un pipeline.** La misma estructura — empresa → oportunidad → contacto → interacción — se "viste" para seis objetivos distintos (búsqueda de empleo, ventas, inmobiliaria, freelance, fundraising y reclutamiento), con un asistente y un equipo de agentes de IA que **gestionan** tu embudo —resúmenes, próximos pasos y, cuando lo pedís, los mensajes— y un **calendario** que sincronizás con el teléfono para no perder ningún follow-up. Empezás gratis y crece con vos.
 
 ---
 
@@ -21,9 +21,11 @@
 - **Un CRM, seis verticales (tracks).** Una misma base de datos (empresa → oportunidad → contacto → interacción) adaptada a búsqueda de empleo, ventas, inmobiliaria, freelance, startup/fundraising y reclutamiento. Cada track trae su propio vocabulario, etapas y métricas.
 - **Embudo Kanban editable.** Arrastrá las cards entre etapas (drag & drop). Las etapas no son fijas: se siembran desde presets por vertical y podés editarlas por usuario.
 - **Forecast ponderado.** Cada etapa tiene una probabilidad de cierre; los tracks con monto (ventas, inmobiliaria, freelance, fundraising) calculan el valor esperado del pipeline.
-- **Asistente de IA conversacional.** Un chat que conoce tu embudo y responde sobre tus oportunidades. Multi-proveedor: Groq, Ollama, Anthropic, OpenAI o Google — configurable por usuario, con tu propia API key.
+- **Asistente de IA que gestiona, no solo redacta.** Un chat que conoce tu embudo real (y el estado de ejecución de tus proyectos): resume, te pone al día, prioriza y decide próximos pasos; redactar mensajes es opt-in (lo hace cuando se lo pedís). Multi-proveedor: Groq, Ollama, Anthropic, OpenAI o Google — configurable por usuario, con tu propia API key.
 - **Equipo de agentes de IA.** Un orquestador despierta a un *Calificador* (prioriza tus oportunidades con tier + score) y a un *Redactor* (escribe borradores de contacto listos para enviar, en paralelo).
+- **Proyectos propios vs. de cliente** (modo freelance). Marcás cada proyecto como propio o de cliente: la IA trata los propios como ejecución (sin outreach) y, en los de cliente, redacta solo si lo pedís. Botón **"Ponme al día"** que resume el estado y los próximos pasos de un proyecto.
 - **Seguimientos que no se escapan.** Cada oportunidad y contacto guarda su próximo follow-up; los vencidos se marcan y suben de prioridad.
+- **Calendario sincronizable con el teléfono.** Una página de agenda con tus follow-ups (vencidos y próximos) y un **feed iCalendar** (`/api/calendario/[token]`) autenticado por token secreto: lo suscribís en el calendario del teléfono y tus follow-ups aparecen ahí, actualizándose solos.
 - **Versiones de CV con adaptación por IA** (modo búsqueda de empleo): guardá variantes de tu CV y adaptalas al aviso, comparándolo para sugerir keywords y bullets.
 - **Multi-tenancy con Clerk.** Aislamiento real por usuario; toda la data está scopeada por `userId`. Sin keys de Clerk, corre con un usuario-dev local.
 
@@ -142,7 +144,8 @@ incluye datos de otra cuenta.
 2. **Cargá el embudo.** Creá empresas, oportunidades y contactos. Movelos entre etapas arrastrando las cards en el tablero Kanban.
 3. **Registrá interacciones.** Cada email, llamada o reunión queda como un *touchpoint*, y agendás el próximo follow-up para que nada se enfríe.
 4. **Configurá la IA.** En **Configuración** elegí proveedor (Groq es gratis) y pegá tu API key. También definís tu perfil de negocio para que los agentes personalicen los mensajes.
-5. **Usá el asistente.** El chat lateral responde sobre tu embudo. En el **Asistente**, el equipo de agentes califica tus oportunidades abiertas y te devuelve borradores de contacto listos para copiar y pegar.
+5. **Usá el asistente.** El chat lateral conoce tu embudo: te resume el estado, te pone al día y decide próximos pasos; si le pedís un mensaje, lo redacta. En el **Asistente**, el equipo de agentes califica tus oportunidades abiertas y te devuelve borradores de contacto listos para copiar y pegar.
+6. **Sincronizá el calendario.** En **Calendario** ves tus follow-ups vencidos y próximos, y generás un enlace para suscribir el feed en el calendario del teléfono.
 
 > 💡 Hay una guía de uso pública dentro de la app, en la ruta `/guia`.
 
@@ -155,6 +158,7 @@ incluye datos de otra cuenta.
 - **Auth:** Clerk, con degradación a usuario-dev cuando no hay keys (`lib/auth.ts`, `proxy.ts`).
 - **UI:** Tailwind CSS v4 + shadcn / Base UI, estética cómic; Kanban con `@dnd-kit`.
 - **IA:** router multi-proveedor (`lib/ai.ts`) y equipo de agentes (`lib/agent-team.ts`).
+- **Calendario:** feed iCalendar generado en `lib/ics.ts` y servido por la ruta pública `app/api/calendario/[token]/` (autenticada por token, no por sesión).
 - **Analítica:** PostHog. **Hosting:** Vercel.
 
 El concepto central son los **tracks** (`lib/tracks.ts`): una misma estructura de datos vestida para cada vertical. Las rutas se separan en zona pública (landing, guía, login) y zona privada `app/(app)/` (el CRM), protegida por `proxy.ts`.

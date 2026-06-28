@@ -6,7 +6,7 @@ import { TRACKS, getVocab } from "@/lib/tracks";
 export const metadata: Metadata = {
   title: "Guía de uso — Konexo",
   description:
-    "Cómo usar Konexo de punta a punta: oportunidades, contactos, follow-ups, el tablero, el seguimiento de proyectos, los modos, la IA y la configuración.",
+    "Cómo usar Konexo de punta a punta: oportunidades, contactos, follow-ups, el tablero, el seguimiento de proyectos, el calendario, los modos, la IA y la configuración.",
 };
 
 // Página pública (ver proxy.ts). Vive fuera del grupo (app), así no lleva el
@@ -155,8 +155,42 @@ const SECTIONS: Section[] = [
     ),
   },
   {
+    id: "calendario",
+    title: "7 · El calendario",
+    body: (
+      <>
+        <p>
+          Cada oportunidad y contacto puede tener una{" "}
+          <b>fecha de próximo follow-up</b>. En <b>Calendario</b> los ves todos
+          juntos, en una agenda con dos bloques: <b>vencidos</b> (en rojo, lo más
+          urgente) y <b>próximos</b>. Cada ítem te lleva a su detalle con un clic.
+        </p>
+        <p>
+          Lo mejor: <b>llevátelo al teléfono</b>. Generá un{" "}
+          <b>enlace de suscripción</b> y agregalo al calendario del celular; tus
+          follow-ups aparecen ahí y se actualizan solos. El enlace es{" "}
+          <b>secreto</b> (cualquiera que lo tenga ve tus follow-ups): podés{" "}
+          <b>regenerarlo</b> cuando quieras y el anterior deja de funcionar.
+        </p>
+        <ul className="space-y-3">
+          <li>
+            <b>iPhone / Apple Calendar</b> — suscribí el enlace (Ajustes →
+            Calendario → Añadir calendario suscrito). Las <b>alertas</b> del feed
+            funcionan: te avisa el teléfono.
+          </li>
+          <li>
+            <b>Android / Google Calendar</b> — agregá el enlace desde Google
+            Calendar en la computadora (Otros calendarios → Desde URL) y aparece
+            en el teléfono. Ojo: Google <b>muestra</b> los eventos pero no envía
+            notificaciones de calendarios suscriptos por URL.
+          </li>
+        </ul>
+      </>
+    ),
+  },
+  {
     id: "seguimiento",
-    title: "7 · Seguimiento del proyecto",
+    title: "8 · Seguimiento del proyecto",
     body: (
       <>
         <p>
@@ -180,10 +214,18 @@ const SECTIONS: Section[] = [
           </li>
         </ul>
         <p>
+          <b>¿Propio o de cliente?</b> Marcá cada proyecto según sea tuyo o de un
+          cliente. La IA los trata distinto: a los <b>propios</b> los gestiona
+          como ejecución (resúmenes y próximos pasos, sin proponer mensajes a
+          nadie); en los <b>de cliente</b> redacta solo si se lo pedís y, por
+          defecto, te ayuda a ponerte al día.
+        </p>
+        <p>
           Lo mejor: <b>la IA lo lee</b>. El asistente y los agentes ven el estado
           de ejecución —qué falta y qué avanzaste— y lo usan para priorizar y
-          redactar con contexto real (por ejemplo, un mensaje de avance al
-          cliente con lo que ya entregaste).
+          gestionar. En el detalle, el botón <b>“Ponme al día”</b> te da en
+          segundos un resumen del proyecto y los próximos pasos a partir de tus
+          tareas y tu bitácora.
         </p>
         <p className="text-base text-ink/70">
           Este eje es <b>independiente del embudo comercial</b>: una cosa es{" "}
@@ -196,7 +238,7 @@ const SECTIONS: Section[] = [
   },
   {
     id: "ia",
-    title: "8 · La IA de tu lado",
+    title: "9 · La IA de tu lado",
     body: (
       <>
         <p>Konexo trae IA en tres lugares:</p>
@@ -208,8 +250,9 @@ const SECTIONS: Section[] = [
           </li>
           <li>
             <b>Asistente</b> — un chat que conoce tu embudo real (y el estado de
-            ejecución de tus proyectos) y te ayuda a redactar mensajes (LinkedIn,
-            email, follow-up, pedido de referido) y a decidir próximos pasos.
+            ejecución de tus proyectos). Te <b>gestiona</b>: resume, te pone al
+            día, prioriza y decide próximos pasos. Y si se lo pedís, redacta
+            mensajes (LinkedIn, email, follow-up, pedido de referido).
           </li>
           <li>
             <b>Equipo de agentes</b> — un Calificador ordena tu embudo por
@@ -304,7 +347,7 @@ const SECTIONS: Section[] = [
   },
   {
     id: "configuracion",
-    title: "9 · Configuración",
+    title: "10 · Configuración",
     body: (
       <ul className="space-y-3">
         <li>
@@ -328,12 +371,12 @@ const SECTIONS: Section[] = [
   },
   {
     id: "modos",
-    title: "10 · Los modos",
+    title: "11 · Los modos",
     body: <ModesReference />,
   },
   {
     id: "datos",
-    title: "11 · Tus datos",
+    title: "12 · Tus datos",
     body: (
       <p>
         Tu información (oportunidades, contactos, notas y la API key de IA que
