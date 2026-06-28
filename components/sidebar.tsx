@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -135,9 +136,14 @@ export function Sidebar({
 
   const logo = (
     <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setDrawerOpen(false)}>
-      <span className="flex size-9 rotate-[-4deg] items-center justify-center rounded-md border-[2.5px] border-paper bg-komic font-display text-2xl text-ink shadow-[3px_3px_0_var(--color-paper)]">
-        K
-      </span>
+      <Image
+        src="/favicon-konexo.webp"
+        alt="Konexo"
+        width={36}
+        height={36}
+        priority
+        className="size-9 rotate-[-4deg] drop-shadow-[3px_3px_0_var(--color-paper)]"
+      />
       <span className="font-display text-2xl tracking-wider">
         KONE<span className="text-alarm">X</span>O
       </span>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { TRACKS, getVocab } from "@/lib/tracks";
@@ -412,8 +413,15 @@ export default function GuiaPage() {
       {/* NAV */}
       <nav className="sticky top-0 z-50 border-b-4 border-ink bg-paper halftone">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/home" className="font-display text-3xl tracking-wider md:text-4xl">
-            KONE<span className="text-alarm">X</span>O
+          <Link href="/home" className="shrink-0">
+            <Image
+              src="/logotipo-konexo.webp"
+              alt="Konexo"
+              width={853}
+              height={226}
+              priority
+              className="h-8 w-auto md:h-10"
+            />
           </Link>
           <Link
             href="/sign-up"

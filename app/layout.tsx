@@ -30,6 +30,11 @@ export const metadata: Metadata = {
   title: "konexo — Tu búsqueda de empleo, nivel héroe",
   description:
     "CRM local-first para búsqueda de empleo: oportunidades, personas y follow-ups.",
+  icons: {
+    icon: [{ url: "/favicon-konexo.webp", type: "image/webp" }],
+    shortcut: "/favicon-konexo.webp",
+    apple: "/favicon-konexo.webp",
+  },
 };
 
 export default function RootLayout({
