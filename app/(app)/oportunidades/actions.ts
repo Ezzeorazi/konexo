@@ -9,6 +9,7 @@ import { generateAiText } from "@/lib/ai";
 import { parseDateInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK, getVocab, type Track } from "@/lib/tracks";
+import { completeMission } from "@/lib/onboarding";
 import {
   projectKindLabels,
   projectNoteKindLabels,
@@ -71,6 +72,8 @@ export async function createOpportunity(input: OpportunityInput) {
     data: { ...clean(input), track, userId },
   });
   await trackEvent(userId, "opportunity_created", { track });
+  // Si la oportunidad ya nace con follow-up agendado, dispara "Fijar Radar".
+  if (opportunity.nextFollowUpAt) await completeMission(userId, "setRadar");
   await maybeTrackActivation(userId);
   revalidatePath("/oportunidades");
   return { ok: true as const, id: opportunity.id };
@@ -192,6 +195,10 @@ export async function patchOpportunityField(
   });
   if (count === 0) {
     return { ok: false as const, error: "No encontré la oportunidad." };
+  }
+  // Configurar un follow-up desde la edición in-context cuenta como "Fijar Radar".
+  if (field === "nextFollowUpAt" && parseDateInput(value)) {
+    await completeMission(userId, "setRadar");
   }
   revalidatePath("/oportunidades");
   revalidatePath(`/oportunidades/${id}`);

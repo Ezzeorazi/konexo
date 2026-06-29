@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/card";
 import { Reveal } from "@/components/comic/reveal";
 import { ComicMarquee } from "@/components/comic/comic-marquee";
+import { MissionsPanel } from "@/components/onboarding/missions-panel";
+import { getProgress } from "@/lib/onboarding";
 import { getActiveTrack } from "@/lib/active-track";
 import { getVocab, tileFor } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
@@ -43,6 +45,7 @@ export default async function DashboardPage() {
     contactFollowUps,
     contactCount,
     noContactOpps,
+    onboarding,
   ] = await Promise.all([
     prisma.opportunity.groupBy({
       by: ["stage"],
@@ -78,6 +81,7 @@ export default async function DashboardPage() {
         company: { select: { name: true } },
       },
     }),
+    getProgress(userId),
   ]);
 
   const countByStage = new Map(stageCounts.map((s) => [s.stage, s._count._all]));
@@ -313,6 +317,11 @@ export default async function DashboardPage() {
         </Reveal>
 
         <div className="space-y-6">
+          {/* ===== MISIONES DE ONBOARDING ===== */}
+          <Reveal anim="pop">
+            <MissionsPanel initialState={onboarding} />
+          </Reveal>
+
           {/* ===== FORECAST PONDERADO ===== */}
           {vocab.hasValue ? (
             <Reveal anim="pop">

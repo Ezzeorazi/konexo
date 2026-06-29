@@ -8,6 +8,7 @@ import { maybeTrackActivation } from "@/lib/activation";
 import { parseDateInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
+import { completeMission } from "@/lib/onboarding";
 import { ContactSchema, TouchpointSchema, firstZodError } from "@/lib/validation";
 import type {
   RelationshipStrength,
@@ -51,6 +52,10 @@ export async function createContact(input: ContactInput) {
   const contact = await prisma.contact.create({
     data: { ...clean(input), track, userId },
   });
+  // Misión "Establecer Contacto": cargar el 1er contacto. Idempotente.
+  await completeMission(userId, "establishContact");
+  // Si ya viene con follow-up agendado, también dispara "Fijar Radar".
+  if (contact.nextFollowUpAt) await completeMission(userId, "setRadar");
   revalidatePath("/contactos");
   return { ok: true as const, id: contact.id };
 }
@@ -137,6 +142,10 @@ export async function patchContactField(
   if (count === 0) {
     return { ok: false as const, error: "No encontré el contacto." };
   }
+  // Configurar un follow-up desde la edición in-context cuenta como "Fijar Radar".
+  if (field === "nextFollowUpAt" && parseDateInput(value)) {
+    await completeMission(userId, "setRadar");
+  }
   revalidatePath("/contactos");
   revalidatePath(`/contactos/${id}`);
   return { ok: true as const };
@@ -195,6 +204,8 @@ export async function createTouchpoint(input: TouchpointInput) {
     },
   });
   await trackEvent(userId, "followup_completed", { type: input.type });
+  // Misión "Lanzar Ataque": registrar el 1er touchpoint/petición. Idempotente.
+  await completeMission(userId, "launchAttack");
   await maybeTrackActivation(userId);
   if (input.contactId) revalidatePath(`/contactos/${input.contactId}`);
   if (input.opportunityId)

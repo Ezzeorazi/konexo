@@ -184,6 +184,29 @@ model ProjectTask {
   @@index([opportunityId, order])
 }
 
+// Progreso de onboarding gamificado ("Misiones/Batallas") + créditos del
+// usuario. Una fila por usuario (userId de Clerk, sin modelo User propio: ver
+// [[fundeable-pivot]]). Cada misión se guarda como timestamp nullable —misma
+// convención que `activatedAt`/`appliedAt`: null = pendiente, fecha = cuándo se
+// completó—. La lógica idempotente (otorgar créditos una sola vez) vive en
+// lib/onboarding.ts; los disparadores se enganchan en las actions de cada
+// entidad y/o vía el hook useOnboarding.
+model UserProgress {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Misiones de onboarding (null = pendiente, fecha = completada)
+  firstSightingAt    DateTime? // "Primer Avistamiento" — 1ª empresa/cuenta
+  establishContactAt DateTime? // "Establecer Contacto" — 1er contacto
+  launchAttackAt     DateTime? // "Lanzar Ataque" — 1er touchpoint/petición
+  setRadarAt         DateTime? // "Fijar Radar" — 1er follow-up configurado
+
+  credits Int @default(0) // créditos acumulados por completar misiones
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // Etapas del embudo, editables por el usuario. Cada track tiene su set.
 // Se siembran desde los presets de lib/tracks.ts la primera vez que se leen.
 model PipelineStage {

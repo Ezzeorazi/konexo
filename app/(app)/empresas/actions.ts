@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
+import { completeMission } from "@/lib/onboarding";
 import { CompanySchema, firstZodError } from "@/lib/validation";
 
 export type CompanyInput = {
@@ -38,6 +39,8 @@ export async function createCompany(input: CompanyInput) {
   const company = await prisma.company.create({
     data: { ...clean(input), track, userId },
   });
+  // Misión "Primer Avistamiento": cargar la 1ª empresa. Idempotente.
+  await completeMission(userId, "firstSighting");
   revalidatePath("/empresas");
   return { ok: true as const, id: company.id };
 }
