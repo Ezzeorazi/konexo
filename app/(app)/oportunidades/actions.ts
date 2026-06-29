@@ -94,6 +94,110 @@ export async function updateOpportunity(id: string, input: OpportunityInput) {
   return { ok: true as const, id };
 }
 
+// --- Edición in-context (un campo a la vez) ---------------------------------
+// Los componentes <Editable*> guardan un solo campo. Validamos contra el mismo
+// OpportunitySchema (mensajes consistentes) y normalizamos igual que clean().
+
+const OPPORTUNITY_FIELDS = [
+  "title",
+  "companyId",
+  "stage",
+  "kind",
+  "url",
+  "location",
+  "salaryRange",
+  "value",
+  "jobDescription",
+  "priority",
+  "appliedAt",
+  "nextFollowUpAt",
+  "cvVersionId",
+  "notes",
+] as const;
+
+export type OpportunityField = (typeof OPPORTUNITY_FIELDS)[number];
+
+function cleanOpportunityField(
+  field: OpportunityField,
+  value: string
+): Record<string, unknown> {
+  switch (field) {
+    case "title":
+      return { title: value.trim() };
+    case "companyId":
+      return { companyId: value || null };
+    case "stage":
+      return { stage: value };
+    case "kind":
+      return { kind: value === "own" ? "own" : "client" };
+    case "url":
+      return { url: normalizeUrl(value) };
+    case "location":
+      return { location: value.trim() || null };
+    case "salaryRange":
+      return { salaryRange: value.trim() || null };
+    case "value": {
+      const parsed = value.trim()
+        ? Number(value.replace(/[^\d.,-]/g, "").replace(",", "."))
+        : null;
+      return {
+        value: parsed !== null && !Number.isNaN(parsed) ? parsed : null,
+      };
+    }
+    case "jobDescription":
+      return { jobDescription: value.trim() || null };
+    case "priority":
+      return { priority: value as Priority };
+    case "appliedAt":
+      return { appliedAt: parseDateInput(value) };
+    case "nextFollowUpAt":
+      return { nextFollowUpAt: parseDateInput(value) };
+    case "cvVersionId":
+      return { cvVersionId: value || null };
+    case "notes":
+      return { notes: value.trim() || null };
+  }
+}
+
+export async function patchOpportunityField(
+  id: string,
+  field: OpportunityField,
+  value: string
+) {
+  if (!OPPORTUNITY_FIELDS.includes(field)) {
+    return { ok: false as const, error: "Campo no editable." };
+  }
+  const mask = { [field]: true } as { [K in OpportunityField]?: true };
+  const parsed = OpportunitySchema.pick(mask).safeParse({ [field]: value });
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
+  }
+
+  const userId = await currentUserId();
+  const data = cleanOpportunityField(field, value);
+
+  // Misma regla que updateOpportunityStage: al pasar a "Aplicada" sin fecha, la
+  // fijamos ahora (búsqueda laboral).
+  if (field === "stage" && value === "APPLIED") {
+    const current = await prisma.opportunity.findFirst({
+      where: { id, userId },
+      select: { appliedAt: true },
+    });
+    if (current && !current.appliedAt) data.appliedAt = new Date();
+  }
+
+  const { count } = await prisma.opportunity.updateMany({
+    where: { id, userId },
+    data,
+  });
+  if (count === 0) {
+    return { ok: false as const, error: "No encontré la oportunidad." };
+  }
+  revalidatePath("/oportunidades");
+  revalidatePath(`/oportunidades/${id}`);
+  return { ok: true as const };
+}
+
 export async function deleteOpportunity(id: string) {
   const userId = await currentUserId();
   await prisma.opportunity.deleteMany({ where: { id, userId } });

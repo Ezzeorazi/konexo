@@ -1,12 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { EditableText } from "@/components/editable/editable-text";
 import { saveSettings } from "@/app/(app)/configuracion/actions";
+
+// Guarda un solo ajuste al perder el foco. Devuelve el contrato { ok } que
+// esperan los componentes <Editable*>.
+function saveField(key: string) {
+  return (value: string) => saveSettings([{ key, value }]);
+}
 
 export function BusinessProfileForm({
   initialBusiness,
@@ -21,34 +23,20 @@ export function BusinessProfileForm({
   initialSenderPhone: string;
   initialTone: string;
 }) {
-  const [pending, startTransition] = useTransition();
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    startTransition(async () => {
-      await saveSettings([
-        { key: "aiBusiness", value: String(form.get("aiBusiness") ?? "") },
-        { key: "aiSenderName", value: String(form.get("aiSenderName") ?? "") },
-        { key: "aiSenderEmail", value: String(form.get("aiSenderEmail") ?? "") },
-        { key: "aiSenderPhone", value: String(form.get("aiSenderPhone") ?? "") },
-        { key: "aiTone", value: String(form.get("aiTone") ?? "") },
-      ]);
-      toast.success("Perfil guardado. Los agentes ya lo usan.");
-    });
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="aiBusiness">Qué vendés / a qué te dedicás</Label>
-        <Textarea
-          id="aiBusiness"
-          name="aiBusiness"
-          defaultValue={initialBusiness}
-          rows={4}
-          placeholder="Ej.: Estudio de diseño web para Pymes. Vendemos sitios y tiendas online llave en mano, desde USD 1.200. Diferencial: entrega en 2 semanas y soporte incluido."
-        />
+        <Label>Qué vendés / a qué te dedicás</Label>
+        <div className="rounded-lg border border-input p-1">
+          <EditableText
+            value={initialBusiness}
+            multiline
+            maxLength={20000}
+            ariaLabel="Editar qué vendés"
+            onSave={saveField("aiBusiness")}
+            placeholder="Ej.: Estudio de diseño web para Pymes. Vendemos sitios y tiendas online llave en mano, desde USD 1.200. Diferencial: entrega en 2 semanas y soporte incluido."
+          />
+        </div>
         <p className="text-xs text-muted-foreground">
           Tu propuesta de valor, productos, precios, diferenciales. El
           Calificador lo usa para juzgar el fit y el Redactor para personalizar.
@@ -57,57 +45,64 @@ export function BusinessProfileForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="aiSenderName">Tu nombre (firma)</Label>
-          <Input
-            id="aiSenderName"
-            name="aiSenderName"
-            defaultValue={initialSenderName}
-            placeholder="Ej.: Ezequiel Orazi"
-            autoComplete="off"
-          />
+          <Label>Tu nombre (firma)</Label>
+          <div className="rounded-lg border border-input p-1">
+            <EditableText
+              value={initialSenderName}
+              ariaLabel="Editar nombre (firma)"
+              onSave={saveField("aiSenderName")}
+              placeholder="Ej.: Ezequiel Orazi"
+            />
+          </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="aiSenderPhone">Teléfono</Label>
-          <Input
-            id="aiSenderPhone"
-            name="aiSenderPhone"
-            defaultValue={initialSenderPhone}
-            placeholder="Ej.: +54 9 11 5555-5555"
-            autoComplete="off"
+          <Label>Teléfono</Label>
+          <div className="rounded-lg border border-input p-1">
+            <EditableText
+              value={initialSenderPhone}
+              ariaLabel="Editar teléfono"
+              onSave={saveField("aiSenderPhone")}
+              placeholder="Ej.: +54 9 11 5555-5555"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Email de contacto</Label>
+        <div className="rounded-lg border border-input p-1">
+          <EditableText
+            value={initialSenderEmail}
+            type="email"
+            ariaLabel="Editar email de contacto"
+            onSave={saveField("aiSenderEmail")}
+            placeholder="Ej.: hola@tuempresa.com"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="aiSenderEmail">Email de contacto</Label>
-        <Input
-          id="aiSenderEmail"
-          name="aiSenderEmail"
-          type="email"
-          defaultValue={initialSenderEmail}
-          placeholder="Ej.: hola@tuempresa.com"
-          autoComplete="off"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="aiTone">Cómo querés que escriba</Label>
-        <Textarea
-          id="aiTone"
-          name="aiTone"
-          defaultValue={initialTone}
-          rows={3}
-          placeholder="Ej.: Cercano pero profesional, de vos, frases cortas, sin sonar a venta agresiva. Siempre cerrar con una pregunta o próximo paso concreto."
-        />
+        <Label>Cómo querés que escriba</Label>
+        <div className="rounded-lg border border-input p-1">
+          <EditableText
+            value={initialTone}
+            multiline
+            maxLength={20000}
+            ariaLabel="Editar cómo querés que escriba"
+            onSave={saveField("aiTone")}
+            placeholder="Ej.: Cercano pero profesional, de vos, frases cortas, sin sonar a venta agresiva. Siempre cerrar con una pregunta o próximo paso concreto."
+          />
+        </div>
         <p className="text-xs text-muted-foreground">
           Tono, persona (tú/vos/usted), largo, qué evitar. Pisa el estilo por
           defecto del Redactor.
         </p>
       </div>
 
-      <Button type="submit" disabled={pending}>
-        {pending ? "Guardando..." : "Guardar perfil"}
-      </Button>
-    </form>
+      <p className="text-xs text-muted-foreground">
+        Se guarda solo: hacé clic en un campo para editarlo y al salir se
+        guarda. Los agentes usan los cambios al instante.
+      </p>
+    </div>
   );
 }

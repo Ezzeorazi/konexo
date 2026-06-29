@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  Pencil,
   ExternalLink,
   MessageSquarePlus,
   HeartHandshake,
@@ -11,7 +10,10 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
-import { deleteOpportunity } from "@/app/(app)/oportunidades/actions";
+import {
+  deleteOpportunity,
+  patchOpportunityField,
+} from "@/app/(app)/oportunidades/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,19 +24,25 @@ import {
 } from "@/components/ui/card";
 import {
   StageBadge,
-  PriorityBadge,
   StrengthBadge,
   TouchpointTypeBadge,
 } from "@/components/badges";
-import { OpportunityDialog } from "@/components/oportunidades/opportunity-dialog";
+import {
+  OppStageSelect,
+  OppPrioritySelect,
+} from "@/components/oportunidades/inline-editors";
+import { EditableText } from "@/components/editable/editable-text";
+import { EditableSelect } from "@/components/editable/editable-select";
+import { EditableMarkdown } from "@/components/editable/editable-markdown";
+import { ItemLink } from "@/components/clickable";
 import { CvTailorCard } from "@/components/oportunidades/cv-tailor-card";
 import { ProjectTracker } from "@/components/oportunidades/project-tracker";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
 import { ContactDialog } from "@/components/contactos/contact-dialog";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { CatchMeUpButton } from "@/components/oportunidades/catch-me-up";
-import { formatDate, formatRelative } from "@/lib/dates";
-import { projectKindLabels, type ProjectKind } from "@/lib/labels";
+import { formatDate, formatRelative, toDateInputValue } from "@/lib/dates";
+import { PROJECT_KINDS, projectKindLabels } from "@/lib/labels";
 import { getVocab, type Track } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
 import type { RelationshipStrength } from "@/lib/generated/prisma/client";
@@ -46,6 +54,22 @@ const strengthOrder: Record<RelationshipStrength, number> = {
   WARM: 1,
   COLD: 2,
 };
+
+// Fila etiqueta/control de la card "Datos".
+function FieldRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="min-w-0 text-right">{children}</span>
+    </div>
+  );
+}
 
 export default async function OportunidadDetailPage({
   params,
@@ -93,55 +117,13 @@ export default async function OportunidadDetailPage({
       strengthOrder[b.relationshipStrength]
   );
 
-  const facts: [string, React.ReactNode][] = [
-    [
-      "Etapa",
-      <StageBadge key="s" stage={opportunity.stage} track={track} stages={stages} />,
-    ],
-    ["Prioridad", <PriorityBadge key="p" priority={opportunity.priority} />],
-    ...(vocab.hasDelivery
-      ? ([
-          [
-            "Tipo de proyecto",
-            projectKindLabels[(opportunity.kind as ProjectKind) ?? "client"] ??
-              projectKindLabels.client,
-          ],
-        ] as [string, React.ReactNode][])
-      : []),
-    ["Ubicación", opportunity.location ?? "—"],
-    vocab.hasValue
-      ? [
-          vocab.valueLabel,
-          opportunity.value != null
-            ? opportunity.value.toLocaleString("es-AR")
-            : "—",
-        ]
-      : [vocab.valueLabel, opportunity.salaryRange ?? "—"],
-    [
-      vocab.firstDateLabel,
-      opportunity.appliedAt ? formatDate(opportunity.appliedAt) : "—",
-    ],
-    [
-      "Próximo follow-up",
-      opportunity.nextFollowUpAt
-        ? formatDate(opportunity.nextFollowUpAt)
-        : "—",
-    ],
-    ...(vocab.usesCv
-      ? ([
-          [
-            "Versión de CV",
-            opportunity.cvVersion ? (
-              <span key="cv" className="inline-flex items-center gap-1">
-                <FileText className="size-3.5 text-muted-foreground" />
-                {opportunity.cvVersion.label}
-              </span>
-            ) : (
-              "—"
-            ),
-          ],
-        ] as [string, React.ReactNode][])
-      : []),
+  const companyOptions = [
+    { value: "", label: "Sin empresa" },
+    ...companies.map((c) => ({ value: c.id, label: c.name })),
+  ];
+  const cvOptions = [
+    { value: "", label: "Sin versión de CV" },
+    ...cvVersions.map((cv) => ({ value: cv.id, label: cv.label })),
   ];
 
   return (
@@ -155,16 +137,17 @@ export default async function OportunidadDetailPage({
           {vocab.oppPlural}
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-display text-3xl tracking-wide text-ink md:text-4xl">
-                {opportunity.title}
-              </h1>
-              <StageBadge
-                stage={opportunity.stage}
-                track={track}
-                stages={stages}
+              <EditableText
+                value={opportunity.title}
+                required
+                ariaLabel="Editar título"
+                onSave={patchOpportunityField.bind(null, opportunity.id, "title")}
+                className="font-display text-3xl tracking-wide text-ink md:text-4xl"
+                inputClassName="font-display text-3xl tracking-wide text-ink md:text-4xl"
               />
+              <StageBadge stage={opportunity.stage} track={track} stages={stages} />
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               {opportunity.company ? (
@@ -207,19 +190,6 @@ export default async function OportunidadDetailPage({
                 </Button>
               }
             />
-            <OpportunityDialog
-              opportunity={opportunity}
-              companies={companies}
-              cvVersions={cvVersions}
-              track={track}
-              stages={stages}
-              trigger={
-                <Button variant="outline" size="sm">
-                  <Pencil className="size-4" />
-                  Editar
-                </Button>
-              }
-            />
             <ConfirmDeleteButton
               action={deleteOpportunity.bind(null, opportunity.id)}
               title="¿Eliminar esta oportunidad?"
@@ -236,40 +206,205 @@ export default async function OportunidadDetailPage({
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Datos</CardTitle>
+              <CardDescription>
+                Hacé clic en cualquier valor para editarlo.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              {facts.map(([label, value]) => (
-                <div
-                  key={label as string}
-                  className="flex items-center justify-between gap-4"
-                >
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="text-right">{value}</span>
-                </div>
-              ))}
-              {opportunity.notes ? (
-                <div className="border-t pt-3">
-                  <p className="mb-1 text-muted-foreground">Notas</p>
-                  <p className="whitespace-pre-wrap">{opportunity.notes}</p>
-                </div>
+              <FieldRow label="Etapa">
+                <OppStageSelect
+                  id={opportunity.id}
+                  value={opportunity.stage}
+                  track={track}
+                  stages={stages}
+                />
+              </FieldRow>
+              <FieldRow label="Prioridad">
+                <OppPrioritySelect
+                  id={opportunity.id}
+                  value={opportunity.priority}
+                />
+              </FieldRow>
+              {vocab.hasDelivery ? (
+                <FieldRow label="Tipo de proyecto">
+                  <EditableSelect
+                    value={opportunity.kind ?? "client"}
+                    ariaLabel="Cambiar tipo de proyecto"
+                    options={PROJECT_KINDS.map((k) => ({
+                      value: k,
+                      label: projectKindLabels[k],
+                    }))}
+                    onSave={patchOpportunityField.bind(
+                      null,
+                      opportunity.id,
+                      "kind"
+                    )}
+                  />
+                </FieldRow>
               ) : null}
+              <FieldRow label="Empresa">
+                <EditableSelect
+                  value={opportunity.companyId ?? ""}
+                  ariaLabel="Cambiar empresa"
+                  placeholder="Sin empresa"
+                  options={companyOptions}
+                  onSave={patchOpportunityField.bind(
+                    null,
+                    opportunity.id,
+                    "companyId"
+                  )}
+                />
+              </FieldRow>
+              <FieldRow label="Ubicación">
+                <EditableText
+                  value={opportunity.location ?? ""}
+                  placeholder="Ej.: Remoto"
+                  ariaLabel="Editar ubicación"
+                  onSave={patchOpportunityField.bind(
+                    null,
+                    opportunity.id,
+                    "location"
+                  )}
+                />
+              </FieldRow>
+              {vocab.hasValue ? (
+                <FieldRow label={vocab.valueLabel}>
+                  <EditableText
+                    value={opportunity.value?.toString() ?? ""}
+                    display={
+                      opportunity.value != null
+                        ? opportunity.value.toLocaleString("es-AR")
+                        : undefined
+                    }
+                    type="number"
+                    inputMode="decimal"
+                    placeholder={vocab.valuePlaceholder}
+                    ariaLabel={`Editar ${vocab.valueLabel}`}
+                    onSave={patchOpportunityField.bind(
+                      null,
+                      opportunity.id,
+                      "value"
+                    )}
+                  />
+                </FieldRow>
+              ) : (
+                <FieldRow label={vocab.valueLabel}>
+                  <EditableText
+                    value={opportunity.salaryRange ?? ""}
+                    placeholder={vocab.valuePlaceholder}
+                    ariaLabel={`Editar ${vocab.valueLabel}`}
+                    onSave={patchOpportunityField.bind(
+                      null,
+                      opportunity.id,
+                      "salaryRange"
+                    )}
+                  />
+                </FieldRow>
+              )}
+              <FieldRow label="Link">
+                <EditableText
+                  value={opportunity.url ?? ""}
+                  type="url"
+                  inputMode="url"
+                  placeholder={
+                    vocab.usesCv ? "linkedin.com/jobs/…" : "sitio o propuesta…"
+                  }
+                  ariaLabel="Editar link"
+                  onSave={patchOpportunityField.bind(
+                    null,
+                    opportunity.id,
+                    "url"
+                  )}
+                />
+              </FieldRow>
+              <FieldRow label={vocab.firstDateLabel}>
+                <EditableText
+                  value={toDateInputValue(opportunity.appliedAt)}
+                  display={
+                    opportunity.appliedAt
+                      ? formatDate(opportunity.appliedAt)
+                      : undefined
+                  }
+                  type="date"
+                  ariaLabel={`Editar ${vocab.firstDateLabel}`}
+                  onSave={patchOpportunityField.bind(
+                    null,
+                    opportunity.id,
+                    "appliedAt"
+                  )}
+                />
+              </FieldRow>
+              <FieldRow label="Próximo follow-up">
+                <EditableText
+                  value={toDateInputValue(opportunity.nextFollowUpAt)}
+                  display={
+                    opportunity.nextFollowUpAt
+                      ? formatDate(opportunity.nextFollowUpAt)
+                      : undefined
+                  }
+                  type="date"
+                  ariaLabel="Editar próximo follow-up"
+                  onSave={patchOpportunityField.bind(
+                    null,
+                    opportunity.id,
+                    "nextFollowUpAt"
+                  )}
+                />
+              </FieldRow>
+              {vocab.usesCv ? (
+                <FieldRow label="Versión de CV">
+                  <span className="inline-flex items-center gap-1">
+                    {opportunity.cvVersion ? (
+                      <FileText className="size-3.5 text-muted-foreground" />
+                    ) : null}
+                    <EditableSelect
+                      value={opportunity.cvVersionId ?? ""}
+                      ariaLabel="Cambiar versión de CV"
+                      placeholder="Sin versión de CV"
+                      options={cvOptions}
+                      onSave={patchOpportunityField.bind(
+                        null,
+                        opportunity.id,
+                        "cvVersionId"
+                      )}
+                    />
+                  </span>
+                </FieldRow>
+              ) : null}
+
+              <div className="border-t pt-3">
+                <p className="mb-1 text-muted-foreground">Notas</p>
+                <EditableMarkdown
+                  value={opportunity.notes ?? ""}
+                  ariaLabel="Editar notas"
+                  placeholder="Estado del proceso, impresiones, pendientes… (Markdown)"
+                  onSave={patchOpportunityField.bind(
+                    null,
+                    opportunity.id,
+                    "notes"
+                  )}
+                />
+              </div>
             </CardContent>
           </Card>
 
-          {opportunity.jobDescription ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {vocab.descriptionLabel}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                  {opportunity.jobDescription}
-                </p>
-              </CardContent>
-            </Card>
-          ) : null}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{vocab.descriptionLabel}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EditableMarkdown
+                value={opportunity.jobDescription ?? ""}
+                ariaLabel={`Editar ${vocab.descriptionLabel}`}
+                placeholder={vocab.descriptionPlaceholder}
+                onSave={patchOpportunityField.bind(
+                  null,
+                  opportunity.id,
+                  "jobDescription"
+                )}
+              />
+            </CardContent>
+          </Card>
 
           {vocab.usesCv ? (
             <CvTailorCard
@@ -295,8 +430,8 @@ export default async function OportunidadDetailPage({
           <CardContent>
             {!opportunity.company ? (
               <p className="text-sm text-muted-foreground">
-                Esta oportunidad no tiene empresa asignada. Asignale una desde
-                “Editar” para ver quién de tu red puede ayudarte.
+                Esta oportunidad no tiene empresa asignada. Asignale una desde la
+                card “Datos” para ver quién de tu red puede ayudarte.
               </p>
             ) : companyContacts.length === 0 ? (
               <div className="space-y-3">
@@ -320,34 +455,27 @@ export default async function OportunidadDetailPage({
               <ul className="space-y-4">
                 {companyContacts.map((contact) => (
                   <li key={contact.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <Link
-                          href={`/contactos/${contact.id}`}
-                          className="text-sm font-medium hover:underline"
-                        >
-                          {contact.name}
-                        </Link>
-                        {contact.role ? (
-                          <p className="text-xs text-muted-foreground">
-                            {contact.role}
-                          </p>
-                        ) : null}
+                    <ItemLink href={`/contactos/${contact.id}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <span className="text-sm font-medium">
+                            {contact.name}
+                          </span>
+                          {contact.role ? (
+                            <p className="text-xs text-muted-foreground">
+                              {contact.role}
+                            </p>
+                          ) : null}
+                        </div>
+                        <StrengthBadge strength={contact.relationshipStrength} />
                       </div>
-                      <StrengthBadge
-                        strength={contact.relationshipStrength}
-                      />
-                    </div>
+                    </ItemLink>
                     <TouchpointDialog
                       contactId={contact.id}
                       opportunityId={opportunity.id}
                       defaultType="REFERRAL_ASK"
                       trigger={
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                        >
+                        <Button variant="outline" size="sm" className="w-full">
                           <HeartHandshake className="size-3.5" />
                           Pedir referido
                         </Button>

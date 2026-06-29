@@ -1,30 +1,45 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  Pencil,
-  MessageSquarePlus,
-  Mail,
-  Phone,
-  ExternalLink,
-} from "lucide-react";
+import { ArrowLeft, MessageSquarePlus } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
-import { deleteContact } from "@/app/(app)/contactos/actions";
+import {
+  deleteContact,
+  patchContactField,
+} from "@/app/(app)/contactos/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { StrengthBadge, TouchpointTypeBadge } from "@/components/badges";
-import { ContactDialog } from "@/components/contactos/contact-dialog";
+import { ContactStrengthSelect } from "@/components/contactos/inline-editors";
+import { EditableText } from "@/components/editable/editable-text";
+import { EditableSelect } from "@/components/editable/editable-select";
+import { EditableMarkdown } from "@/components/editable/editable-markdown";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
-import { formatDate, formatRelative } from "@/lib/dates";
+import { formatDate, formatRelative, toDateInputValue } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
+
+function FieldRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="min-w-0 text-right">{children}</span>
+    </div>
+  );
+}
 
 export default async function ContactoDetailPage({
   params,
@@ -60,6 +75,11 @@ export default async function ContactoDetailPage({
     }),
   ]);
 
+  const companyOptions = [
+    { value: "", label: "Sin empresa" },
+    ...companies.map((c) => ({ value: c.id, label: c.name })),
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -71,11 +91,16 @@ export default async function ContactoDetailPage({
           Contactos
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <h1 className="font-display text-3xl tracking-wide text-ink md:text-4xl">
-                {contact.name}
-              </h1>
+              <EditableText
+                value={contact.name}
+                required
+                ariaLabel="Editar nombre"
+                onSave={patchContactField.bind(null, contact.id, "name")}
+                className="font-display text-3xl tracking-wide text-ink md:text-4xl"
+                inputClassName="font-display text-3xl tracking-wide text-ink md:text-4xl"
+              />
               <StrengthBadge strength={contact.relationshipStrength} />
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -95,16 +120,6 @@ export default async function ContactoDetailPage({
                 </Button>
               }
             />
-            <ContactDialog
-              contact={contact}
-              companies={companies}
-              trigger={
-                <Button variant="outline" size="sm">
-                  <Pencil className="size-4" />
-                  Editar
-                </Button>
-              }
-            />
             <ConfirmDeleteButton
               action={deleteContact.bind(null, contact.id)}
               title="¿Eliminar este contacto?"
@@ -120,58 +135,89 @@ export default async function ContactoDetailPage({
         <Card className="h-fit">
           <CardHeader>
             <CardTitle className="text-base">Datos</CardTitle>
+            <CardDescription>
+              Hacé clic en cualquier valor para editarlo.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            {contact.email ? (
-              <div className="flex items-center gap-2">
-                <Mail className="size-4 text-muted-foreground" />
-                <a href={`mailto:${contact.email}`} className="hover:underline">
-                  {contact.email}
-                </a>
-              </div>
-            ) : null}
-            {contact.phone ? (
-              <div className="flex items-center gap-2">
-                <Phone className="size-4 text-muted-foreground" />
-                <span>{contact.phone}</span>
-              </div>
-            ) : null}
-            {contact.linkedinUrl ? (
-              <div className="flex items-center gap-2">
-                <ExternalLink className="size-4 text-muted-foreground" />
-                <a
-                  href={contact.linkedinUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:underline"
-                >
-                  Perfil de LinkedIn
-                </a>
-              </div>
-            ) : null}
-            {!contact.email && !contact.phone && !contact.linkedinUrl ? (
-              <p className="text-muted-foreground">
-                Sin datos de contacto cargados.
-              </p>
-            ) : null}
+            <FieldRow label="Rol">
+              <EditableText
+                value={contact.role ?? ""}
+                placeholder="Ej.: Engineering Manager"
+                ariaLabel="Editar rol"
+                onSave={patchContactField.bind(null, contact.id, "role")}
+              />
+            </FieldRow>
+            <FieldRow label="Empresa">
+              <EditableSelect
+                value={contact.companyId ?? ""}
+                ariaLabel="Cambiar empresa"
+                placeholder="Sin empresa"
+                options={companyOptions}
+                onSave={patchContactField.bind(null, contact.id, "companyId")}
+              />
+            </FieldRow>
+            <FieldRow label="Relación">
+              <ContactStrengthSelect
+                id={contact.id}
+                value={contact.relationshipStrength}
+              />
+            </FieldRow>
+            <FieldRow label="Email">
+              <EditableText
+                value={contact.email ?? ""}
+                type="email"
+                placeholder="nombre@empresa.com"
+                ariaLabel="Editar email"
+                onSave={patchContactField.bind(null, contact.id, "email")}
+              />
+            </FieldRow>
+            <FieldRow label="Teléfono">
+              <EditableText
+                value={contact.phone ?? ""}
+                placeholder="Sin teléfono"
+                ariaLabel="Editar teléfono"
+                onSave={patchContactField.bind(null, contact.id, "phone")}
+              />
+            </FieldRow>
+            <FieldRow label="LinkedIn">
+              <EditableText
+                value={contact.linkedinUrl ?? ""}
+                type="url"
+                inputMode="url"
+                placeholder="linkedin.com/in/…"
+                ariaLabel="Editar LinkedIn"
+                onSave={patchContactField.bind(null, contact.id, "linkedinUrl")}
+              />
+            </FieldRow>
             <div className="border-t pt-3">
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">
-                  Próximo follow-up
-                </span>
-                <span>
-                  {contact.nextFollowUpAt
-                    ? formatDate(contact.nextFollowUpAt)
-                    : "—"}
-                </span>
-              </div>
+              <FieldRow label="Próximo follow-up">
+                <EditableText
+                  value={toDateInputValue(contact.nextFollowUpAt)}
+                  display={
+                    contact.nextFollowUpAt
+                      ? formatDate(contact.nextFollowUpAt)
+                      : undefined
+                  }
+                  type="date"
+                  ariaLabel="Editar próximo follow-up"
+                  onSave={patchContactField.bind(
+                    null,
+                    contact.id,
+                    "nextFollowUpAt"
+                  )}
+                />
+              </FieldRow>
             </div>
-            {contact.notes ? (
-              <div className="border-t pt-3">
-                <p className="mb-1 text-muted-foreground">Notas</p>
-                <p className="whitespace-pre-wrap">{contact.notes}</p>
-              </div>
-            ) : null}
+            <div className="border-t pt-3">
+              <p className="mb-1 text-muted-foreground">Notas</p>
+              <EditableMarkdown
+                value={contact.notes ?? ""}
+                ariaLabel="Editar notas"
+                placeholder="Cómo se conocieron, contexto, favores pendientes… (Markdown)"
+                onSave={patchContactField.bind(null, contact.id, "notes")}
+              />
+            </div>
           </CardContent>
         </Card>
 

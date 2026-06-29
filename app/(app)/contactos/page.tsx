@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Plus, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
@@ -14,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { StrengthBadge } from "@/components/badges";
 import { ContactDialog } from "@/components/contactos/contact-dialog";
+import { RowLink } from "@/components/clickable";
 import { formatDate } from "@/lib/dates";
 import { getActiveTrack } from "@/lib/active-track";
 
@@ -91,29 +91,13 @@ export default async function ContactosPage() {
             </TableHeader>
             <TableBody>
               {contacts.map((contact) => (
-                <TableRow key={contact.id}>
-                  <TableCell>
-                    <Link
-                      href={`/contactos/${contact.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {contact.name}
-                    </Link>
-                  </TableCell>
+                <RowLink key={contact.id} href={`/contactos/${contact.id}`}>
+                  <TableCell className="font-medium">{contact.name}</TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
                     {contact.role ?? "—"}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {contact.company ? (
-                      <Link
-                        href={`/empresas/${contact.company.id}`}
-                        className="text-muted-foreground hover:underline"
-                      >
-                        {contact.company.name}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
+                  <TableCell className="hidden text-muted-foreground md:table-cell">
+                    {contact.company ? contact.company.name : "—"}
                   </TableCell>
                   <TableCell>
                     <StrengthBadge strength={contact.relationshipStrength} />
@@ -123,7 +107,7 @@ export default async function ContactosPage() {
                       ? formatDate(contact.nextFollowUpAt)
                       : "—"}
                   </TableCell>
-                </TableRow>
+                </RowLink>
               ))}
             </TableBody>
           </Table>

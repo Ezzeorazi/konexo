@@ -1,23 +1,43 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Pencil, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
-import { deleteCompany } from "@/app/(app)/empresas/actions";
-import { Button } from "@/components/ui/button";
+import {
+  deleteCompany,
+  patchCompanyField,
+} from "@/app/(app)/empresas/actions";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { StageBadge, StrengthBadge } from "@/components/badges";
-import { CompanyDialog } from "@/components/empresas/company-dialog";
+import { ItemLink } from "@/components/clickable";
+import { EditableText } from "@/components/editable/editable-text";
+import { EditableMarkdown } from "@/components/editable/editable-markdown";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { getVocab, type Track } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
 
 export const dynamic = "force-dynamic";
+
+function FieldRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="min-w-0 text-right">{children}</span>
+    </div>
+  );
+}
 
 export default async function EmpresaDetailPage({
   params,
@@ -40,12 +60,6 @@ export default async function EmpresaDetailPage({
   const vocab = getVocab(track);
   const stages = await getTrackStages(track);
 
-  const facts: [string, string | null][] = [
-    ["Industria", company.industry],
-    ["Ubicación", company.location],
-    ["Fuente", company.source],
-  ];
-
   return (
     <div className="space-y-6">
       <div>
@@ -57,10 +71,15 @@ export default async function EmpresaDetailPage({
           {vocab.companyPlural}
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl tracking-wide text-ink md:text-4xl">
-              {company.name}
-            </h1>
+          <div className="min-w-0">
+            <EditableText
+              value={company.name}
+              required
+              ariaLabel="Editar nombre"
+              onSave={patchCompanyField.bind(null, company.id, "name")}
+              className="font-display text-3xl tracking-wide text-ink md:text-4xl"
+              inputClassName="font-display text-3xl tracking-wide text-ink md:text-4xl"
+            />
             {company.website ? (
               <a
                 href={company.website}
@@ -74,16 +93,6 @@ export default async function EmpresaDetailPage({
             ) : null}
           </div>
           <div className="flex items-center gap-2">
-            <CompanyDialog
-              company={company}
-              track={track}
-              trigger={
-                <Button variant="outline" size="sm">
-                  <Pencil className="size-4" />
-                  Editar
-                </Button>
-              }
-            />
             <ConfirmDeleteButton
               action={deleteCompany.bind(null, company.id)}
               title="¿Eliminar esta empresa?"
@@ -99,20 +108,54 @@ export default async function EmpresaDetailPage({
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Datos</CardTitle>
+            <CardDescription>
+              Hacé clic en cualquier valor para editarlo.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            {facts.map(([label, value]) => (
-              <div key={label} className="flex justify-between gap-4">
-                <span className="text-muted-foreground">{label}</span>
-                <span className="text-right">{value ?? "—"}</span>
-              </div>
-            ))}
-            {company.notes ? (
-              <div className="border-t pt-3">
-                <p className="mb-1 text-muted-foreground">Notas</p>
-                <p className="whitespace-pre-wrap">{company.notes}</p>
-              </div>
-            ) : null}
+            <FieldRow label="Industria">
+              <EditableText
+                value={company.industry ?? ""}
+                placeholder="Ej.: Impresiones 3D"
+                ariaLabel="Editar industria"
+                onSave={patchCompanyField.bind(null, company.id, "industry")}
+              />
+            </FieldRow>
+            <FieldRow label="Ubicación">
+              <EditableText
+                value={company.location ?? ""}
+                placeholder="Ej.: Remoto"
+                ariaLabel="Editar ubicación"
+                onSave={patchCompanyField.bind(null, company.id, "location")}
+              />
+            </FieldRow>
+            <FieldRow label="Sitio web">
+              <EditableText
+                value={company.website ?? ""}
+                type="url"
+                inputMode="url"
+                placeholder="empresa.com"
+                ariaLabel="Editar sitio web"
+                onSave={patchCompanyField.bind(null, company.id, "website")}
+              />
+            </FieldRow>
+            <FieldRow label="Fuente">
+              <EditableText
+                value={company.source ?? ""}
+                placeholder="¿De dónde salió?"
+                ariaLabel="Editar fuente"
+                onSave={patchCompanyField.bind(null, company.id, "source")}
+              />
+            </FieldRow>
+            <div className="border-t pt-3">
+              <p className="mb-1 text-muted-foreground">Notas</p>
+              <EditableMarkdown
+                value={company.notes ?? ""}
+                ariaLabel="Editar notas"
+                placeholder="Contexto, relación comercial, lo que sea… (Markdown)"
+                onSave={patchCompanyField.bind(null, company.id, "notes")}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -130,20 +173,18 @@ export default async function EmpresaDetailPage({
                 } ${vocab.companySingular} todavía.`}
               </p>
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {company.opportunities.map((opp) => (
-                  <li
-                    key={opp.id}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <Link
-                      href={`/oportunidades/${opp.id}`}
-                      className="text-sm font-medium hover:underline"
-                    >
-                      {opp.title}
-                    </Link>
-                    <StageBadge stage={opp.stage} track={track} stages={stages} />
-                  </li>
+                  <ItemLink key={opp.id} href={`/oportunidades/${opp.id}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium">{opp.title}</span>
+                      <StageBadge
+                        stage={opp.stage}
+                        track={track}
+                        stages={stages}
+                      />
+                    </div>
+                  </ItemLink>
                 ))}
               </ul>
             )}
@@ -163,27 +204,23 @@ export default async function EmpresaDetailPage({
                 trabaje acá?
               </p>
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {company.contacts.map((contact) => (
-                  <li
-                    key={contact.id}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <div>
-                      <Link
-                        href={`/contactos/${contact.id}`}
-                        className="text-sm font-medium hover:underline"
-                      >
-                        {contact.name}
-                      </Link>
-                      {contact.role ? (
-                        <p className="text-xs text-muted-foreground">
-                          {contact.role}
-                        </p>
-                      ) : null}
+                  <ItemLink key={contact.id} href={`/contactos/${contact.id}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <span className="text-sm font-medium">
+                          {contact.name}
+                        </span>
+                        {contact.role ? (
+                          <p className="text-xs text-muted-foreground">
+                            {contact.role}
+                          </p>
+                        ) : null}
+                      </div>
+                      <StrengthBadge strength={contact.relationshipStrength} />
                     </div>
-                    <StrengthBadge strength={contact.relationshipStrength} />
-                  </li>
+                  </ItemLink>
                 ))}
               </ul>
             )}

@@ -73,6 +73,75 @@ export async function updateContact(id: string, input: ContactInput) {
   return { ok: true as const, id };
 }
 
+// --- Edición in-context (un campo a la vez) ---------------------------------
+
+const CONTACT_FIELDS = [
+  "name",
+  "role",
+  "companyId",
+  "email",
+  "linkedinUrl",
+  "phone",
+  "relationshipStrength",
+  "nextFollowUpAt",
+  "notes",
+] as const;
+
+export type ContactField = (typeof CONTACT_FIELDS)[number];
+
+function cleanContactField(
+  field: ContactField,
+  value: string
+): Record<string, unknown> {
+  switch (field) {
+    case "name":
+      return { name: value.trim() };
+    case "role":
+      return { role: value.trim() || null };
+    case "companyId":
+      return { companyId: value || null };
+    case "email":
+      return { email: value.trim() || null };
+    case "linkedinUrl":
+      return { linkedinUrl: normalizeUrl(value) };
+    case "phone":
+      return { phone: value.trim() || null };
+    case "relationshipStrength":
+      return { relationshipStrength: value as RelationshipStrength };
+    case "nextFollowUpAt":
+      return { nextFollowUpAt: parseDateInput(value) };
+    case "notes":
+      return { notes: value.trim() || null };
+  }
+}
+
+export async function patchContactField(
+  id: string,
+  field: ContactField,
+  value: string
+) {
+  if (!CONTACT_FIELDS.includes(field)) {
+    return { ok: false as const, error: "Campo no editable." };
+  }
+  const mask = { [field]: true } as { [K in ContactField]?: true };
+  const parsed = ContactSchema.pick(mask).safeParse({ [field]: value });
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
+  }
+
+  const userId = await currentUserId();
+  const { count } = await prisma.contact.updateMany({
+    where: { id, userId },
+    data: cleanContactField(field, value),
+  });
+  if (count === 0) {
+    return { ok: false as const, error: "No encontré el contacto." };
+  }
+  revalidatePath("/contactos");
+  revalidatePath(`/contactos/${id}`);
+  return { ok: true as const };
+}
+
 export async function deleteContact(id: string) {
   const userId = await currentUserId();
   await prisma.contact.deleteMany({ where: { id, userId } });

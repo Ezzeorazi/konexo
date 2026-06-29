@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Plus, Building2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
@@ -13,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CompanyDialog } from "@/components/empresas/company-dialog";
+import { RowLink } from "@/components/clickable";
 import { getActiveTrack } from "@/lib/active-track";
 import { getVocab } from "@/lib/tracks";
 
@@ -83,15 +83,8 @@ export default async function EmpresasPage() {
             </TableHeader>
             <TableBody>
               {companies.map((company) => (
-                <TableRow key={company.id}>
-                  <TableCell>
-                    <Link
-                      href={`/empresas/${company.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {company.name}
-                    </Link>
-                  </TableCell>
+                <RowLink key={company.id} href={`/empresas/${company.id}`}>
+                  <TableCell className="font-medium">{company.name}</TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
                     {company.industry ?? "—"}
                   </TableCell>
@@ -104,7 +97,7 @@ export default async function EmpresasPage() {
                   <TableCell className="text-right">
                     {company._count.contacts}
                   </TableCell>
-                </TableRow>
+                </RowLink>
               ))}
             </TableBody>
           </Table>

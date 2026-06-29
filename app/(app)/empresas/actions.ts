@@ -60,6 +60,66 @@ export async function updateCompany(id: string, input: CompanyInput) {
   return { ok: true as const, id };
 }
 
+// --- Edición in-context (un campo a la vez) ---------------------------------
+
+const COMPANY_FIELDS = [
+  "name",
+  "website",
+  "location",
+  "industry",
+  "source",
+  "notes",
+] as const;
+
+export type CompanyField = (typeof COMPANY_FIELDS)[number];
+
+function cleanCompanyField(
+  field: CompanyField,
+  value: string
+): Record<string, unknown> {
+  switch (field) {
+    case "name":
+      return { name: value.trim() };
+    case "website":
+      return { website: normalizeUrl(value) };
+    case "location":
+      return { location: value.trim() || null };
+    case "industry":
+      return { industry: value.trim() || null };
+    case "source":
+      return { source: value.trim() || null };
+    case "notes":
+      return { notes: value.trim() || null };
+  }
+}
+
+export async function patchCompanyField(
+  id: string,
+  field: CompanyField,
+  value: string
+) {
+  if (!COMPANY_FIELDS.includes(field)) {
+    return { ok: false as const, error: "Campo no editable." };
+  }
+  const mask = { [field]: true } as { [K in CompanyField]?: true };
+  const parsed = CompanySchema.pick(mask).safeParse({ [field]: value });
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
+  }
+
+  const userId = await currentUserId();
+  const { count } = await prisma.company.updateMany({
+    where: { id, userId },
+    data: cleanCompanyField(field, value),
+  });
+  if (count === 0) {
+    return { ok: false as const, error: "No encontré la empresa." };
+  }
+  revalidatePath("/empresas");
+  revalidatePath(`/empresas/${id}`);
+  return { ok: true as const };
+}
+
 export async function deleteCompany(id: string) {
   const userId = await currentUserId();
   await prisma.company.deleteMany({ where: { id, userId } });
