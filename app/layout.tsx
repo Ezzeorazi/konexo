@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Bangers, Patrick_Hand } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,14 +28,31 @@ const patrickHand = Patrick_Hand({
 });
 
 export const metadata: Metadata = {
+  // Base para resolver URLs absolutas (Open Graph, canonical, manifest).
+  // Dominio de producción; override con NEXT_PUBLIC_SITE_URL en previews.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://konexo.site"),
   title: "konexo — Tu búsqueda de empleo, nivel héroe",
   description:
     "CRM local-first para búsqueda de empleo: oportunidades, personas y follow-ups.",
-  icons: {
-    icon: [{ url: "/favicon-konexo.webp", type: "image/webp" }],
-    shortcut: "/favicon-konexo.webp",
-    apple: "/favicon-konexo.webp",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Konexo",
+    statusBarStyle: "default",
   },
+  icons: {
+    icon: [
+      { url: "/favicon-konexo.webp", type: "image/webp" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon-konexo.webp",
+    apple: "/apple-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#16110c", // ink — barra de estado en modo standalone
 };
 
 export default function RootLayout({
@@ -51,6 +69,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${patrickHand.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        <ServiceWorkerRegister />
         {hasClerk ? (
           <ClerkProvider
             afterSignOutUrl="/home"

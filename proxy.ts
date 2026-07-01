@@ -21,6 +21,10 @@ const isPublicRoute = createRouteMatcher([
   // Feed iCalendar: lo consumen apps de calendario sin cookies; se autentica
   // con el token secreto del path (ver app/api/calendario/[token]/route.ts).
   "/api/calendario(.*)",
+  // Digital Asset Links: Android lo pide sin cookies para verificar que la TWA
+  // (app de la Play Store) es dueña de konexo.site. Debe ser público, si no la
+  // app muestra la barra del navegador en vez de pantalla completa.
+  "/.well-known(.*)",
 ]);
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
