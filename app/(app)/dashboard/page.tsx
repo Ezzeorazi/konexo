@@ -202,7 +202,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="mt-6 inline-block bg-ink px-4 py-1.5 font-display tracking-widest text-komic">
+          <div className="mt-6 inline-block max-w-full wrap-break-word bg-ink px-4 py-1.5 font-display tracking-widest text-komic">
             {totalOpportunities} EN JUEGO · {penultCount}{" "}
             {penultStage?.label.toUpperCase()} · {lastCount}{" "}
             {lastStage?.label.toUpperCase()}
@@ -240,7 +240,7 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      <div className="grid items-start gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
         {/* ===== FOLLOW-UPS ===== */}
         <Reveal anim="pop" className="lg:col-span-2">
           <Card>
@@ -276,7 +276,7 @@ export default async function DashboardPage() {
                           href={fu.href}
                           className="flex items-center justify-between gap-3 px-1 py-3 transition-colors hover:bg-komic/30"
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex min-w-0 flex-1 items-center gap-3">
                             <span className="flex size-9 shrink-0 items-center justify-center rounded-md border-[2.5px] border-ink bg-paper">
                               {fu.kind === "opportunity" ? (
                                 <KanbanSquare className="size-4 text-ink" />
@@ -284,8 +284,10 @@ export default async function DashboardPage() {
                                 <Users className="size-4 text-ink" />
                               )}
                             </span>
-                            <div>
-                              <p className="font-medium text-ink">{fu.title}</p>
+                            <div className="min-w-0">
+                              <p className="font-medium wrap-break-word text-ink">
+                                {fu.title}
+                              </p>
                               {fu.subtitle ? (
                                 <p className="font-hand text-sm text-muted-foreground">
                                   {fu.subtitle}
@@ -386,11 +388,15 @@ export default async function DashboardPage() {
                           href={`/oportunidades/${opp.id}`}
                           className="group flex items-center justify-between gap-2 rounded-md border-2 border-ink bg-paper px-3 py-2"
                         >
-                          <div>
-                            <p className="font-medium text-ink">{opp.title}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium wrap-break-word text-ink">
+                              {opp.title}
+                            </p>
                             <p className="flex items-center gap-1 font-hand text-sm text-muted-foreground">
-                              <Building2 className="size-3.5" />
-                              {opp.company?.name ?? "Sin empresa asignada"}
+                              <Building2 className="size-3.5 shrink-0" />
+                              <span className="min-w-0 truncate">
+                                {opp.company?.name ?? "Sin empresa asignada"}
+                              </span>
                             </p>
                           </div>
                           <ArrowRight className="size-4 shrink-0 text-ink/50 transition-transform group-hover:translate-x-0.5 group-hover:text-ink" />
@@ -412,21 +418,23 @@ export default async function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between border-b-2 border-dashed border-paper/40 pb-2">
-                  <span className="flex items-center gap-2 font-hand text-base">
-                    <KanbanSquare className="size-4" />
-                    {`${vocab.oppPlural} activas`}
+                <div className="flex items-center justify-between gap-3 border-b-2 border-dashed border-paper/40 pb-2">
+                  <span className="flex min-w-0 items-center gap-2 font-hand text-base">
+                    <KanbanSquare className="size-4 shrink-0" />
+                    <span className="min-w-0 truncate">{`${vocab.oppPlural} activas`}</span>
                   </span>
-                  <span className="font-display text-3xl">
+                  <span className="shrink-0 font-display text-3xl">
                     {totalOpportunities}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 font-hand text-base">
-                    <Users className="size-4" />
-                    Contactos en tu red
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-2 font-hand text-base">
+                    <Users className="size-4 shrink-0" />
+                    <span className="min-w-0 truncate">Contactos en tu red</span>
                   </span>
-                  <span className="font-display text-3xl">{contactCount}</span>
+                  <span className="shrink-0 font-display text-3xl">
+                    {contactCount}
+                  </span>
                 </div>
               </CardContent>
             </Card>

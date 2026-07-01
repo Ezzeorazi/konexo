@@ -83,7 +83,7 @@ export default async function ConfiguracionPage() {
             forecast.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-8 md:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {stagesByTrack.map(({ track, stages }) => (
             <StagesEditor key={track} track={track} stages={stages} />
           ))}
@@ -110,7 +110,7 @@ export default async function ConfiguracionPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="h-fit">
           <CardHeader>
             <CardTitle className="text-base">Inteligencia artificial</CardTitle>

@@ -77,24 +77,37 @@ export default async function EmpresasPage() {
                 <TableHead className="hidden md:table-cell">
                   Ubicación
                 </TableHead>
-                <TableHead className="text-right">{vocab.oppPlural}</TableHead>
-                <TableHead className="text-right">Contactos</TableHead>
+                <TableHead className="hidden text-right sm:table-cell">
+                  {vocab.oppPlural}
+                </TableHead>
+                <TableHead className="hidden text-right sm:table-cell">
+                  Contactos
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {companies.map((company) => (
                 <RowLink key={company.id} href={`/empresas/${company.id}`}>
-                  <TableCell className="font-medium">{company.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {company.name}
+                    {/* En mobile, donde ocultamos las columnas de conteo,
+                        mostramos los números como subtítulo para no perder info. */}
+                    <span className="mt-0.5 block text-xs font-normal text-muted-foreground sm:hidden">
+                      {company._count.opportunities}{" "}
+                      {vocab.oppPlural.toLowerCase()} · {company._count.contacts}{" "}
+                      contactos
+                    </span>
+                  </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
                     {company.industry ?? "—"}
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
                     {company.location ?? "—"}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="hidden text-right sm:table-cell">
                     {company._count.opportunities}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="hidden text-right sm:table-cell">
                     {company._count.contacts}
                   </TableCell>
                 </RowLink>

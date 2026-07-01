@@ -101,7 +101,7 @@ export default async function CalendarioPage() {
         description="Tus follow-ups en un solo lugar. Suscribilo en el teléfono para recibirlos ahí."
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {items.length === 0 ? (
             <Card>

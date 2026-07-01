@@ -131,7 +131,7 @@ export default async function ContactoDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="h-fit">
           <CardHeader>
             <CardTitle className="text-base">Datos</CardTitle>
