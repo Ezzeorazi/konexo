@@ -482,6 +482,43 @@ export default function HomePage() {
         </p>
       </section>
 
+      {/* ===== APOYÁ EL PROYECTO ===== */}
+      <section id="apoyar" className="border-t-4 border-ink bg-panelw">
+        <div className="mx-auto max-w-3xl px-4 py-14 text-center md:py-16">
+          <div className="inline-block -rotate-2 bg-hero px-3 py-1 font-display text-sm tracking-widest text-paper">
+            HECHO EN PÚBLICO
+          </div>
+          <h2 className="stroke-ink mt-4 font-display text-3xl tracking-wide text-ink sm:text-5xl">
+            ¿TE SIRVE KONEXO?
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-ink/85 sm:text-xl">
+            Konexo es gratis y lo construyo solo, a pulmón. Si te suma,
+            invitame un cafecito: ayudás a bancar el hosting, la app en Google
+            Play y las próximas funciones. ☕
+          </p>
+          <div className="mt-7 flex justify-center">
+            {/* Botón oficial de Cafecito (imagen servida por su CDN). */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <a
+              href="https://cafecito.app/konexo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-transform hover:-translate-y-0.5"
+            >
+              <img
+                srcSet="https://cdn.cafecito.app/imgs/buttons/button_5.png 1x, https://cdn.cafecito.app/imgs/buttons/button_5_2x.png 2x, https://cdn.cafecito.app/imgs/buttons/button_5_3.75x.png 3.75x"
+                src="https://cdn.cafecito.app/imgs/buttons/button_5.png"
+                alt="Invitame un café en cafecito.app"
+                className="h-14 w-auto"
+              />
+            </a>
+          </div>
+          <p className="mt-3 text-sm text-ink/60">
+            Donación en pesos vía Mercado Pago. Sin compromiso, cuando quieras.
+          </p>
+        </div>
+      </section>
+
       {/* ===== FOOTER ===== */}
       <footer className="border-t-4 border-ink bg-ink text-paper">
         <div className="mx-auto max-w-6xl px-4 py-10">
@@ -495,13 +532,8 @@ export default function HomePage() {
               </p>
             </div>
             <nav className="flex flex-wrap gap-x-6 gap-y-2 font-display text-sm tracking-wide">
-              <a
-                href="https://cafecito.app/konexo"
-                target="_blank"
-                rel="noreferrer"
-                className="text-komic hover:text-alarm"
-              >
-                ☕ INVITAME UN CAFECITO
+              <a href="#apoyar" className="text-komic hover:text-alarm">
+                ☕ APOYAR
               </a>
               <Link href="/guia" className="hover:text-komic">
                 GUÍA DE USO
