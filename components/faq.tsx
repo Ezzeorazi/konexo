@@ -41,7 +41,7 @@ export function Faq({
       <h2
         className={
           "stroke-ink mt-3 font-display text-3xl tracking-wide sm:text-5xl " +
-          (dark ? "text-komic" : "text-ink")
+          (dark ? "text-komic" : "text-alarm")
         }
       >
         {title}

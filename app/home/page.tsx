@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Faq } from "@/components/faq";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import { KONEXO_FAQ } from "@/lib/faq";
 
 export const metadata: Metadata = {
@@ -443,16 +444,20 @@ export default function HomePage() {
         <div className="panel rough grid items-center gap-8 p-8 md:grid-cols-[1fr_auto] md:p-10">
           <div>
             <div className="inline-flex items-center gap-2 rounded-md border-[3px] border-ink bg-hero px-3 py-1 font-display text-sm tracking-widest text-paper">
-              <Smartphone className="size-4" /> APP ANDROID
+              <Smartphone className="size-4" /> PRÓXIMAMENTE EN GOOGLE PLAY
             </div>
             <h2 className="stroke-ink mt-4 font-display text-4xl tracking-wide text-hero sm:text-5xl">
               LLEVALO EN EL BOLSILLO
             </h2>
             <p className="mt-3 max-w-xl text-lg text-ink/85">
-              Konexo funciona en la web y también como <b>app instalable</b>.
-              Desde el navegador de tu celular, tocá <b>Menú → Instalar app</b> (o
-              “Agregar a pantalla de inicio”) y tenés Konexo a pantalla completa,
-              como cualquier app. Pronto también en Google Play.
+              La app de Konexo para Android está <b>en camino a Google Play</b>.
+              Mientras tanto, ya podés usar Konexo desde el navegador de tu
+              celular e instalarlo en la pantalla de inicio (<b>Menú → Instalar
+              app</b>), a pantalla completa como cualquier app.
+            </p>
+            <p className="mt-3 max-w-xl text-base text-ink/70">
+              ¿Querés ayudar a que llegue a la tienda? Con un cafecito bancás la
+              publicación en Google Play. ☕
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
@@ -461,12 +466,12 @@ export default function HomePage() {
               >
                 Empezar gratis
               </Link>
-              <Link
-                href="/guia"
+              <a
+                href="#apoyar"
                 className="inline-flex items-center gap-1 font-display text-base tracking-wide underline decoration-2 underline-offset-4 hover:text-alarm"
               >
-                Cómo instalarla <ArrowRight className="size-4" />
-              </Link>
+                Bancá el lanzamiento <ArrowRight className="size-4" />
+              </a>
             </div>
           </div>
           <Image
@@ -606,6 +611,8 @@ export default function HomePage() {
           </p>
         </div>
       </footer>
+
+      <ScrollToTop />
     </main>
   );
 }
