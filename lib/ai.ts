@@ -22,6 +22,18 @@ export type ChatMessage = {
   content: string;
 };
 
+// Default del lado del servidor: la app viene con IA lista para todos usando la
+// key del dueño (env). Cada usuario puede overridearla en Configuración con su
+// propio proveedor/key; si no toca nada, usa este default compartido.
+const SERVER_DEFAULT_PROVIDER = process.env.AI_DEFAULT_PROVIDER || "groq";
+const SERVER_DEFAULT_API_KEY = process.env.GROQ_API_KEY || process.env.AI_DEFAULT_API_KEY || "";
+const SERVER_DEFAULT_MODEL = process.env.AI_DEFAULT_MODEL || "";
+
+/** ¿Hay IA lista para usar sin que el usuario configure nada? */
+export function hasServerDefaultAi(): boolean {
+  return Boolean(SERVER_DEFAULT_API_KEY);
+}
+
 export async function getAiConfig(): Promise<AiConfig> {
   const map = await getSettingsMap([
     "aiProvider",
@@ -29,11 +41,25 @@ export async function getAiConfig(): Promise<AiConfig> {
     "aiModel",
     "aiBaseUrl",
   ]);
-  const provider = map.get("aiProvider") || "groq";
+  // Provider: el del usuario si lo eligió, si no el default del servidor.
+  const provider = map.get("aiProvider") || SERVER_DEFAULT_PROVIDER;
+
+  // Key: la del usuario si la cargó. Si no cargó ninguna y el provider quedó en
+  // el default del servidor, usamos la key del dueño (Groq) para que la IA
+  // funcione out-of-the-box para todos.
+  let apiKey = map.get("aiApiKey") ?? "";
+  if (!apiKey && provider === SERVER_DEFAULT_PROVIDER) {
+    apiKey = SERVER_DEFAULT_API_KEY;
+  }
+
   return {
     provider,
-    apiKey: map.get("aiApiKey") ?? "",
-    model: map.get("aiModel") || DEFAULT_MODELS[provider] || "",
+    apiKey,
+    model:
+      map.get("aiModel") ||
+      (provider === SERVER_DEFAULT_PROVIDER ? SERVER_DEFAULT_MODEL : "") ||
+      DEFAULT_MODELS[provider] ||
+      "",
     baseUrl: map.get("aiBaseUrl") || DEFAULT_OLLAMA_URL,
   };
 }

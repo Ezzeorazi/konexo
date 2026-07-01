@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AiSettingsForm } from "@/components/configuracion/ai-settings-form";
+import { hasServerDefaultAi } from "@/lib/ai";
 import { BusinessProfileForm } from "@/components/configuracion/business-profile-form";
 import { TracksSettingsForm } from "@/components/configuracion/tracks-settings-form";
 import { StagesEditor } from "@/components/configuracion/stages-editor";
@@ -114,12 +115,15 @@ export default async function ConfiguracionPage() {
           <CardHeader>
             <CardTitle className="text-base">Inteligencia artificial</CardTitle>
             <CardDescription>
-              Usá Ollama gratis en tu máquina, o traé tu propia API key. Se usa
-              para adaptar tu CV a cada oportunidad.
+              Konexo ya viene con IA lista para usar. Si querés, podés poner tu
+              propio proveedor y API key (o correr Ollama gratis en tu máquina).
+              Se usa para adaptar tu CV y redactar mensajes.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <AiSettingsForm
+              hasServerDefault={hasServerDefaultAi()}
+              userHasKey={Boolean(settingsMap.get("aiApiKey"))}
               initialProvider={settingsMap.get("aiProvider") ?? "groq"}
               initialApiKey={settingsMap.get("aiApiKey") ?? ""}
               initialModel={settingsMap.get("aiModel") ?? ""}

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { ShieldCheck, PlugZap } from "lucide-react";
+import { ShieldCheck, PlugZap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,11 +32,15 @@ const DEFAULT_MODEL_PLACEHOLDER: Record<string, string> = {
 };
 
 export function AiSettingsForm({
+  hasServerDefault = false,
+  userHasKey = false,
   initialProvider,
   initialApiKey,
   initialModel,
   initialBaseUrl,
 }: {
+  hasServerDefault?: boolean;
+  userHasKey?: boolean;
   initialProvider: string;
   initialApiKey: string;
   initialModel: string;
@@ -45,6 +49,11 @@ export function AiSettingsForm({
   const [pending, startTransition] = useTransition();
   const [showKey, setShowKey] = useState(false);
   const [provider, setProvider] = useState(initialProvider);
+
+  // La IA compartida está activa cuando el server tiene key y el usuario no
+  // cargó la suya (usa el default del dueño). Si el usuario pone su propia key,
+  // manda la suya y este cartel deja de aplicar.
+  const usingSharedDefault = hasServerDefault && !userHasKey;
 
   function save(form: FormData) {
     return saveSettings([
@@ -81,6 +90,17 @@ export function AiSettingsForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {usingSharedDefault ? (
+        <p className="flex items-start gap-2 rounded-md border-[2.5px] border-ink bg-komic/40 px-3 py-2 text-xs text-ink">
+          <Sparkles className="mt-0.5 size-4 shrink-0" />
+          <span>
+            <b>IA activada.</b> Ya podés usar el asistente sin configurar nada.
+            Lo de abajo es opcional: solo si querés usar tu propio proveedor o
+            key.
+          </span>
+        </p>
+      ) : null}
+
       <div className="space-y-2">
         <Label>Proveedor de IA</Label>
         <Select
