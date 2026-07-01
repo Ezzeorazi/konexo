@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Bangers, Patrick_Hand } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { konexoClerkAppearance } from "@/lib/clerk-appearance";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
@@ -100,6 +101,7 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         {hasClerk ? (
           <ClerkProvider
+            appearance={konexoClerkAppearance}
             afterSignOutUrl="/home"
             signInFallbackRedirectUrl="/dashboard"
             signUpFallbackRedirectUrl="/dashboard"
