@@ -441,7 +441,7 @@ export default function HomePage() {
       {/* ===== 3 ACTOS ===== */}
       <section className="border-y-4 border-ink bg-panelw">
         <div className="mx-auto max-w-6xl px-4 py-14 md:py-20">
-          <h2 className="stroke-ink mb-10 text-center font-display text-4xl tracking-wide text-ink sm:text-6xl">
+          <h2 className="stroke-ink mb-10 text-center font-display text-4xl tracking-wide text-komic sm:text-6xl">
             LA MISIÓN EN 3 ACTOS
           </h2>
           <div className="grid gap-6 md:grid-cols-3">
@@ -488,13 +488,13 @@ export default function HomePage() {
           <div className="inline-block -rotate-2 bg-hero px-3 py-1 font-display text-sm tracking-widest text-paper">
             HECHO EN PÚBLICO
           </div>
-          <h2 className="stroke-ink mt-4 font-display text-3xl tracking-wide text-ink sm:text-5xl">
+          <h2 className="stroke-ink mt-4 font-display text-3xl tracking-wide text-hero sm:text-5xl">
             ¿TE SIRVE KONEXO?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-ink/85 sm:text-xl">
             Konexo es gratis y lo construyo solo, a pulmón. Si te suma,
             invitame un cafecito: ayudás a bancar el hosting, la app en Google
-            Play y las próximas funciones. ☕
+            Play y las próximas funciones.
           </p>
           <div className="mt-7 flex justify-center">
             {/* Botón oficial de Cafecito (imagen servida por su CDN). */}

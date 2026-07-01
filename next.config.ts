@@ -74,7 +74,15 @@ function buildCsp({ landing }: { landing: boolean }): string {
       ...(landing ? [tailwindCdn] : []),
     ],
     "style-src": ["'self'", "'unsafe-inline'", ...(landing ? [fontsCss] : [])],
-    "img-src": ["'self'", "data:", "blob:", "https://img.clerk.com", ...clerk],
+    // cdn.cafecito.app: botón oficial de donación en la landing nativa.
+    "img-src": [
+      "'self'",
+      "data:",
+      "blob:",
+      "https://img.clerk.com",
+      "https://cdn.cafecito.app",
+      ...clerk,
+    ],
     "font-src": ["'self'", "data:", ...(landing ? [fontsFiles] : [])],
     "connect-src": [
       "'self'",
