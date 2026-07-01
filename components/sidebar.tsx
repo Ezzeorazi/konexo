@@ -13,6 +13,7 @@ import {
   Settings,
   Home,
   Bot,
+  Coffee,
   Menu,
   X,
 } from "lucide-react";
@@ -117,7 +118,7 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="border-t-[3px] border-sidebar-border px-3 py-2">
+        <div className="flex flex-col gap-1 border-t-[3px] border-sidebar-border px-3 py-2">
           <Link
             href="/home"
             title="Ver la landing"
@@ -127,6 +128,16 @@ export function Sidebar({
             <Home className="size-4 shrink-0" />
             <span>Landing</span>
           </Link>
+          <a
+            href="https://cafecito.app/konexo"
+            target="_blank"
+            rel="noreferrer"
+            title="Invitame un cafecito"
+            className="flex items-center gap-2 rounded-md border-[2.5px] border-transparent px-2 py-1.5 font-display text-xs tracking-wide text-sidebar-foreground/60 transition-all hover:border-paper hover:text-sidebar-accent-foreground"
+          >
+            <Coffee className="size-4 shrink-0" />
+            <span>Invitame un café</span>
+          </a>
         </div>
 
         <div className="flex items-center justify-between gap-2 border-t-[3px] border-sidebar-border p-4 font-hand text-sm text-sidebar-foreground/70">

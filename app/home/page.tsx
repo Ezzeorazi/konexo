@@ -495,6 +495,14 @@ export default function HomePage() {
               </p>
             </div>
             <nav className="flex flex-wrap gap-x-6 gap-y-2 font-display text-sm tracking-wide">
+              <a
+                href="https://cafecito.app/konexo"
+                target="_blank"
+                rel="noreferrer"
+                className="text-komic hover:text-alarm"
+              >
+                ☕ INVITAME UN CAFECITO
+              </a>
               <Link href="/guia" className="hover:text-komic">
                 GUÍA DE USO
               </Link>
