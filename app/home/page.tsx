@@ -129,10 +129,10 @@ export default function HomePage() {
               width={853}
               height={226}
               priority
-              className="h-7 w-auto sm:h-9"
+              className="h-8 w-auto sm:h-10"
             />
           </Link>
-          <div className="hidden items-center gap-6 font-display text-sm tracking-wide md:flex">
+          <div className="hidden items-center gap-7 font-display text-lg tracking-wide md:flex lg:text-xl">
             <a href="#modos" className="hover:text-alarm">
               MODOS
             </a>
@@ -149,16 +149,16 @@ export default function HomePage() {
               GUÍA
             </Link>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link
               href="/sign-in"
-              className="hidden font-display text-sm tracking-wide hover:text-alarm sm:inline"
+              className="hidden font-display text-lg tracking-wide hover:text-alarm sm:inline"
             >
               ENTRAR
             </Link>
             <Link
               href="/sign-up"
-              className="btn-comic rough bg-komic px-3 py-1.5 font-display text-base tracking-wider sm:px-4 sm:text-lg"
+              className="btn-comic rough bg-komic px-4 py-2 font-display text-lg tracking-wider sm:text-xl"
             >
               ¡EMPIEZA YA!
             </Link>
