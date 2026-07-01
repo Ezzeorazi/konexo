@@ -15,10 +15,14 @@ const isPublicRoute = createRouteMatcher([
   "/home",
   "/para(.*)",
   "/guia",
+  "/blog(.*)",
   "/privacidad",
   "/terminos",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  // SEO: se sirven fuera del área privada.
+  "/robots.txt",
+  "/sitemap.xml",
   "/api/waitlist",
   // Feed iCalendar: lo consumen apps de calendario sin cookies; se autentica
   // con el token secreto del path (ver app/api/calendario/[token]/route.ts).

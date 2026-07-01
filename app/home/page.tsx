@@ -9,6 +9,8 @@ import {
   Smartphone,
   ArrowRight,
 } from "lucide-react";
+import { Faq } from "@/components/faq";
+import { KONEXO_FAQ } from "@/lib/faq";
 
 export const metadata: Metadata = {
   title: "Konexo — Organizá tu búsqueda de empleo como un pipeline",
@@ -19,6 +21,38 @@ export const metadata: Metadata = {
 // Landing nativa (React/Tailwind), responsive mobile-first. Reemplaza el iframe
 // del HTML estático: mejor SEO, links reales a legales/guía/instalación y un
 // solo lugar para mantener. Es un Server Component (sin estado ni JS de cliente).
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://konexo.site";
+
+// Datos estructurados del sitio (Organization + WebSite + la app) para SEO.
+const HOME_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE}/#org`,
+      name: "Konexo",
+      url: SITE,
+      logo: `${SITE}/icon-512.png`,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE}/#website`,
+      name: "Konexo",
+      url: SITE,
+      inLanguage: "es-AR",
+      publisher: { "@id": `${SITE}/#org` },
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "Konexo",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web, Android",
+      url: SITE,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+  ],
+};
 
 const MODOS = [
   {
@@ -119,6 +153,10 @@ const ACTOS = [
 export default function HomePage() {
   return (
     <main className="halftone min-h-screen overflow-x-hidden bg-paper font-hand text-ink selection:bg-komic selection:text-ink">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSON_LD) }}
+      />
       {/* ===== NAV ===== */}
       <nav className="sticky top-0 z-50 halftone border-b-4 border-ink bg-paper">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
@@ -145,6 +183,9 @@ export default function HomePage() {
             <a href="#app" className="hover:text-alarm">
               APP
             </a>
+            <Link href="/blog" className="hover:text-alarm">
+              BLOG
+            </Link>
             <Link href="/guia" className="hover:text-alarm">
               GUÍA
             </Link>
@@ -460,6 +501,13 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== FAQ ===== */}
+      <section id="faq" className="border-t-4 border-ink bg-panelw">
+        <div className="mx-auto max-w-3xl px-4 py-14 md:py-20">
+          <Faq items={KONEXO_FAQ} eyebrow="DUDAS" title="PREGUNTAS FRECUENTES" />
+        </div>
+      </section>
+
       {/* ===== CTA FINAL ===== */}
       <section className="mx-auto max-w-3xl px-4 py-16 text-center md:py-24">
         <div className="inline-block -rotate-2 bg-alarm px-4 py-1 font-display text-lg tracking-widest text-paper">
@@ -535,6 +583,9 @@ export default function HomePage() {
               <a href="#apoyar" className="text-komic hover:text-alarm">
                 ☕ APOYAR
               </a>
+              <Link href="/blog" className="hover:text-komic">
+                BLOG
+              </Link>
               <Link href="/guia" className="hover:text-komic">
                 GUÍA DE USO
               </Link>

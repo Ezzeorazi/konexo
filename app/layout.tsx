@@ -31,9 +31,35 @@ export const metadata: Metadata = {
   // Base para resolver URLs absolutas (Open Graph, canonical, manifest).
   // Dominio de producción; override con NEXT_PUBLIC_SITE_URL en previews.
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://konexo.site"),
-  title: "konexo — Tu búsqueda de empleo, nivel héroe",
+  title: "Konexo — Tu búsqueda de empleo, nivel héroe",
   description:
-    "CRM local-first para búsqueda de empleo: oportunidades, personas y follow-ups.",
+    "CRM personal para organizar tu búsqueda de empleo, ventas o freelance como un pipeline: oportunidades, contactos y follow-ups. IA incluida. Gratis para empezar.",
+  applicationName: "Konexo",
+  keywords: [
+    "CRM personal",
+    "búsqueda de empleo",
+    "seguimiento de postulaciones",
+    "pipeline de ventas",
+    "follow-ups",
+    "freelance",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: "Konexo",
+    locale: "es_AR",
+    url: "/home",
+    title: "Konexo — Tu búsqueda de empleo, nivel héroe",
+    description:
+      "Organizá tu búsqueda de empleo, ventas o freelance como un pipeline. Con IA incluida. Gratis para empezar.",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Konexo" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Konexo — Tu búsqueda de empleo, nivel héroe",
+    description:
+      "Organizá tu búsqueda de empleo, ventas o freelance como un pipeline. Con IA incluida.",
+    images: ["/og.png"],
+  },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

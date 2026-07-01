@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 
 // Security headers (auditoría M3 / Prioridad 5). Sin dependencias: se sirven
 // desde el propio Next en todas las respuestas.
@@ -130,6 +131,8 @@ function securityHeaders({ landing }: { landing: boolean }) {
 }
 
 const nextConfig: NextConfig = {
+  // Permite archivos .md/.mdx como páginas e imports (blog en content/blog).
+  pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
   async headers() {
     return [
       // Catch-all con la CSP estricta de la app.
@@ -141,4 +144,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Plugins como string para compatibilidad con Turbopack (Next 16).
+const withMDX = createMDX({
+  options: { remarkPlugins: ["remark-gfm"] },
+});
+
+export default withMDX(nextConfig);
