@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
 // Layout compartido del blog: mismo look comic que la landing/legales.
 export default function BlogLayout({
@@ -66,6 +67,8 @@ export default function BlogLayout({
           </nav>
         </div>
       </footer>
+
+      <ScrollToTop />
     </div>
   );
 }
