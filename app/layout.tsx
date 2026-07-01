@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Bangers, Patrick_Hand } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import "./globals.css";
 
@@ -95,6 +96,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${patrickHand.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        <GoogleAnalytics />
         <ServiceWorkerRegister />
         {hasClerk ? (
           <ClerkProvider

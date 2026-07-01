@@ -49,6 +49,16 @@ function buildCsp({ landing }: { landing: boolean }): string {
     "https://eu-assets.i.posthog.com",
   ];
 
+  // Google Analytics (gtag.js): el loader viene de googletagmanager y los
+  // beacons/eventos van a google-analytics.
+  const gaScript = "https://www.googletagmanager.com";
+  const gaConnect = [
+    "https://www.googletagmanager.com",
+    "https://www.google-analytics.com",
+    "https://*.google-analytics.com",
+    "https://*.analytics.google.com",
+  ];
+
   // Solo la landing estática: Tailwind Play CDN + Google Fonts.
   const tailwindCdn = "https://cdn.tailwindcss.com";
   const fontsCss = "https://fonts.googleapis.com";
@@ -72,16 +82,19 @@ function buildCsp({ landing }: { landing: boolean }): string {
       ...clerk,
       turnstile,
       ...posthog,
+      gaScript,
       ...(landing ? [tailwindCdn] : []),
     ],
     "style-src": ["'self'", "'unsafe-inline'", ...(landing ? [fontsCss] : [])],
-    // cdn.cafecito.app: botón oficial de donación en la landing nativa.
+    // cdn.cafecito.app: botón de donación; google-analytics: beacons de GA.
     "img-src": [
       "'self'",
       "data:",
       "blob:",
       "https://img.clerk.com",
       "https://cdn.cafecito.app",
+      "https://www.google-analytics.com",
+      "https://*.google-analytics.com",
       ...clerk,
     ],
     "font-src": ["'self'", "data:", ...(landing ? [fontsFiles] : [])],
@@ -90,6 +103,7 @@ function buildCsp({ landing }: { landing: boolean }): string {
       ...clerk,
       clerkTelemetry,
       ...posthog,
+      ...gaConnect,
       ...(landing ? [tailwindCdn] : []),
       ...(isDev ? ["ws:"] : []),
     ],

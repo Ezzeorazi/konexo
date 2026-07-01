@@ -52,10 +52,10 @@ export default function PrivacidadPage() {
             proveedor que configuraste.
           </li>
           <li>
-            <b>Datos de uso.</b> Métricas de producto (páginas visitadas,
-            eventos de activación) mediante PostHog, para entender cómo se usa la
-            app y mejorarla. Incluye datos técnicos como tipo de dispositivo y
-            navegador.
+            <b>Datos de uso.</b> Métricas de producto y estadísticas del sitio
+            (páginas visitadas, eventos de activación) mediante PostHog y Google
+            Analytics, para entender cómo se usa la app y mejorarla. Incluye
+            datos técnicos como tipo de dispositivo y navegador.
           </li>
         </ul>
       </LegalSection>
@@ -94,6 +94,9 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <b>PostHog</b> — analítica de producto.
+          </li>
+          <li>
+            <b>Google Analytics</b> — estadísticas de uso del sitio.
           </li>
           <li>
             <b>Proveedores de IA</b> (por defecto Groq; opcionalmente Anthropic,
@@ -163,9 +166,9 @@ export default function PrivacidadPage() {
       <LegalSection title="11 · Cookies">
         <p>
           Usamos cookies estrictamente necesarias para mantener tu sesión
-          (Clerk) y cookies/identificadores de analítica (PostHog). Podés
-          bloquearlas desde tu navegador, aunque algunas funciones pueden dejar
-          de operar correctamente.
+          (Clerk) y cookies/identificadores de analítica (PostHog y Google
+          Analytics). Podés bloquearlas desde tu navegador, aunque algunas
+          funciones pueden dejar de operar correctamente.
         </p>
       </LegalSection>
 
