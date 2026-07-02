@@ -71,6 +71,17 @@ export function OpportunityDialog({
     : track;
   const vocab = getVocab(formTrack);
 
+  // Tipo de proyecto (solo en tracks con entrega). Reactivo: al elegir PROPIO
+  // vs DE CLIENTE cambian qué campos se piden (un proyecto propio no tiene
+  // cliente ni monto a cobrar).
+  const [kind, setKind] = useState<string>(
+    opportunity?.kind === "own" ? "own" : "client"
+  );
+  const isOwn = vocab.hasDelivery && kind === "own";
+  const companyLabel =
+    vocab.companySingular.charAt(0).toUpperCase() +
+    vocab.companySingular.slice(1);
+
   // Quick-create de versión de CV sin salir del form
   const [cvOptions, setCvOptions] = useState(cvVersions);
   const [cvVersionId, setCvVersionId] = useState(
@@ -101,9 +112,10 @@ export function OpportunityDialog({
     const input: OpportunityInput = {
       title: String(form.get("title") ?? ""),
       track: formTrack,
-      companyId: String(form.get("companyId") ?? ""),
+      // Un proyecto propio no tiene cliente: no mostramos el campo y lo limpiamos.
+      companyId: isOwn ? "" : String(form.get("companyId") ?? ""),
       stage: String(form.get("stage") ?? defaultStageKeyOf(stages)),
-      kind: String(form.get("kind") ?? "client"),
+      kind,
       url: String(form.get("url") ?? ""),
       location: String(form.get("location") ?? ""),
       salaryRange: String(form.get("salaryRange") ?? ""),
@@ -158,30 +170,63 @@ export function OpportunityDialog({
               }
             />
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {vocab.hasDelivery ? (
             <div className="space-y-2">
-              <Label>Empresa</Label>
+              <Label>Tipo de proyecto</Label>
               <Select
-                name="companyId"
-                defaultValue={opportunity?.companyId ?? defaultCompanyId ?? ""}
-                items={[
-                  { value: "", label: "Sin empresa" },
-                  ...companies.map((c) => ({ value: c.id, label: c.name })),
-                ]}
+                value={kind}
+                onValueChange={(v) => setKind(String(v ?? "client"))}
+                items={PROJECT_KINDS.map((k) => ({
+                  value: k,
+                  label: projectKindLabels[k],
+                }))}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin empresa</SelectItem>
-                  {companies.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
+                  {PROJECT_KINDS.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {projectKindLabels[k]}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {isOwn
+                  ? "Proyecto propio: lo trabajás vos. No pedimos cliente ni monto a cobrar."
+                  : `Proyecto de cliente: pedimos ${vocab.companySingular} y monto.`}
+              </p>
             </div>
+          ) : null}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {!isOwn ? (
+              <div className="space-y-2">
+                <Label>{companyLabel}</Label>
+                <Select
+                  name="companyId"
+                  defaultValue={opportunity?.companyId ?? defaultCompanyId ?? ""}
+                  items={[
+                    { value: "", label: `Sin ${vocab.companySingular}` },
+                    ...companies.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">
+                      Sin {vocab.companySingular}
+                    </SelectItem>
+                    {companies.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label>Etapa</Label>
               <Select
@@ -226,30 +271,6 @@ export function OpportunityDialog({
                 </SelectContent>
               </Select>
             </div>
-            {vocab.hasDelivery ? (
-              <div className="space-y-2">
-                <Label>Tipo de proyecto</Label>
-                <Select
-                  name="kind"
-                  defaultValue={opportunity?.kind ?? "client"}
-                  items={PROJECT_KINDS.map((k) => ({
-                    value: k,
-                    label: projectKindLabels[k],
-                  }))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROJECT_KINDS.map((k) => (
-                      <SelectItem key={k} value={k}>
-                        {projectKindLabels[k]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
             <div className="space-y-2">
               <Label htmlFor="location">Ubicación</Label>
               <Input
@@ -260,16 +281,19 @@ export function OpportunityDialog({
               />
             </div>
             {vocab.hasValue ? (
-              <div className="space-y-2">
-                <Label htmlFor="value">{vocab.valueLabel}</Label>
-                <Input
-                  id="value"
-                  name="value"
-                  inputMode="decimal"
-                  defaultValue={opportunity?.value?.toString() ?? ""}
-                  placeholder={vocab.valuePlaceholder}
-                />
-              </div>
+              // Un proyecto propio no tiene monto a cobrar: se omite.
+              isOwn ? null : (
+                <div className="space-y-2">
+                  <Label htmlFor="value">{vocab.valueLabel}</Label>
+                  <Input
+                    id="value"
+                    name="value"
+                    inputMode="decimal"
+                    defaultValue={opportunity?.value?.toString() ?? ""}
+                    placeholder={vocab.valuePlaceholder}
+                  />
+                </div>
+              )
             ) : (
               <div className="space-y-2">
                 <Label htmlFor="salaryRange">{vocab.valueLabel}</Label>
@@ -282,7 +306,13 @@ export function OpportunityDialog({
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="url">{vocab.usesCv ? "Link del aviso" : "Link"}</Label>
+              <Label htmlFor="url">
+                {isOwn
+                  ? "Link del proyecto"
+                  : vocab.usesCv
+                    ? "Link del aviso"
+                    : "Link"}
+              </Label>
               <Input
                 id="url"
                 name="url"
@@ -290,12 +320,18 @@ export function OpportunityDialog({
                 inputMode="url"
                 defaultValue={opportunity?.url ?? ""}
                 placeholder={
-                  vocab.usesCv ? "linkedin.com/jobs/..." : "sitio o propuesta..."
+                  isOwn
+                    ? "repo, sitio, documento..."
+                    : vocab.usesCv
+                      ? "linkedin.com/jobs/..."
+                      : "sitio o propuesta..."
                 }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="appliedAt">{vocab.firstDateLabel}</Label>
+              <Label htmlFor="appliedAt">
+                {isOwn ? "Fecha de inicio" : vocab.firstDateLabel}
+              </Label>
               <Input
                 id="appliedAt"
                 name="appliedAt"
@@ -381,13 +417,19 @@ export function OpportunityDialog({
           </div>
           ) : null}
           <div className="space-y-2">
-            <Label htmlFor="jobDescription">{vocab.descriptionLabel}</Label>
+            <Label htmlFor="jobDescription">
+              {isOwn ? "Objetivo y alcance" : vocab.descriptionLabel}
+            </Label>
             <Textarea
               id="jobDescription"
               name="jobDescription"
               rows={4}
               defaultValue={opportunity?.jobDescription ?? ""}
-              placeholder={vocab.descriptionPlaceholder}
+              placeholder={
+                isOwn
+                  ? "Qué querés lograr, entregables propios, hitos, plazos..."
+                  : vocab.descriptionPlaceholder
+              }
             />
           </div>
           <div className="space-y-2">
