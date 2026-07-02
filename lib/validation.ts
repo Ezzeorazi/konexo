@@ -44,6 +44,8 @@ export const OpportunitySchema = z.object({
   companyId: optionalId,
   stage: requiredText(60),
   kind: z.enum(["client", "own"]).optional(),
+  accentColor: optionalText(30),
+  accentEmoji: optionalText(20),
   url: optionalText(2000),
   location: optionalText(200),
   salaryRange: optionalText(120),

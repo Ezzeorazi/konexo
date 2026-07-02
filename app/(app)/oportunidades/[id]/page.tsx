@@ -50,6 +50,8 @@ import {
 } from "@/lib/dates";
 import { PROJECT_KINDS, projectKindLabels } from "@/lib/labels";
 import { getVocab, type Track } from "@/lib/tracks";
+import { getOwnAccent } from "@/lib/appearance";
+import { OwnProjectAppearance } from "@/components/oportunidades/own-appearance";
 import { getTrackStages } from "@/lib/stages";
 import { cn } from "@/lib/utils";
 import type { RelationshipStrength } from "@/lib/generated/prisma/client";
@@ -103,6 +105,8 @@ export default async function OportunidadDetailPage({
 
   const track = (opportunity.track as Track) ?? "jobs";
   const vocab = getVocab(track);
+  const isOwn = vocab.hasDelivery && opportunity.kind === "own";
+  const accent = getOwnAccent(opportunity.accentColor);
   // Empresas filtradas por el track de la oportunidad: no se cruzan modos.
   const [companies, cvVersions, stages] = await Promise.all([
     prisma.company.findMany({
@@ -155,6 +159,21 @@ export default async function OportunidadDetailPage({
                 inputClassName="font-display text-3xl tracking-wide text-ink md:text-4xl"
               />
               <StageBadge stage={opportunity.stage} track={track} stages={stages} />
+              {isOwn ? (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-md border-2 border-ink px-2 py-0.5 font-display text-xs tracking-wide shadow-[2px_2px_0_var(--color-ink)]",
+                    accent.badge
+                  )}
+                >
+                  {opportunity.accentEmoji ? (
+                    <span className="text-sm leading-none">
+                      {opportunity.accentEmoji}
+                    </span>
+                  ) : null}
+                  PROPIO
+                </span>
+              ) : null}
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               {opportunity.company ? (
@@ -331,7 +350,17 @@ export default async function OportunidadDetailPage({
                   />
                 </FieldRow>
               ) : null}
-              <FieldRow label="Empresa">
+              {isOwn ? (
+                <FieldRow label="Apariencia">
+                  <OwnProjectAppearance
+                    opportunityId={opportunity.id}
+                    accentColor={opportunity.accentColor}
+                    accentEmoji={opportunity.accentEmoji}
+                  />
+                </FieldRow>
+              ) : null}
+              {!isOwn ? (
+              <FieldRow label={vocab.hasDelivery ? vocab.companySingular : "Empresa"}>
                 <EditableSelect
                   value={opportunity.companyId ?? ""}
                   ariaLabel="Cambiar empresa"
@@ -344,6 +373,7 @@ export default async function OportunidadDetailPage({
                   )}
                 />
               </FieldRow>
+              ) : null}
               <FieldRow label="Ubicación">
                 <EditableText
                   value={opportunity.location ?? ""}
@@ -357,6 +387,8 @@ export default async function OportunidadDetailPage({
                 />
               </FieldRow>
               {vocab.hasValue ? (
+                // Un proyecto propio no tiene monto a cobrar.
+                isOwn ? null : (
                 <FieldRow label={vocab.valueLabel}>
                   <EditableText
                     value={opportunity.value?.toString() ?? ""}
@@ -376,6 +408,7 @@ export default async function OportunidadDetailPage({
                     )}
                   />
                 </FieldRow>
+                )
               ) : (
                 <FieldRow label={vocab.valueLabel}>
                   <EditableText

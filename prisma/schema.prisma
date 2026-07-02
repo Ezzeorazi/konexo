@@ -58,6 +58,11 @@ model Opportunity {
   // PROPIO (lo trabajás vos, Konexo registra avances) de uno DE CLIENTE.
   // Cambia cómo lo trata la IA: propio = gestión interna, cliente = también outreach.
   kind           String    @default("client") // client | own
+  // Personalización visual de un proyecto PROPIO (kind = own): color de acento
+  // (clave de la paleta en lib/appearance.ts) y un emoji. Nulos = look por
+  // defecto. No aplican a proyectos de cliente.
+  accentColor    String?
+  accentEmoji    String?
   url            String?
   location       String?
   salaryRange    String?

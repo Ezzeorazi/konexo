@@ -20,6 +20,7 @@ import { updateOpportunityStage } from "@/app/(app)/oportunidades/actions";
 import { PriorityBadge } from "@/components/badges";
 import { labelFor, type StageDef } from "@/lib/tracks";
 import { formatDateTime, formatOverdue } from "@/lib/dates";
+import { getOwnAccent } from "@/lib/appearance";
 import { cn } from "@/lib/utils";
 
 export type KanbanOpportunity = {
@@ -29,6 +30,10 @@ export type KanbanOpportunity = {
   priority: "LOW" | "MEDIUM" | "HIGH";
   nextFollowUpAt: Date | null;
   company: { id: string; name: string } | null;
+  /** "own" marca un proyecto propio (aspecto distinguible). */
+  kind?: string;
+  accentColor?: string | null;
+  accentEmoji?: string | null;
 };
 
 function OpportunityCard({
@@ -40,14 +45,41 @@ function OpportunityCard({
 }) {
   const overdue =
     opportunity.nextFollowUpAt && opportunity.nextFollowUpAt < new Date();
+  const isOwn = opportunity.kind === "own";
+  const accent = getOwnAccent(opportunity.accentColor);
 
   return (
     <div
       className={cn(
-        "space-y-2 rounded-md border-[2.5px] border-ink bg-background p-3 shadow-[3px_3px_0_var(--color-ink)] transition-shadow",
+        "relative space-y-2 overflow-hidden rounded-md border-[2.5px] border-ink bg-background p-3 shadow-[3px_3px_0_var(--color-ink)] transition-shadow",
+        isOwn && "pl-4",
         dragging && "rotate-2 shadow-[5px_5px_0_var(--color-ink)]"
       )}
     >
+      {isOwn ? (
+        <span
+          className={cn(
+            "absolute inset-y-0 left-0 w-2",
+            accent.stripe
+          )}
+          aria-hidden
+        />
+      ) : null}
+      {isOwn ? (
+        <span
+          className={cn(
+            "inline-flex items-center gap-1 rounded border-2 border-ink px-1.5 py-0.5 font-display text-[10px] leading-none tracking-wide",
+            accent.badge
+          )}
+        >
+          {opportunity.accentEmoji ? (
+            <span className="text-xs leading-none">
+              {opportunity.accentEmoji}
+            </span>
+          ) : null}
+          PROPIO
+        </span>
+      ) : null}
       <Link
         href={`/oportunidades/${opportunity.id}`}
         className="block text-sm font-medium leading-snug hover:underline"

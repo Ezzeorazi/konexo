@@ -107,6 +107,8 @@ const OPPORTUNITY_FIELDS = [
   "companyId",
   "stage",
   "kind",
+  "accentColor",
+  "accentEmoji",
   "url",
   "location",
   "salaryRange",
@@ -134,6 +136,10 @@ function cleanOpportunityField(
       return { stage: value };
     case "kind":
       return { kind: value === "own" ? "own" : "client" };
+    case "accentColor":
+      return { accentColor: value.trim() || null };
+    case "accentEmoji":
+      return { accentEmoji: value.trim() || null };
     case "url":
       return { url: normalizeUrl(value) };
     case "location":
