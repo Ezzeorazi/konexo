@@ -13,6 +13,7 @@
 
 import { generateAiChat, getAiConfig } from "@/lib/ai";
 import { getAgentPlaybook } from "@/lib/agent-playbooks";
+import { INJECTION_GUARD, userData } from "@/lib/prompt-safety";
 import {
   money,
   profilePromptBlock,
@@ -121,7 +122,7 @@ function oppToBrief(
   if (o.lastTouch) parts.push(`último toque: ${o.lastTouch}`);
   const delivery = deliveryBrief(o.delivery);
   if (delivery) parts.push(`ejecución → ${delivery}`);
-  if (o.description) parts.push(`contexto: ${o.description.slice(0, 280)}`);
+  if (o.description) parts.push(`contexto: ${userData(o.description, 280)}`);
   return parts.join(" · ");
 }
 
@@ -154,6 +155,7 @@ async function runCalificador(
     "Devolvé SOLO un JSON válido (sin texto antes ni después, sin Markdown) con esta forma:",
     `[{"i": <número de la lista>, "tier": "hot"|"warm"|"cold", "score": <0-100>, "reason": "<por qué, máx 18 palabras>", "nextAction": "<próximo paso concreto, imperativo, máx 14 palabras>"}]`,
     "Incluí TODAS las oportunidades de la lista. Ordená de mayor a menor score.",
+    INJECTION_GUARD,
     profilePromptBlock(data.profile),
   ]
     .filter(Boolean)
@@ -215,6 +217,7 @@ async function runRedactor(
     "Si el perfil trae datos del remitente (nombre, email, teléfono), cerrá el mensaje con una firma usando esos datos. Si no los tenés, no inventes una firma.",
     "Elegí el canal más natural: email, linkedin o whatsapp.",
     'Devolvé SOLO un JSON válido (sin texto extra, sin Markdown): {"channel": "email"|"linkedin"|"whatsapp", "subject": "<asunto si es email, si no \\"\\">", "body": "<mensaje listo para copiar y pegar>"}',
+    INJECTION_GUARD,
     profilePromptBlock(data.profile),
   ]
     .filter(Boolean)
@@ -228,7 +231,7 @@ async function runRedactor(
       : "Sin contacto identificado todavía.",
     opp.lastTouch ? `Último toque: ${opp.lastTouch}` : "Sin interacciones registradas.",
     deliveryBrief(opp.delivery) ? `Estado de ejecución: ${deliveryBrief(opp.delivery)}` : "",
-    opp.description ? `Contexto: ${opp.description.slice(0, 400)}` : "",
+    opp.description ? `Contexto: ${userData(opp.description, 400)}` : "",
     `El calificador dijo: ${q.reason}. Próximo paso sugerido: ${q.nextAction}.`,
     "",
     "Escribí ese borrador.",

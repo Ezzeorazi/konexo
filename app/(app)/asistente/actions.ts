@@ -1,7 +1,12 @@
 "use server";
 
 import { generateAiChat, type ChatMessage } from "@/lib/ai";
+import { clampText } from "@/lib/prompt-safety";
 import { gatherPipeline, buildChatSystemPrompt } from "./pipeline";
+
+// Tope de caracteres por mensaje del chat (Tarea 4): evita que un paste enorme
+// (ej. un mail largo) infle el contexto o se use para diluir las instrucciones.
+const MAX_CHARS_PER_MESSAGE = 8000;
 
 export async function sendChatMessage(messages: ChatMessage[]) {
   if (!messages.length) {
@@ -11,7 +16,11 @@ export async function sendChatMessage(messages: ChatMessage[]) {
   const system = buildChatSystemPrompt(data);
   return generateAiChat({
     system,
-    // Limitamos el historial para no exceder el contexto del modelo.
-    messages: messages.slice(-20),
+    // Limitamos el historial para no exceder el contexto del modelo, y truncamos
+    // cada mensaje a un largo máximo.
+    messages: messages.slice(-20).map((m) => ({
+      role: m.role,
+      content: clampText(m.content, MAX_CHARS_PER_MESSAGE),
+    })),
   });
 }

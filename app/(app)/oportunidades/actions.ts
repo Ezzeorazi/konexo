@@ -6,6 +6,7 @@ import { currentUserId } from "@/lib/auth";
 import { track as trackEvent } from "@/lib/analytics";
 import { maybeTrackActivation } from "@/lib/activation";
 import { generateAiText } from "@/lib/ai";
+import { INJECTION_GUARD, userData } from "@/lib/prompt-safety";
 import { parseDateInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK, getVocab, type Track } from "@/lib/tracks";
@@ -237,16 +238,18 @@ export async function tailorCv(opportunityId: string) {
   }
 
   return generateAiText({
-    system:
+    system: [
       "Sos un experto en reclutamiento y redacción de CVs. Ayudás a adaptar el CV de una persona a un aviso de trabajo concreto. Respondés en español, en texto plano sin Markdown, de forma directa y accionable. Nunca inventás experiencia que la persona no tiene.",
+      INJECTION_GUARD,
+    ].join("\n"),
     prompt: [
       `Puesto: ${opportunity.title}${opportunity.company ? ` en ${opportunity.company.name}` : ""}`,
       "",
       "--- DESCRIPCIÓN DEL AVISO ---",
-      opportunity.jobDescription.trim(),
+      userData(opportunity.jobDescription, 6000),
       "",
       "--- CV ACTUAL ---",
-      opportunity.cvVersion.content.trim(),
+      userData(opportunity.cvVersion.content, 6000),
       "",
       "--- TAREA ---",
       "1. Listá las 3-5 keywords o requisitos del aviso que el CV todavía no refleja bien.",
@@ -294,8 +297,8 @@ export async function catchMeUp(opportunityId: string): Promise<
     o.nextFollowUpAt
       ? `Próximo follow-up: ${iso(o.nextFollowUpAt)}${o.nextFollowUpAt < new Date() ? " (VENCIDO)" : ""}`
       : "Sin follow-up agendado.",
-    o.jobDescription ? `Alcance/contexto: ${o.jobDescription.slice(0, 800)}` : "",
-    o.notes ? `Notas: ${o.notes.slice(0, 800)}` : "",
+    o.jobDescription ? `Alcance/contexto: ${userData(o.jobDescription, 800)}` : "",
+    o.notes ? `Notas: ${userData(o.notes, 800)}` : "",
     "",
     `Tareas hechas (${done.length}): ${done.map((t) => t.title).join("; ") || "—"}`,
     `Tareas pendientes (${pending.length}): ${pending.map((t) => t.title).join("; ") || "—"}`,
@@ -305,7 +308,7 @@ export async function catchMeUp(opportunityId: string): Promise<
       ? o.projectNotes
           .map(
             (n) =>
-              `- [${projectNoteKindLabels[n.kind as ProjectNoteKind] ?? n.kind}] ${iso(n.createdAt)}: ${n.body.slice(0, 300)}`
+              `- [${projectNoteKindLabels[n.kind as ProjectNoteKind] ?? n.kind}] ${iso(n.createdAt)}: ${userData(n.body, 300)}`
           )
           .join("\n")
       : "(sin entradas)",
@@ -315,7 +318,7 @@ export async function catchMeUp(opportunityId: string): Promise<
       ? o.touchpoints
           .map(
             (t) =>
-              `- ${touchpointTypeLabels[t.type]} (${iso(t.occurredAt)})${t.note ? `: ${t.note.slice(0, 200)}` : ""}`
+              `- ${touchpointTypeLabels[t.type]} (${iso(t.occurredAt)})${t.note ? `: ${userData(t.note, 200)}` : ""}`
           )
           .join("\n")
       : "(sin interacciones)",
@@ -330,6 +333,7 @@ export async function catchMeUp(opportunityId: string): Promise<
       ? "Este es un proyecto PROPIO del usuario (lo trabaja él, usa Konexo para registrar avances). No hay un cliente a quien escribirle: no propongas mensajes de outreach, enfocate en la ejecución."
       : "Este es un proyecto DE CLIENTE. No redactes un mensaje para el cliente salvo que el usuario lo pida después; ahora solo ponelo al día.",
     "Estructurá la respuesta así: 1) Estado en 2-3 líneas. 2) Último avance. 3) Qué falta (pendientes). 4) Próximos 2-3 pasos concretos. 5) Riesgos o cosas trabadas (si hay).",
+    INJECTION_GUARD,
   ].join("\n");
 
   return generateAiText({ system, prompt: ctx });
