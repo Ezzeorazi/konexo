@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { saveEnabledTracks } from "@/app/(app)/configuracion/actions";
-import { TRACKS, getVocab, type Track } from "@/lib/tracks";
+import { AVAILABLE_TRACKS, getVocab, type Track } from "@/lib/tracks";
 import { cn } from "@/lib/utils";
 
 export function TracksSettingsForm({
@@ -39,7 +39,7 @@ export function TracksSettingsForm({
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {TRACKS.map((track) => {
+        {AVAILABLE_TRACKS.map((track) => {
           const vocab = getVocab(track);
           const on = enabled.includes(track);
           return (

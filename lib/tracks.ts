@@ -22,8 +22,17 @@ export const TRACKS: Track[] = [
 
 export const DEFAULT_TRACK: Track = "jobs";
 
+// Nicho fijado: hoy la app se ofrece en TRES modos. Los otros presets siguen en
+// VOCAB (para no romper datos/landings viejas) pero no se ofrecen para habilitar
+// ni tienen landing pública.
+export const AVAILABLE_TRACKS: Track[] = ["jobs", "sales", "freelance"];
+
 export function isTrack(value: unknown): value is Track {
   return typeof value === "string" && (TRACKS as string[]).includes(value);
+}
+
+export function isAvailableTrack(value: unknown): value is Track {
+  return isTrack(value) && (AVAILABLE_TRACKS as string[]).includes(value);
 }
 
 export type StageType = "open" | "won" | "lost";

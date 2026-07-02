@@ -1,4 +1,4 @@
-import { getVocab, type Track } from "@/lib/tracks";
+import { getVocab, isAvailableTrack, type Track } from "@/lib/tracks";
 
 // Landings por vertical: páginas reales (crawlables) en /para/[slug].
 // El vocabulario y las etapas salen de lib/tracks.ts; acá vive solo el copy
@@ -99,10 +99,15 @@ const LANDINGS: Record<string, Landing> = {
   },
 };
 
-export const LANDING_SLUGS = Object.keys(LANDINGS);
+// Solo publicamos las landings de los modos disponibles (nicho fijado). Las de
+// modos retirados dejan de tener página y de aparecer en el sitemap.
+export const LANDING_SLUGS = Object.keys(LANDINGS).filter((slug) =>
+  isAvailableTrack(LANDINGS[slug].track)
+);
 
 export function getLanding(slug: string): Landing | undefined {
-  return LANDINGS[slug];
+  const landing = LANDINGS[slug];
+  return landing && isAvailableTrack(landing.track) ? landing : undefined;
 }
 
 export function landingVocab(slug: string) {
