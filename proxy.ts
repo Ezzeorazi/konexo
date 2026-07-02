@@ -18,6 +18,9 @@ const isPublicRoute = createRouteMatcher([
   "/blog(.*)",
   "/privacidad",
   "/terminos",
+  // Eliminación de cuenta: URL pública requerida por Google Play (Data Safety).
+  // Explica el proceso; el borrado real se hace logueado en Configuración.
+  "/eliminar-cuenta",
   "/sign-in(.*)",
   "/sign-up(.*)",
   // SEO: se sirven fuera del área privada.

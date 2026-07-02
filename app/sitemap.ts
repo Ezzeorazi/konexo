@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE}/guia`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE}/privacidad`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE}/terminos`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE}/eliminar-cuenta`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
   ];
 
   const verticalEntries: MetadataRoute.Sitemap = LANDING_SLUGS.map((slug) => ({

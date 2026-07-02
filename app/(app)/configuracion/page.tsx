@@ -19,6 +19,7 @@ import { BusinessProfileForm } from "@/components/configuracion/business-profile
 import { TracksSettingsForm } from "@/components/configuracion/tracks-settings-form";
 import { StagesEditor } from "@/components/configuracion/stages-editor";
 import { CVVersionDialog } from "@/components/configuracion/cv-version-dialog";
+import { DeleteAccount } from "@/components/configuracion/delete-account";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { formatDate } from "@/lib/dates";
 import { getEnabledTracks } from "@/lib/active-track";
@@ -234,6 +235,25 @@ export default async function ConfiguracionPage() {
             </a>
           </div>
         </CardHeader>
+      </Card>
+
+      {/* Zona de peligro: eliminación de cuenta (Tarea 5 · Google Play) */}
+      <Card className="mt-6 h-fit border-destructive/40">
+        <CardHeader>
+          <CardTitle className="text-base text-destructive">
+            Eliminar mi cuenta
+          </CardTitle>
+          <CardDescription>
+            Borrá tu cuenta y todos tus datos de forma permanente. Podés{" "}
+            <a href="/eliminar-cuenta" className="underline underline-offset-2">
+              leer cómo funciona el proceso
+            </a>{" "}
+            antes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DeleteAccount />
+        </CardContent>
       </Card>
     </div>
   );

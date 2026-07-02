@@ -124,10 +124,13 @@ export default function PrivacidadPage() {
         <p>
           Conservamos tus datos mientras tu cuenta esté activa. Podés{" "}
           <b>exportar todos tus datos</b> en formato JSON desde{" "}
-          <b>Configuración → Mis datos</b> en cualquier momento. Si querés
-          eliminar tu cuenta y los datos asociados, escribinos a{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> y procederemos
-          en un plazo razonable, salvo obligación legal de conservarlos.
+          <b>Configuración → Mis datos</b> en cualquier momento. También podés{" "}
+          <b>eliminar tu cuenta y todos tus datos vos mismo</b>, de forma
+          permanente, desde <b>Configuración → Eliminar mi cuenta</b> (ver{" "}
+          <a href="/eliminar-cuenta">cómo funciona</a>). El borrado es inmediato
+          e irreversible, salvo obligación legal de conservar algo puntual. Si no
+          podés acceder a tu cuenta, escribinos a{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
       </LegalSection>
 
