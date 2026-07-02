@@ -52,6 +52,11 @@ export function Sidebar({
     if (track === activeTrack || pending) return;
     startTransition(async () => {
       await setActiveTrack(track);
+      // Al cambiar de modo te llevamos al dashboard de ese modo: las vistas
+      // (oportunidades, un contacto puntual, etc.) son específicas del track
+      // anterior, así que quedarse ahí mostraría datos de otro modo o una card
+      // que ya no aplica. El dashboard es el punto de entrada neutro del modo.
+      router.push("/dashboard");
       router.refresh();
       toast.success(`Modo ${getVocab(track).name}.`);
     });
