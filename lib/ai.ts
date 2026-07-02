@@ -1,4 +1,6 @@
 import { getSettingsMap } from "@/lib/settings";
+import { currentUserId } from "@/lib/auth";
+import { consumeAiQuota } from "@/lib/ai-usage";
 
 export const DEFAULT_MODELS: Record<string, string> = {
   groq: "llama-3.3-70b-versatile",
@@ -15,6 +17,8 @@ export type AiConfig = {
   apiKey: string;
   model: string;
   baseUrl: string;
+  /** true si la config resolvió a la key compartida del dueño (no la del usuario). */
+  usingServerKey: boolean;
 };
 
 export type ChatMessage = {
@@ -48,13 +52,16 @@ export async function getAiConfig(): Promise<AiConfig> {
   // el default del servidor, usamos la key del dueño (Groq) para que la IA
   // funcione out-of-the-box para todos.
   let apiKey = map.get("aiApiKey") ?? "";
-  if (!apiKey && provider === SERVER_DEFAULT_PROVIDER) {
+  let usingServerKey = false;
+  if (!apiKey && provider === SERVER_DEFAULT_PROVIDER && SERVER_DEFAULT_API_KEY) {
     apiKey = SERVER_DEFAULT_API_KEY;
+    usingServerKey = true;
   }
 
   return {
     provider,
     apiKey,
+    usingServerKey,
     model:
       map.get("aiModel") ||
       (provider === SERVER_DEFAULT_PROVIDER ? SERVER_DEFAULT_MODEL : "") ||
@@ -86,6 +93,17 @@ export async function generateAiChat({
   messages: ChatMessage[];
 }): Promise<AiResult> {
   const config = await getAiConfig();
+
+  // Rate limit (Tarea 3): solo cuando se usa la key compartida del dueño. Con la
+  // key propia del usuario no hay tope. Se cuenta cada llamada al LLM (el equipo
+  // de agentes hace varias por corrida, lo cual es uso real de la cuota).
+  if (config.usingServerKey) {
+    const quota = await consumeAiQuota(await currentUserId());
+    if (!quota.ok) {
+      return { ok: false, error: quota.error };
+    }
+  }
+
   try {
     switch (config.provider) {
       case "groq":

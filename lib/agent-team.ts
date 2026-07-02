@@ -125,11 +125,15 @@ function oppToBrief(
   return parts.join(" · ");
 }
 
+type CalificadorResult =
+  | { ok: true; qualifications: Qualification[] }
+  | { ok: false; error: string };
+
 /** AGENTE 1 — Calificador: prioriza las oportunidades abiertas. */
 async function runCalificador(
   data: PipelineData,
   opps: PipelineOpportunity[]
-): Promise<Qualification[] | null> {
+): Promise<CalificadorResult> {
   const { vocab } = data;
   const list = opps
     .map(
@@ -158,11 +162,19 @@ async function runCalificador(
   const prompt = `Estas son las ${vocab.oppPlural.toLowerCase()} abiertas a calificar:\n\n${list}`;
 
   const res = await generateAiChat({ system, messages: [{ role: "user", content: prompt }] });
-  if (!res.ok) return null;
+  // Propagamos el error real (ej. límite diario de IA alcanzado) para que el
+  // usuario lo vea, en vez de un mensaje genérico.
+  if (!res.ok) return { ok: false, error: res.error };
 
   type Raw = { i: number; tier: string; score: number; reason: string; nextAction: string };
   const raw = extractJson<Raw[]>(res.text);
-  if (!Array.isArray(raw)) return null;
+  if (!Array.isArray(raw)) {
+    return {
+      ok: false,
+      error:
+        "El Calificador devolvió un formato inesperado. Probá de nuevo o revisá el proveedor de IA en Configuración.",
+    };
+  }
 
   const norm = (t: string): Tier =>
     t === "hot" || t === "warm" || t === "cold" ? t : "warm";
@@ -183,7 +195,7 @@ async function runCalificador(
     });
   }
   out.sort((a, b) => b.score - a.score);
-  return out;
+  return { ok: true, qualifications: out };
 }
 
 /** AGENTE 2 — Redactor: escribe el borrador de contacto de UNA oportunidad. */
@@ -264,8 +276,12 @@ export async function runAgentTeam(data: PipelineData): Promise<AgentTeamResult>
     text: `Reparto del trabajo: ${opps.length} ${vocab.oppPlural.toLowerCase()} abiertas. Despierto al Calificador.`,
   });
 
-  const qualifications = await runCalificador(data, opps);
-  if (!qualifications || qualifications.length === 0) {
+  const qualResult = await runCalificador(data, opps);
+  if (!qualResult.ok) {
+    return { ok: false, error: qualResult.error, steps };
+  }
+  const qualifications = qualResult.qualifications;
+  if (qualifications.length === 0) {
     return {
       ok: false,
       error:

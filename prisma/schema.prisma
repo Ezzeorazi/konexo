@@ -207,6 +207,22 @@ model UserProgress {
   updatedAt DateTime @updatedAt
 }
 
+// Contador de uso de IA por usuario y día (auditoría / Tarea 3). Rate-limita el
+// proveedor DEFAULT (la key del dueño) para que un usuario no queme la cuota
+// compartida. Una fila por (userId, día UTC). Solo se cuenta cuando el usuario
+// usa la key compartida; con su propia key configurada no se toca esta tabla
+// (uso ilimitado). El contador simplemente crece; no hace falta limpiar filas
+// viejas (son chicas), pero se pueden purgar por día si se quisiera.
+model AiUsage {
+  id     String @id @default(cuid())
+  userId String
+  day    String // "YYYY-MM-DD" en UTC
+  count  Int    @default(0)
+
+  @@unique([userId, day])
+  @@index([userId])
+}
+
 // Etapas del embudo, editables por el usuario. Cada track tiene su set.
 // Se siembran desde los presets de lib/tracks.ts la primera vez que se leen.
 model PipelineStage {
