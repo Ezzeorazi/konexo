@@ -4,9 +4,10 @@ import { currentUserId } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Kanban } from "@/components/oportunidades/kanban";
+import { SalesBoard } from "@/components/oportunidades/sales-board";
 import { OpportunityDialog } from "@/components/oportunidades/opportunity-dialog";
 import { getActiveTrack } from "@/lib/active-track";
-import { getVocab } from "@/lib/tracks";
+import { getVocab, trackUsesVentures } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,8 @@ export default async function OportunidadesPage() {
   const vocab = getVocab(track);
   const stages = await getTrackStages(track);
 
-  const [opportunities, companies, cvVersions] = await Promise.all([
+  const usesVentures = trackUsesVentures(track);
+  const [opportunities, companies, cvVersions, ventures] = await Promise.all([
     prisma.opportunity.findMany({
       where: { userId, track },
       orderBy: [{ nextFollowUpAt: "asc" }, { updatedAt: "desc" }],
@@ -31,6 +33,9 @@ export default async function OportunidadesPage() {
         accentColor: true,
         accentEmoji: true,
         company: { select: { id: true, name: true } },
+        venture: {
+          select: { id: true, name: true, color: true, emoji: true },
+        },
       },
     }),
     prisma.company.findMany({
@@ -43,6 +48,15 @@ export default async function OportunidadesPage() {
       orderBy: { createdAt: "desc" },
       select: { id: true, label: true },
     }),
+    usesVentures
+      ? prisma.venture.findMany({
+          where: { userId },
+          orderBy: { name: "asc" },
+          select: { id: true, name: true, color: true, emoji: true },
+        })
+      : Promise.resolve(
+          [] as { id: string; name: string; color: string | null; emoji: string | null }[]
+        ),
   ]);
 
   return (
@@ -51,6 +65,7 @@ export default async function OportunidadesPage() {
         <OpportunityDialog
           companies={companies}
           cvVersions={cvVersions}
+          ventures={ventures}
           track={track}
           stages={stages}
           trigger={
@@ -61,7 +76,15 @@ export default async function OportunidadesPage() {
           }
         />
       </PageHeader>
-      <Kanban opportunities={opportunities} stages={stages} />
+      {usesVentures ? (
+        <SalesBoard
+          opportunities={opportunities}
+          ventures={ventures}
+          stages={stages}
+        />
+      ) : (
+        <Kanban opportunities={opportunities} stages={stages} />
+      )}
     </div>
   );
 }

@@ -55,7 +55,12 @@ export const OpportunitySchema = z.object({
   appliedAt: optionalDate,
   nextFollowUpAt: optionalDateTime,
   cvVersionId: optionalId,
+  ventureId: optionalId,
   notes: optionalText(20000),
+});
+
+export const VentureSchema = z.object({
+  name: requiredText(120),
 });
 
 export const ContactSchema = z.object({

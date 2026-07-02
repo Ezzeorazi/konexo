@@ -35,6 +35,12 @@ export function isAvailableTrack(value: unknown): value is Track {
   return isTrack(value) && (AVAILABLE_TRACKS as string[]).includes(value);
 }
 
+// ¿El modo segmenta su pipeline por "emprendimiento" (Venture)? Hoy solo Ventas:
+// un mismo usuario puede vender para varios negocios propios.
+export function trackUsesVentures(track: Track): boolean {
+  return track === "sales";
+}
+
 export type StageType = "open" | "won" | "lost";
 export type StageDef = {
   key: string;

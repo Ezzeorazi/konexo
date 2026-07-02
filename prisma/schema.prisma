@@ -72,18 +72,39 @@ model Opportunity {
   appliedAt      DateTime?
   nextFollowUpAt DateTime?
   cvVersionId    String?
+  // Emprendimiento (Venture) al que pertenece esta oportunidad. Solo se usa en
+  // el modo Ventas, para segmentar el pipeline por negocio propio.
+  ventureId      String?
   notes          String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
   cvVersion    CVVersion?    @relation(fields: [cvVersionId], references: [id], onDelete: SetNull)
+  venture      Venture?      @relation(fields: [ventureId], references: [id], onDelete: SetNull)
   touchpoints  Touchpoint[]
   projectNotes ProjectNote[]
   projectTasks ProjectTask[]
 
   @@index([userId, track])
   @@index([userId, track, stage])
+}
+
+// Emprendimiento del usuario: un negocio propio desde el cual vende. Permite
+// segmentar el pipeline de Ventas (cada emprendimiento con sus propias
+// oportunidades: presupuestadas, propuestas, cobradas, etc.).
+model Venture {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  color     String? // clave de acento (lib/appearance.ts)
+  emoji     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  opportunities Opportunity[]
+
+  @@index([userId])
 }
 
 model Contact {
