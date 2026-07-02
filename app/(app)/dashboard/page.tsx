@@ -24,7 +24,7 @@ import { getProgress } from "@/lib/onboarding";
 import { getActiveTrack } from "@/lib/active-track";
 import { getVocab, tileFor } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
-import { formatRelative, formatOverdue, formatDate } from "@/lib/dates";
+import { formatRelative, formatOverdue, formatDateTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -302,7 +302,7 @@ export default async function DashboardPage() {
                                 ? "bg-alarm text-paper"
                                 : "bg-paper text-ink"
                             )}
-                            title={formatDate(fu.date)}
+                            title={formatDateTime(fu.date)}
                           >
                             {overdue
                               ? formatOverdue(fu.date)

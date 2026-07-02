@@ -7,7 +7,7 @@ import { track as trackEvent } from "@/lib/analytics";
 import { maybeTrackActivation } from "@/lib/activation";
 import { generateAiText } from "@/lib/ai";
 import { INJECTION_GUARD, userData } from "@/lib/prompt-safety";
-import { parseDateInput } from "@/lib/dates";
+import { parseDateInput, parseDateTimeInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK, getVocab, type Track } from "@/lib/tracks";
 import { completeMission } from "@/lib/onboarding";
@@ -56,7 +56,7 @@ function clean(input: OpportunityInput) {
     jobDescription: input.jobDescription?.trim() || null,
     priority: input.priority,
     appliedAt: parseDateInput(input.appliedAt),
-    nextFollowUpAt: parseDateInput(input.nextFollowUpAt),
+    nextFollowUpAt: parseDateTimeInput(input.nextFollowUpAt),
     cvVersionId: input.cvVersionId || null,
     notes: input.notes?.trim() || null,
   };
@@ -155,7 +155,7 @@ function cleanOpportunityField(
     case "appliedAt":
       return { appliedAt: parseDateInput(value) };
     case "nextFollowUpAt":
-      return { nextFollowUpAt: parseDateInput(value) };
+      return { nextFollowUpAt: parseDateTimeInput(value) };
     case "cvVersionId":
       return { cvVersionId: value || null };
     case "notes":
@@ -198,7 +198,7 @@ export async function patchOpportunityField(
     return { ok: false as const, error: "No encontré la oportunidad." };
   }
   // Configurar un follow-up desde la edición in-context cuenta como "Fijar Radar".
-  if (field === "nextFollowUpAt" && parseDateInput(value)) {
+  if (field === "nextFollowUpAt" && parseDateTimeInput(value)) {
     await completeMission(userId, "setRadar");
   }
   revalidatePath("/oportunidades");

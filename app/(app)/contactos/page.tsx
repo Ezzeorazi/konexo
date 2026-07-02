@@ -14,7 +14,7 @@ import {
 import { StrengthBadge } from "@/components/badges";
 import { ContactDialog } from "@/components/contactos/contact-dialog";
 import { RowLink } from "@/components/clickable";
-import { formatDate } from "@/lib/dates";
+import { formatDateTime } from "@/lib/dates";
 import { getActiveTrack } from "@/lib/active-track";
 
 export const dynamic = "force-dynamic";
@@ -104,7 +104,7 @@ export default async function ContactosPage() {
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
                     {contact.nextFollowUpAt
-                      ? formatDate(contact.nextFollowUpAt)
+                      ? formatDateTime(contact.nextFollowUpAt)
                       : "—"}
                   </TableCell>
                 </RowLink>

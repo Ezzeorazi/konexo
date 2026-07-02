@@ -38,7 +38,7 @@ import {
   type Track,
   type StageDef,
 } from "@/lib/tracks";
-import { toDateInputValue } from "@/lib/dates";
+import { toDateInputValue, toDateTimeInputValue } from "@/lib/dates";
 import type { Opportunity, Priority } from "@/lib/generated/prisma/client";
 
 export type CompanyOption = { id: string; name: string };
@@ -308,8 +308,8 @@ export function OpportunityDialog({
               <Input
                 id="nextFollowUpAt"
                 name="nextFollowUpAt"
-                type="date"
-                defaultValue={toDateInputValue(opportunity?.nextFollowUpAt)}
+                type="datetime-local"
+                defaultValue={toDateTimeInputValue(opportunity?.nextFollowUpAt)}
               />
             </div>
           </div>

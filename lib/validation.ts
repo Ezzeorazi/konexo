@@ -27,6 +27,17 @@ const optionalDate = z
   .union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida.")])
   .optional();
 
+// Acepta fecha ("yyyy-MM-dd") o fecha+hora del <input datetime-local>
+// ("yyyy-MM-ddTHH:mm"). Se usa en los follow-ups, que ahora llevan horario.
+const optionalDateTime = z
+  .union([
+    z.literal(""),
+    z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/, "Fecha u hora inválida."),
+  ])
+  .optional();
+
 export const OpportunitySchema = z.object({
   title: requiredText(200),
   track: optionalText(40),
@@ -40,7 +51,7 @@ export const OpportunitySchema = z.object({
   jobDescription: optionalText(20000),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   appliedAt: optionalDate,
-  nextFollowUpAt: optionalDate,
+  nextFollowUpAt: optionalDateTime,
   cvVersionId: optionalId,
   notes: optionalText(20000),
 });
@@ -54,7 +65,7 @@ export const ContactSchema = z.object({
   linkedinUrl: optionalText(2000),
   phone: optionalText(60),
   relationshipStrength: z.enum(["COLD", "WARM", "STRONG"]),
-  nextFollowUpAt: optionalDate,
+  nextFollowUpAt: optionalDateTime,
   notes: optionalText(20000),
 });
 

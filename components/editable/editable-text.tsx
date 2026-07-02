@@ -12,7 +12,7 @@ type EditableTextProps = {
   onSave: SaveHandler;
   /** Render alternativo para mostrar (fecha formateada, monto, etc.). */
   display?: React.ReactNode;
-  type?: "text" | "date" | "number" | "url" | "email";
+  type?: "text" | "date" | "datetime-local" | "number" | "url" | "email";
   /** Texto plano de varias líneas (textarea auto-resize). */
   multiline?: boolean;
   placeholder?: string;

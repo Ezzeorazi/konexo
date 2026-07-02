@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import { track as trackEvent } from "@/lib/analytics";
 import { maybeTrackActivation } from "@/lib/activation";
-import { parseDateInput } from "@/lib/dates";
+import { parseDateInput, parseDateTimeInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
 import { completeMission } from "@/lib/onboarding";
@@ -37,7 +37,7 @@ function clean(input: ContactInput) {
     linkedinUrl: normalizeUrl(input.linkedinUrl),
     phone: input.phone?.trim() || null,
     relationshipStrength: input.relationshipStrength,
-    nextFollowUpAt: parseDateInput(input.nextFollowUpAt),
+    nextFollowUpAt: parseDateTimeInput(input.nextFollowUpAt),
     notes: input.notes?.trim() || null,
   };
 }
@@ -114,7 +114,7 @@ function cleanContactField(
     case "relationshipStrength":
       return { relationshipStrength: value as RelationshipStrength };
     case "nextFollowUpAt":
-      return { nextFollowUpAt: parseDateInput(value) };
+      return { nextFollowUpAt: parseDateTimeInput(value) };
     case "notes":
       return { notes: value.trim() || null };
   }
@@ -143,7 +143,7 @@ export async function patchContactField(
     return { ok: false as const, error: "No encontré el contacto." };
   }
   // Configurar un follow-up desde la edición in-context cuenta como "Fijar Radar".
-  if (field === "nextFollowUpAt" && parseDateInput(value)) {
+  if (field === "nextFollowUpAt" && parseDateTimeInput(value)) {
     await completeMission(userId, "setRadar");
   }
   revalidatePath("/contactos");

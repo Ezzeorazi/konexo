@@ -32,7 +32,7 @@ import {
   RELATIONSHIP_STRENGTHS,
   relationshipStrengthLabels,
 } from "@/lib/labels";
-import { toDateInputValue } from "@/lib/dates";
+import { toDateTimeInputValue } from "@/lib/dates";
 import type {
   Contact,
   RelationshipStrength,
@@ -203,8 +203,8 @@ export function ContactDialog({
               <Input
                 id="nextFollowUpAt"
                 name="nextFollowUpAt"
-                type="date"
-                defaultValue={toDateInputValue(contact?.nextFollowUpAt)}
+                type="datetime-local"
+                defaultValue={toDateTimeInputValue(contact?.nextFollowUpAt)}
               />
             </div>
           </div>

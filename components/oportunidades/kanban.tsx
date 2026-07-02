@@ -19,7 +19,7 @@ import { Building2, CalendarClock, Hand } from "lucide-react";
 import { updateOpportunityStage } from "@/app/(app)/oportunidades/actions";
 import { PriorityBadge } from "@/components/badges";
 import { labelFor, type StageDef } from "@/lib/tracks";
-import { formatDate, formatOverdue } from "@/lib/dates";
+import { formatDateTime, formatOverdue } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 export type KanbanOpportunity = {
@@ -72,7 +72,7 @@ function OpportunityCard({
             <CalendarClock className="size-3" />
             {overdue
               ? formatOverdue(opportunity.nextFollowUpAt)
-              : formatDate(opportunity.nextFollowUpAt)}
+              : formatDateTime(opportunity.nextFollowUpAt)}
           </span>
         ) : null}
       </div>

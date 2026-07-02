@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SubscribeCard } from "@/components/calendario/subscribe-card";
-import { formatDate, formatRelative } from "@/lib/dates";
+import { formatDateTime, formatRelative } from "@/lib/dates";
 import { getVocab, isTrack, DEFAULT_TRACK, type Track } from "@/lib/tracks";
 
 export const dynamic = "force-dynamic";
@@ -172,7 +172,7 @@ function AgendaList({
                 </div>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-sm">{formatDate(i.date)}</p>
+                <p className="text-sm">{formatDateTime(i.date)}</p>
                 <p
                   className={
                     overdue

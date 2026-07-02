@@ -22,7 +22,13 @@ import { EditableSelect } from "@/components/editable/editable-select";
 import { EditableMarkdown } from "@/components/editable/editable-markdown";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
-import { formatDate, formatRelative, toDateInputValue } from "@/lib/dates";
+import {
+  formatDate,
+  formatDateTime,
+  formatRelative,
+  toDateInputValue,
+  toDateTimeInputValue,
+} from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -193,13 +199,13 @@ export default async function ContactoDetailPage({
             <div className="border-t pt-3">
               <FieldRow label="Próximo follow-up">
                 <EditableText
-                  value={toDateInputValue(contact.nextFollowUpAt)}
+                  value={toDateTimeInputValue(contact.nextFollowUpAt)}
                   display={
                     contact.nextFollowUpAt
-                      ? formatDate(contact.nextFollowUpAt)
+                      ? formatDateTime(contact.nextFollowUpAt)
                       : undefined
                   }
-                  type="date"
+                  type="datetime-local"
                   ariaLabel="Editar próximo follow-up"
                   onSave={patchContactField.bind(
                     null,

@@ -41,7 +41,13 @@ import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
 import { ContactDialog } from "@/components/contactos/contact-dialog";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { CatchMeUpButton } from "@/components/oportunidades/catch-me-up";
-import { formatDate, formatRelative, toDateInputValue } from "@/lib/dates";
+import {
+  formatDate,
+  formatDateTime,
+  formatRelative,
+  toDateInputValue,
+  toDateTimeInputValue,
+} from "@/lib/dates";
 import { PROJECT_KINDS, projectKindLabels } from "@/lib/labels";
 import { getVocab, type Track } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
@@ -336,13 +342,13 @@ export default async function OportunidadDetailPage({
               </FieldRow>
               <FieldRow label="Próximo follow-up">
                 <EditableText
-                  value={toDateInputValue(opportunity.nextFollowUpAt)}
+                  value={toDateTimeInputValue(opportunity.nextFollowUpAt)}
                   display={
                     opportunity.nextFollowUpAt
-                      ? formatDate(opportunity.nextFollowUpAt)
+                      ? formatDateTime(opportunity.nextFollowUpAt)
                       : undefined
                   }
-                  type="date"
+                  type="datetime-local"
                   ariaLabel="Editar próximo follow-up"
                   onSave={patchOpportunityField.bind(
                     null,
