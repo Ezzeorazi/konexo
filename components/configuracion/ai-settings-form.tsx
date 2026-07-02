@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { saveSettings, testAiConnection } from "@/app/(app)/configuracion/actions";
+import { saveAiSettings, testAiConnection } from "@/app/(app)/configuracion/actions";
 
 const PROVIDERS = [
   { value: "groq", label: "Groq (gratis, en la nube)" },
@@ -34,34 +34,41 @@ const DEFAULT_MODEL_PLACEHOLDER: Record<string, string> = {
 export function AiSettingsForm({
   hasServerDefault = false,
   userHasKey = false,
+  apiKeyPreview = "",
   initialProvider,
-  initialApiKey,
   initialModel,
   initialBaseUrl,
 }: {
   hasServerDefault?: boolean;
   userHasKey?: boolean;
+  /** Preview enmascarado de la key guardada (ej. "gsk…x4Kp"). Nunca la key real. */
+  apiKeyPreview?: string;
   initialProvider: string;
-  initialApiKey: string;
   initialModel: string;
   initialBaseUrl: string;
 }) {
   const [pending, startTransition] = useTransition();
   const [showKey, setShowKey] = useState(false);
   const [provider, setProvider] = useState(initialProvider);
+  // Si el usuario borra su key para volver al default compartido.
+  const [cleared, setCleared] = useState(false);
 
   // La IA compartida está activa cuando el server tiene key y el usuario no
   // cargó la suya (usa el default del dueño). Si el usuario pone su propia key,
   // manda la suya y este cartel deja de aplicar.
-  const usingSharedDefault = hasServerDefault && !userHasKey;
+  const hasStoredKey = userHasKey && !cleared;
+  const usingSharedDefault = hasServerDefault && !hasStoredKey;
 
   function save(form: FormData) {
-    return saveSettings([
-      { key: "aiProvider", value: provider },
-      { key: "aiApiKey", value: String(form.get("aiApiKey") ?? "") },
-      { key: "aiModel", value: String(form.get("aiModel") ?? "") },
-      { key: "aiBaseUrl", value: String(form.get("aiBaseUrl") ?? "") },
-    ]);
+    // La key nunca vino al cliente: solo mandamos lo que el usuario tipee. Campo
+    // vacío = conservar la guardada (lo resuelve el server action).
+    return saveAiSettings({
+      provider,
+      apiKey: String(form.get("aiApiKey") ?? ""),
+      model: String(form.get("aiModel") ?? ""),
+      baseUrl: String(form.get("aiBaseUrl") ?? initialBaseUrl),
+      clearApiKey: cleared,
+    });
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -69,6 +76,7 @@ export function AiSettingsForm({
     const form = new FormData(e.currentTarget);
     startTransition(async () => {
       await save(form);
+      setCleared(false);
       toast.success("Configuración guardada.");
     });
   }
@@ -77,6 +85,7 @@ export function AiSettingsForm({
     const form = new FormData(e.currentTarget.form!);
     startTransition(async () => {
       await save(form);
+      setCleared(false);
       const result = await testAiConnection();
       if (result.ok) {
         toast.success(`Conexión OK. El modelo respondió: "${result.text}"`);
@@ -139,8 +148,13 @@ export function AiSettingsForm({
               id="aiApiKey"
               name="aiApiKey"
               type={showKey ? "text" : "password"}
-              defaultValue={initialApiKey}
-              placeholder={provider === "groq" ? "gsk_..." : "sk-..."}
+              placeholder={
+                hasStoredKey
+                  ? `${apiKeyPreview} · dejá vacío para conservarla`
+                  : provider === "groq"
+                    ? "gsk_..."
+                    : "sk-..."
+              }
               autoComplete="off"
             />
             <Button
@@ -151,6 +165,25 @@ export function AiSettingsForm({
               {showKey ? "Ocultar" : "Mostrar"}
             </Button>
           </div>
+          {hasStoredKey ? (
+            <p className="text-xs text-muted-foreground">
+              Ya tenés una key guardada (<code>{apiKeyPreview}</code>). Por
+              seguridad no se muestra completa. Dejá el campo vacío para
+              conservarla, o pegá una nueva para reemplazarla.{" "}
+              <button
+                type="button"
+                className="underline underline-offset-2 hover:text-foreground"
+                onClick={() => setCleared(true)}
+              >
+                Quitar mi key
+              </button>{" "}
+              (vuelve a usar la IA compartida).
+            </p>
+          ) : cleared ? (
+            <p className="text-xs text-muted-foreground">
+              Tu key se quitará al guardar. Volvés a usar la IA compartida.
+            </p>
+          ) : null}
         </div>
       )}
 
@@ -169,20 +202,18 @@ export function AiSettingsForm({
         </p>
       </div>
 
-      {/* Los campos ocultos conservan el valor del modo no visible al guardar */}
-      {isOllama ? (
-        <input type="hidden" name="aiApiKey" value={initialApiKey} />
-      ) : (
+      {/* Conserva el baseUrl de Ollama cuando el campo visible es el de la key */}
+      {!isOllama ? (
         <input type="hidden" name="aiBaseUrl" value={initialBaseUrl} />
-      )}
+      ) : null}
 
       <p className="flex items-start gap-2 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
         <ShieldCheck className="mt-0.5 size-4 shrink-0" />
         {isOllama
           ? "Con Ollama todo corre en tu máquina: ni tu CV ni los avisos salen a internet."
           : provider === "groq"
-            ? "Groq tiene capa gratuita: creá tu key en console.groq.com (botón API Keys), sin tarjeta. La key se guarda solo en tu SQLite local."
-            : "La key se guarda únicamente en la base SQLite local de tu máquina y solo se usa para llamar al proveedor que elegiste."}
+            ? "Groq tiene capa gratuita: creá tu key en console.groq.com (botón API Keys), sin tarjeta. Tu key se guarda cifrada y solo se usa para llamar al proveedor que elegiste."
+            : "Tu key se guarda cifrada (AES-256) y solo se usa para llamar al proveedor que elegiste."}
       </p>
 
       <div className="flex flex-wrap gap-2">

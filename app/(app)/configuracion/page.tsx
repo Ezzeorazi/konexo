@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { AiSettingsForm } from "@/components/configuracion/ai-settings-form";
 import { hasServerDefaultAi } from "@/lib/ai";
+import { maskSecret } from "@/lib/crypto";
 import { BusinessProfileForm } from "@/components/configuracion/business-profile-form";
 import { TracksSettingsForm } from "@/components/configuracion/tracks-settings-form";
 import { StagesEditor } from "@/components/configuracion/stages-editor";
@@ -124,8 +125,8 @@ export default async function ConfiguracionPage() {
             <AiSettingsForm
               hasServerDefault={hasServerDefaultAi()}
               userHasKey={Boolean(settingsMap.get("aiApiKey"))}
+              apiKeyPreview={maskSecret(settingsMap.get("aiApiKey") ?? "")}
               initialProvider={settingsMap.get("aiProvider") ?? "groq"}
-              initialApiKey={settingsMap.get("aiApiKey") ?? ""}
               initialModel={settingsMap.get("aiModel") ?? ""}
               initialBaseUrl={
                 settingsMap.get("aiBaseUrl") ?? "http://localhost:11434"

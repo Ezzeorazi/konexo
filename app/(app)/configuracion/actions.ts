@@ -115,3 +115,31 @@ export async function saveSettings(entries: { key: string; value: string }[]) {
   revalidatePath("/configuracion");
   return { ok: true as const };
 }
+
+// Guardado de la config de IA con manejo especial de la API key (Tarea 2). La
+// key nunca viaja completa al cliente, así que el form no puede reenviarla: si
+// el campo va vacío CONSERVAMOS la key existente (no la pisamos). Para quitarla,
+// clearApiKey la deja en "" (vuelve al default compartido del servidor).
+export async function saveAiSettings(input: {
+  provider: string;
+  apiKey: string;
+  model: string;
+  baseUrl: string;
+  clearApiKey?: boolean;
+}) {
+  const entries: { key: string; value: string }[] = [
+    { key: "aiProvider", value: input.provider },
+    { key: "aiModel", value: input.model },
+    { key: "aiBaseUrl", value: input.baseUrl },
+  ];
+  if (input.clearApiKey) {
+    entries.push({ key: "aiApiKey", value: "" });
+  } else if (input.apiKey.trim()) {
+    // Solo si el usuario tipeó una key nueva la reemplazamos (cifrada en setSettings).
+    entries.push({ key: "aiApiKey", value: input.apiKey.trim() });
+  }
+  // Campo vacío y sin clear: no tocamos aiApiKey (se conserva la guardada).
+  await setSettings(entries);
+  revalidatePath("/configuracion");
+  return { ok: true as const };
+}

@@ -34,6 +34,11 @@ const REQUIRED_IN_PRODUCTION: EnvRule[] = [
     name: "DATABASE_URL",
     reason: "sin base de datos no hay a dónde leer/escribir los datos del tenant.",
   },
+  {
+    name: "SETTINGS_ENCRYPTION_KEY",
+    reason:
+      "las API keys de los usuarios se cifran at-rest con esta clave; sin ella se guardarían en texto plano.",
+  },
 ];
 
 let alreadyValidated = false;
