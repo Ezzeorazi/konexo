@@ -3,18 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { StrengthBadge } from "@/components/badges";
 import { ContactDialog } from "@/components/contactos/contact-dialog";
-import { RowLink } from "@/components/clickable";
-import { formatDateTime } from "@/lib/dates";
+import {
+  ContactsTable,
+  type ContactRow,
+} from "@/components/contactos/contacts-table";
 import { getActiveTrack } from "@/lib/active-track";
 
 export const dynamic = "force-dynamic";
@@ -22,11 +15,13 @@ export const dynamic = "force-dynamic";
 export default async function ContactosPage() {
   const userId = await currentUserId();
   const { track } = await getActiveTrack();
+  // Directorio COMPARTIDO: traemos los contactos de todos los modos (no solo el
+  // activo). El alta, en cambio, se crea en el modo activo (con sus empresas).
   const [contacts, companies] = await Promise.all([
     prisma.contact.findMany({
-      where: { userId, track },
+      where: { userId },
       orderBy: { name: "asc" },
-      include: { company: true },
+      include: { company: { select: { name: true } } },
     }),
     prisma.company.findMany({
       where: { userId, track },
@@ -35,15 +30,21 @@ export default async function ContactosPage() {
     }),
   ]);
 
+  const rows: ContactRow[] = contacts.map((c) => ({
+    id: c.id,
+    name: c.name,
+    role: c.role,
+    companyName: c.company?.name ?? null,
+    strength: c.relationshipStrength,
+    nextFollowUpAt: c.nextFollowUpAt,
+    track: c.track,
+  }));
+
   return (
     <div>
       <PageHeader
         title="Contactos"
-        description={
-          track === "jobs"
-            ? "Tu red: las personas que pueden abrirte puertas."
-            : "Tu red: las personas que te acercan al cierre."
-        }
+        description="Tu red completa, de todos los modos. Filtrá por modo con los chips."
       >
         <ContactDialog
           companies={companies}
@@ -76,42 +77,7 @@ export default async function ContactosPage() {
           />
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border-[3px] border-ink bg-panelw shadow-[5px_5px_0_var(--color-ink)]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead className="hidden md:table-cell">Rol</TableHead>
-                <TableHead className="hidden md:table-cell">Empresa</TableHead>
-                <TableHead>Relación</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Próximo follow-up
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {contacts.map((contact) => (
-                <RowLink key={contact.id} href={`/contactos/${contact.id}`}>
-                  <TableCell className="font-medium">{contact.name}</TableCell>
-                  <TableCell className="hidden text-muted-foreground md:table-cell">
-                    {contact.role ?? "—"}
-                  </TableCell>
-                  <TableCell className="hidden text-muted-foreground md:table-cell">
-                    {contact.company ? contact.company.name : "—"}
-                  </TableCell>
-                  <TableCell>
-                    <StrengthBadge strength={contact.relationshipStrength} />
-                  </TableCell>
-                  <TableCell className="hidden text-muted-foreground md:table-cell">
-                    {contact.nextFollowUpAt
-                      ? formatDateTime(contact.nextFollowUpAt)
-                      : "—"}
-                  </TableCell>
-                </RowLink>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ContactsTable contacts={rows} />
       )}
     </div>
   );

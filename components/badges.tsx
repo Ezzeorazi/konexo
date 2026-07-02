@@ -9,6 +9,7 @@ import {
   stageLabel,
   badgeClassFor,
   labelFor,
+  getVocab,
   type Track,
   type StageDef,
 } from "@/lib/tracks";
@@ -76,4 +77,17 @@ export function StrengthBadge({
 
 export function TouchpointTypeBadge({ type }: { type: TouchpointType }) {
   return <Badge variant="outline">{touchpointTypeLabels[type]}</Badge>;
+}
+
+// Insignia del modo/track al que pertenece una entidad (emoji + nombre). Sirve
+// para diferenciar de un vistazo contactos de distintos modos en una vista
+// compartida.
+export function TrackBadge({ track }: { track: Track }) {
+  const v = getVocab(track);
+  return (
+    <Badge variant="outline" className="gap-1 border-2 border-ink">
+      <span className="leading-none">{v.emoji}</span>
+      {v.name}
+    </Badge>
+  );
 }
