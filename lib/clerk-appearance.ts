@@ -1,14 +1,15 @@
-import type { Appearance } from "@clerk/types";
-
 // Estética Konexo (estilo cómic) para las pantallas embebidas de Clerk:
 // <SignIn/> y <SignUp/> en app/sign-in y app/sign-up. Se aplica vía la prop
-// `appearance` del ClerkProvider (lib/layout.tsx). NO afecta el Account Portal
+// `appearance` del ClerkProvider (app/layout.tsx). NO afecta el Account Portal
 // alojado por Clerk: eso se configura desde el dashboard de Clerk.
+//
+// El tipo lo valida el ClerkProvider donde se consume (evitamos importar
+// @clerk/types, que no es un paquete top-level en este árbol de deps).
 //
 // Colores de la paleta de marca (app/globals.css):
 //   paper  #f2e8c9   panelw #fbf6e3   ink   #16110c
 //   alarm  #e2493b   komic  #ffd23f   hero  #2ea8c4   verde #1f8a4c
-export const konexoClerkAppearance: Appearance = {
+export const konexoClerkAppearance = {
   variables: {
     colorPrimary: "#e2493b", // botón principal (CTA)
     colorBackground: "#fbf6e3", // panel de la card
@@ -19,7 +20,7 @@ export const konexoClerkAppearance: Appearance = {
     colorDanger: "#e2493b",
     colorSuccess: "#1f8a4c",
     borderRadius: "0.5rem",
-    fontFamily: "var(--font-sans)",
+    fontFamily: "var(--font-geist-sans)",
   },
   elements: {
     // Panel con el borde negro grueso + sombra dura del estilo cómic.
