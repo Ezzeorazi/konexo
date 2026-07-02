@@ -20,6 +20,7 @@ import {
 import { Reveal } from "@/components/comic/reveal";
 import { ComicMarquee } from "@/components/comic/comic-marquee";
 import { MissionsPanel } from "@/components/onboarding/missions-panel";
+import { DailyReviewButton } from "@/components/dashboard/daily-review";
 import { getProgress } from "@/lib/onboarding";
 import { getActiveTrack } from "@/lib/active-track";
 import { getVocab, tileFor } from "@/lib/tracks";
@@ -186,6 +187,7 @@ export default async function DashboardPage() {
                 >
                   MI RED
                 </Link>
+                <DailyReviewButton />
               </div>
             </div>
 
