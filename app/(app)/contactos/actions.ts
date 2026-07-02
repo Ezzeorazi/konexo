@@ -9,7 +9,12 @@ import { parseDateInput, parseDateTimeInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK } from "@/lib/tracks";
 import { completeMission } from "@/lib/onboarding";
-import { ContactSchema, TouchpointSchema, firstZodError } from "@/lib/validation";
+import {
+  ContactSchema,
+  TouchpointSchema,
+  TouchpointUpdateSchema,
+  firstZodError,
+} from "@/lib/validation";
 import type {
   RelationshipStrength,
   TouchpointType,
@@ -210,5 +215,59 @@ export async function createTouchpoint(input: TouchpointInput) {
   if (input.contactId) revalidatePath(`/contactos/${input.contactId}`);
   if (input.opportunityId)
     revalidatePath(`/oportunidades/${input.opportunityId}`);
+  return { ok: true as const };
+}
+
+// Revalida las páginas donde puede aparecer el touchpoint (contacto y/o
+// oportunidad ligados), para reflejar la edición/borrado in-context.
+async function revalidateTouchpointPaths(tp: {
+  contactId: string | null;
+  opportunityId: string | null;
+}) {
+  if (tp.contactId) revalidatePath(`/contactos/${tp.contactId}`);
+  if (tp.opportunityId) revalidatePath(`/oportunidades/${tp.opportunityId}`);
+}
+
+export async function updateTouchpoint(
+  id: string,
+  input: { type?: TouchpointType; note?: string; occurredAt?: string }
+) {
+  const parsed = TouchpointUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
+  }
+  const userId = await currentUserId();
+  const tp = await prisma.touchpoint.findFirst({
+    where: { id, userId },
+    select: { contactId: true, opportunityId: true },
+  });
+  if (!tp) return { ok: false as const, error: "No encontré el touchpoint." };
+
+  // Solo tocamos los campos que efectivamente vinieron en el patch.
+  const data: {
+    type?: TouchpointType;
+    note?: string | null;
+    occurredAt?: Date;
+  } = {};
+  if (input.type !== undefined) data.type = parsed.data.type;
+  if (input.note !== undefined) data.note = input.note.trim() || null;
+  if (input.occurredAt !== undefined) {
+    data.occurredAt = parseDateInput(input.occurredAt) ?? new Date();
+  }
+
+  await prisma.touchpoint.updateMany({ where: { id, userId }, data });
+  await revalidateTouchpointPaths(tp);
+  return { ok: true as const };
+}
+
+export async function deleteTouchpoint(id: string) {
+  const userId = await currentUserId();
+  const tp = await prisma.touchpoint.findFirst({
+    where: { id, userId },
+    select: { contactId: true, opportunityId: true },
+  });
+  if (!tp) return { ok: false as const, error: "No encontré el touchpoint." };
+  await prisma.touchpoint.deleteMany({ where: { id, userId } });
+  await revalidateTouchpointPaths(tp);
   return { ok: true as const };
 }

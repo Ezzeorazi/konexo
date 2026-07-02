@@ -110,6 +110,20 @@ export const ProjectTaskSchema = z.object({
   title: requiredText(300),
 });
 
+export const ProjectTaskUpdateSchema = z.object({
+  title: requiredText(300),
+});
+
+// Edición in-context de un touchpoint: cada campo es opcional (se guardan de a
+// uno desde los editores inline), pero si viene, se valida.
+export const TouchpointUpdateSchema = z.object({
+  type: z
+    .enum(["EMAIL", "LINKEDIN", "CALL", "MEETING", "REFERRAL_ASK", "NOTE"])
+    .optional(),
+  note: optionalText(20000),
+  occurredAt: optionalDate,
+});
+
 export const StageSchema = z.object({
   label: requiredText(120),
   type: z.string().max(20),

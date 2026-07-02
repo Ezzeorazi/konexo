@@ -15,20 +15,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { StrengthBadge, TouchpointTypeBadge } from "@/components/badges";
+import { StrengthBadge } from "@/components/badges";
 import { ContactStrengthSelect } from "@/components/contactos/inline-editors";
 import { EditableText } from "@/components/editable/editable-text";
 import { EditableSelect } from "@/components/editable/editable-select";
 import { EditableMarkdown } from "@/components/editable/editable-markdown";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
+import { TouchpointTimeline } from "@/components/contactos/touchpoint-timeline";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
-import {
-  formatDate,
-  formatDateTime,
-  formatRelative,
-  toDateInputValue,
-  toDateTimeInputValue,
-} from "@/lib/dates";
+import { formatDateTime, toDateTimeInputValue } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -240,35 +235,20 @@ export default async function ContactoDetailPage({
                 para empezar a construir historia con {contact.name}.
               </p>
             ) : (
-              <ol className="relative space-y-6 border-l pl-6">
-                {contact.touchpoints.map((tp) => (
-                  <li key={tp.id} className="relative">
-                    <span className="absolute left-[-1.85rem] top-1.5 size-2.5 rounded-full bg-primary" />
-                    <div className="flex flex-wrap items-center gap-2">
-                      <TouchpointTypeBadge type={tp.type} />
-                      <span
-                        className="text-xs text-muted-foreground"
-                        title={formatDate(tp.occurredAt)}
-                      >
-                        {formatRelative(tp.occurredAt)}
-                      </span>
-                      {tp.opportunity ? (
-                        <Link
-                          href={`/oportunidades/${tp.opportunity.id}`}
-                          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-                        >
-                          → {tp.opportunity.title}
-                        </Link>
-                      ) : null}
-                    </div>
-                    {tp.note ? (
-                      <p className="mt-1.5 whitespace-pre-wrap text-sm">
-                        {tp.note}
-                      </p>
-                    ) : null}
-                  </li>
-                ))}
-              </ol>
+              <TouchpointTimeline
+                items={contact.touchpoints.map((tp) => ({
+                  id: tp.id,
+                  type: tp.type,
+                  note: tp.note,
+                  occurredAt: tp.occurredAt,
+                  link: tp.opportunity
+                    ? {
+                        href: `/oportunidades/${tp.opportunity.id}`,
+                        label: `→ ${tp.opportunity.title}`,
+                      }
+                    : null,
+                }))}
+              />
             )}
           </CardContent>
         </Card>

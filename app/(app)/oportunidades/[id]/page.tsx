@@ -22,11 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  StageBadge,
-  StrengthBadge,
-  TouchpointTypeBadge,
-} from "@/components/badges";
+import { StageBadge, StrengthBadge } from "@/components/badges";
 import {
   OppStageSelect,
   OppPrioritySelect,
@@ -38,13 +34,13 @@ import { ItemLink } from "@/components/clickable";
 import { CvTailorCard } from "@/components/oportunidades/cv-tailor-card";
 import { ProjectTracker } from "@/components/oportunidades/project-tracker";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
+import { TouchpointTimeline } from "@/components/contactos/touchpoint-timeline";
 import { ContactDialog } from "@/components/contactos/contact-dialog";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { CatchMeUpButton } from "@/components/oportunidades/catch-me-up";
 import {
   formatDate,
   formatDateTime,
-  formatRelative,
   toDateInputValue,
   toDateTimeInputValue,
 } from "@/lib/dates";
@@ -506,35 +502,20 @@ export default async function OportunidadDetailPage({
                 Sin interacciones registradas para esta oportunidad.
               </p>
             ) : (
-              <ol className="relative space-y-6 border-l pl-6">
-                {opportunity.touchpoints.map((tp) => (
-                  <li key={tp.id} className="relative">
-                    <span className="absolute left-[-1.85rem] top-1.5 size-2.5 rounded-full bg-primary" />
-                    <div className="flex flex-wrap items-center gap-2">
-                      <TouchpointTypeBadge type={tp.type} />
-                      <span
-                        className="text-xs text-muted-foreground"
-                        title={formatDate(tp.occurredAt)}
-                      >
-                        {formatRelative(tp.occurredAt)}
-                      </span>
-                      {tp.contact ? (
-                        <Link
-                          href={`/contactos/${tp.contact.id}`}
-                          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-                        >
-                          con {tp.contact.name}
-                        </Link>
-                      ) : null}
-                    </div>
-                    {tp.note ? (
-                      <p className="mt-1.5 whitespace-pre-wrap text-sm">
-                        {tp.note}
-                      </p>
-                    ) : null}
-                  </li>
-                ))}
-              </ol>
+              <TouchpointTimeline
+                items={opportunity.touchpoints.map((tp) => ({
+                  id: tp.id,
+                  type: tp.type,
+                  note: tp.note,
+                  occurredAt: tp.occurredAt,
+                  link: tp.contact
+                    ? {
+                        href: `/contactos/${tp.contact.id}`,
+                        label: `con ${tp.contact.name}`,
+                      }
+                    : null,
+                }))}
+              />
             )}
           </CardContent>
         </Card>

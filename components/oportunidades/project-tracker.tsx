@@ -50,7 +50,10 @@ import {
   reorderProjectTasks,
   toggleProjectTask,
   updateProjectNote,
+  updateProjectTask,
 } from "@/app/(app)/oportunidades/project-actions";
+import { EditableText } from "@/components/editable/editable-text";
+import type { SaveResult } from "@/components/editable/types";
 import {
   PROJECT_NOTE_KINDS,
   projectNoteKindLabels,
@@ -209,6 +212,9 @@ export function ProjectTracker({
                   disabled={pending}
                   onToggle={() => toggleTask(task)}
                   onDelete={() => removeTask(task.id)}
+                  onRename={(title) =>
+                    updateProjectTask(task.id, opportunityId, title)
+                  }
                 />
               ))}
             </ul>
@@ -231,9 +237,17 @@ export function ProjectTracker({
                     disabled={pending}
                     onClick={() => toggleTask(task)}
                   />
-                  <span className="flex-1 text-sm text-muted-foreground line-through">
-                    {task.title}
-                  </span>
+                  <div className="flex-1">
+                    <EditableText
+                      value={task.title}
+                      onSave={(title) =>
+                        updateProjectTask(task.id, opportunityId, title)
+                      }
+                      required
+                      ariaLabel="Editar tarea"
+                      className="text-sm text-muted-foreground line-through"
+                    />
+                  </div>
                   <DeleteButton
                     disabled={pending}
                     onClick={() => removeTask(task.id)}
@@ -391,11 +405,13 @@ function TaskRow({
   disabled,
   onToggle,
   onDelete,
+  onRename,
 }: {
   task: ProjectTask;
   disabled: boolean;
   onToggle: () => void;
   onDelete: () => void;
+  onRename: (title: string) => Promise<SaveResult>;
 }) {
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: task.id });
   const {
@@ -425,7 +441,15 @@ function TaskRow({
         <GripVertical className="size-4" />
       </button>
       <CheckboxButton done={false} disabled={disabled} onClick={onToggle} />
-      <span className="flex-1 text-sm">{task.title}</span>
+      <div className="flex-1">
+        <EditableText
+          value={task.title}
+          onSave={onRename}
+          required
+          ariaLabel="Editar tarea"
+          className="text-sm"
+        />
+      </div>
       <DeleteButton
         disabled={disabled}
         onClick={onDelete}

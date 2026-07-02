@@ -7,6 +7,7 @@ import {
   ProjectNoteSchema,
   ProjectNoteUpdateSchema,
   ProjectTaskSchema,
+  ProjectTaskUpdateSchema,
   firstZodError,
 } from "@/lib/validation";
 
@@ -103,6 +104,27 @@ export async function createProjectTask(input: ProjectTaskInput) {
     },
   });
   revalidatePath(`/oportunidades/${parsed.data.opportunityId}`);
+  return { ok: true as const };
+}
+
+export async function updateProjectTask(
+  id: string,
+  opportunityId: string,
+  title: string
+) {
+  const parsed = ProjectTaskUpdateSchema.safeParse({ title });
+  if (!parsed.success) {
+    return { ok: false as const, error: firstZodError(parsed.error) };
+  }
+  const userId = await currentUserId();
+  const { count } = await prisma.projectTask.updateMany({
+    where: { id, userId },
+    data: { title: parsed.data.title },
+  });
+  if (count === 0) {
+    return { ok: false as const, error: "No encontré la tarea." };
+  }
+  revalidatePath(`/oportunidades/${opportunityId}`);
   return { ok: true as const };
 }
 
