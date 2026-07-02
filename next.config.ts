@@ -1,5 +1,11 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
+import { assertCriticalEnv } from "./lib/env";
+
+// Falla el build si faltan env vars críticas en producción (auditoría H1 /
+// Tarea 1). Corre al cargar la config, que es lo primero que ejecuta `next
+// build`. En dev es un no-op.
+assertCriticalEnv();
 
 // Security headers (auditoría M3 / Prioridad 5). Sin dependencias: se sirven
 // desde el propio Next en todas las respuestas.
