@@ -7,6 +7,8 @@ import {
   HeartHandshake,
   Plus,
   FileText,
+  CalendarClock,
+  CalendarPlus,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
@@ -41,12 +43,15 @@ import { CatchMeUpButton } from "@/components/oportunidades/catch-me-up";
 import {
   formatDate,
   formatDateTime,
+  formatOverdue,
+  formatRelative,
   toDateInputValue,
   toDateTimeInputValue,
 } from "@/lib/dates";
 import { PROJECT_KINDS, projectKindLabels } from "@/lib/labels";
 import { getVocab, type Track } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
+import { cn } from "@/lib/utils";
 import type { RelationshipStrength } from "@/lib/generated/prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -203,6 +208,88 @@ export default async function OportunidadDetailPage({
         </div>
       </div>
 
+      {/* Próxima reunión / follow-up: prominente y editable desde el proyecto. */}
+      {(() => {
+        const followUp = opportunity.nextFollowUpAt;
+        const overdue = followUp ? followUp < new Date() : false;
+        return (
+          <Card
+            className={cn(
+              "border-[3px]",
+              overdue ? "border-alarm bg-alarm/5" : "border-ink"
+            )}
+          >
+            <CardContent className="flex flex-wrap items-center justify-between gap-4 py-4">
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-ink",
+                    overdue ? "bg-alarm text-paper" : "bg-komic text-ink"
+                  )}
+                >
+                  <CalendarClock className="size-5" />
+                </span>
+                <div>
+                  <p className="font-display text-[11px] tracking-[0.18em] text-muted-foreground">
+                    PRÓXIMA REUNIÓN / FOLLOW-UP
+                  </p>
+                  <div className="text-lg font-medium">
+                    <EditableText
+                      value={toDateTimeInputValue(followUp)}
+                      display={followUp ? formatDateTime(followUp) : undefined}
+                      type="datetime-local"
+                      placeholder="Sin agendar — hacé clic para elegir fecha y hora"
+                      ariaLabel="Editar próxima reunión o follow-up"
+                      onSave={patchOpportunityField.bind(
+                        null,
+                        opportunity.id,
+                        "nextFollowUpAt"
+                      )}
+                    />
+                  </div>
+                  {followUp ? (
+                    <p
+                      className={cn(
+                        "px-1.5 text-xs",
+                        overdue
+                          ? "font-medium text-alarm"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {overdue
+                        ? formatOverdue(followUp)
+                        : formatRelative(followUp)}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <TouchpointDialog
+                  opportunityId={opportunity.id}
+                  defaultType="MEETING"
+                  contacts={companyContacts.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                  }))}
+                  trigger={
+                    <Button variant="outline" size="sm">
+                      <CalendarPlus className="size-4" />
+                      Registrar reunión
+                    </Button>
+                  }
+                />
+                <Link
+                  href="/calendario"
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                >
+                  Ver calendario
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6">
           <Card>
@@ -333,23 +420,6 @@ export default async function OportunidadDetailPage({
                     null,
                     opportunity.id,
                     "appliedAt"
-                  )}
-                />
-              </FieldRow>
-              <FieldRow label="Próximo follow-up">
-                <EditableText
-                  value={toDateTimeInputValue(opportunity.nextFollowUpAt)}
-                  display={
-                    opportunity.nextFollowUpAt
-                      ? formatDateTime(opportunity.nextFollowUpAt)
-                      : undefined
-                  }
-                  type="datetime-local"
-                  ariaLabel="Editar próximo follow-up"
-                  onSave={patchOpportunityField.bind(
-                    null,
-                    opportunity.id,
-                    "nextFollowUpAt"
                   )}
                 />
               </FieldRow>
