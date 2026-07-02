@@ -2,12 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { TRACKS, getVocab } from "@/lib/tracks";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/guia",
   title: "Guía de uso — Konexo",
   description:
     "Cómo usar Konexo de punta a punta: oportunidades, contactos, follow-ups, el tablero, el seguimiento de proyectos, el calendario, los modos, la IA y la configuración.",
-};
+});
 
 // Página pública (ver proxy.ts). Vive fuera del grupo (app), así no lleva el
 // sidebar ni requiere login: cualquiera puede leer la guía.

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { LegalShell, LegalSection } from "@/components/legal/legal-shell";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/privacidad",
   title: "Política de privacidad — Konexo",
   description:
     "Cómo Konexo recolecta, usa y protege tus datos: qué guardamos, con qué servicios los procesamos y cómo ejercer tus derechos.",
-};
+});
 
 // Página pública (ver proxy.ts). Requisito para publicar en Google Play.
 const CONTACT_EMAIL = "ezequiel.orazi90@gmail.com";

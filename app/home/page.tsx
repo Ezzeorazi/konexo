@@ -12,12 +12,14 @@ import {
 import { Faq } from "@/components/faq";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { KONEXO_FAQ } from "@/lib/faq";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/home",
   title: "Konexo — Organizá tu búsqueda de empleo como un pipeline",
   description:
     "Konexo organiza tu búsqueda laboral, ventas o freelance como un pipeline: oportunidades, contactos y follow-ups panel por panel. IA incluida. Gratis para empezar, en web y como app Android.",
-};
+});
 
 // Landing nativa (React/Tailwind), responsive mobile-first. Reemplaza el iframe
 // del HTML estático: mejor SEO, links reales a legales/guía/instalación y un

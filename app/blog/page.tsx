@@ -4,20 +4,17 @@ import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
 import { Faq } from "@/components/faq";
 import { KONEXO_FAQ } from "@/lib/faq";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/blog",
   title: "Blog de Konexo — Búsqueda de empleo, ventas y follow-ups",
   description:
     "Guías y consejos prácticos para organizar tu búsqueda de empleo, tus ventas o tu trabajo freelance como un pipeline: seguimiento, contactos y productividad.",
-  alternates: { canonical: "/blog" },
-  openGraph: {
-    type: "website",
-    title: "Blog de Konexo",
-    description:
-      "Guías prácticas para organizar tu búsqueda de empleo, ventas y follow-ups.",
-    url: "/blog",
-  },
-};
+  ogTitle: "Blog de Konexo",
+  ogDescription:
+    "Guías prácticas para organizar tu búsqueda de empleo, ventas y follow-ups.",
+});
 
 function formatDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString("es-AR", {

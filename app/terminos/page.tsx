@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { LegalShell, LegalSection } from "@/components/legal/legal-shell";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/terminos",
   title: "Términos y condiciones — Konexo",
   description:
     "Las reglas para usar Konexo: cuenta, uso aceptable, propiedad de tus datos, funciones de IA, límites de responsabilidad y más.",
-};
+});
 
 // Página pública (ver proxy.ts).
 const CONTACT_EMAIL = "ezequiel.orazi90@gmail.com";
