@@ -162,13 +162,13 @@ export function Kanban({
     setItems(opportunities);
   }
 
-  // Arrastre por RETENCIÓN: hay que mantener presionada la card 2 s antes de
+  // Arrastre por RETENCIÓN: hay que mantener presionada la card ~0,5 s antes de
   // que empiece a moverse. Evita drags accidentales al hacer scroll o al tocar
   // para abrir la card. `tolerance` cancela la activación si el dedo se corre
   // más de 8px durante la espera, así un tap sigue abriendo el link.
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: 2000, tolerance: 8 },
+      activationConstraint: { delay: 500, tolerance: 8 },
     })
   );
 
@@ -212,7 +212,7 @@ export function Kanban({
     >
       <p className="mb-2 flex items-center gap-1.5 font-hand text-sm text-muted-foreground">
         <Hand className="size-4" />
-        Mantené presionada una card 2 segundos para arrastrarla.
+        Mantené presionada una card para arrastrarla.
       </p>
       <div className="flex gap-4 overflow-x-auto pb-4">
         {stages.map((stage) => (
