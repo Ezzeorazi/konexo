@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Timer, X, Play, Pause, RotateCcw, Bell, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getVocab, isTrack, DEFAULT_TRACK, type Track } from "@/lib/tracks";
+import { getFocusSuggestions } from "@/app/(app)/pomodoro-actions";
 import { cn } from "@/lib/utils";
 
 // Widget de Pomodoro. Vive en el layout de la app (persiste entre navegaciones)
@@ -80,9 +81,14 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
   const [now, setNow] = useState(() => Date.now());
   const [hydrated, setHydrated] = useState(false);
   const [suggestionIdx, setSuggestionIdx] = useState(0);
+  // Sugerencias con DATOS REALES (follow-ups vencidos, tareas, etc.). Se cargan
+  // la primera vez que abrís el widget; si no hay, caemos a las genéricas.
+  const [dataSuggestions, setDataSuggestions] = useState<string[] | null>(null);
 
-  // Sugerencias derivadas del modo activo (sin efecto: puro dato).
-  const suggestions = useMemo(() => buildSuggestions(track), [track]);
+  // Genéricas por modo (fallback), sin efecto: puro dato.
+  const fallback = useMemo(() => buildSuggestions(track), [track]);
+  const suggestions =
+    dataSuggestions && dataSuggestions.length > 0 ? dataSuggestions : fallback;
 
   const totalForPhase = (phase === "focus" ? focusMin : BREAK_MIN) * 60;
   const remaining =
@@ -119,6 +125,21 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
     setHydrated(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
+
+  // Cargar sugerencias reales cada vez que abrís el widget (y al cambiar de
+  // modo mientras está abierto): así reflejan follow-ups y tareas al día.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    getFocusSuggestions()
+      .then((s) => {
+        if (!cancelled) setDataSuggestions(s);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [open, track]);
 
   // Persistir cambios (solo una vez hidratado, para no pisar lo guardado).
   useEffect(() => {

@@ -136,7 +136,9 @@ export async function toggleProjectTask(
   const userId = await currentUserId();
   await prisma.projectTask.updateMany({
     where: { id, userId },
-    data: { done },
+    // Registramos cuándo se completó (o lo limpiamos al destildar) para poder
+    // contar lo cerrado en el día en el "Cierre del día".
+    data: { done, completedAt: done ? new Date() : null },
   });
   revalidatePath(`/oportunidades/${opportunityId}`);
   return { ok: true as const };

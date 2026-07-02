@@ -196,13 +196,16 @@ model ProjectNote {
 }
 
 model ProjectTask {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   userId        String
   opportunityId String
   title         String
-  done          Boolean  @default(false)
-  order         Int      @default(0)
-  createdAt     DateTime @default(now())
+  done          Boolean   @default(false)
+  // Cuándo se marcó como hecha (para contar lo cerrado en el día). Null si
+  // está pendiente; se setea al tildar y se limpia si se destilda.
+  completedAt   DateTime?
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
 
   opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
 

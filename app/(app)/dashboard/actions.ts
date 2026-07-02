@@ -44,6 +44,7 @@ export async function dailyReview(): Promise<
     movedOpps,
     newContacts,
     newCompanies,
+    tasksDone,
     overdueOpps,
     overdueContacts,
   ] = await Promise.all([
@@ -97,6 +98,17 @@ export async function dailyReview(): Promise<
       where: { userId, track, createdAt: { gte: startOfToday } },
       select: { name: true },
     }),
+    // Tareas de proyecto completadas hoy (solo modos con entrega).
+    prisma.projectTask.findMany({
+      where: {
+        userId,
+        done: true,
+        completedAt: { gte: startOfToday },
+        opportunity: { track },
+      },
+      orderBy: { completedAt: "asc" },
+      select: { title: true, opportunity: { select: { title: true } } },
+    }),
     prisma.opportunity.count({
       where: { userId, track, nextFollowUpAt: { not: null, lt: now } },
     }),
@@ -111,7 +123,8 @@ export async function dailyReview(): Promise<
     newOpps.length +
     movedOpps.length +
     newContacts.length +
-    newCompanies.length;
+    newCompanies.length +
+    tasksDone.length;
 
   // Sin actividad: no gastamos una llamada a la IA, respondemos directo.
   if (totalActivity === 0) {
@@ -161,6 +174,14 @@ export async function dailyReview(): Promise<
     }`,
     `${vocab.oppPlural.toUpperCase()} MOVIDAS/EDITADAS HOY (${movedOpps.length}): ${
       movedOpps.map((o) => `${o.title} → ${stageLabel(o.stage)}`).join("; ") || "—"
+    }`,
+    `TAREAS COMPLETADAS HOY (${tasksDone.length}): ${
+      tasksDone
+        .map(
+          (t) =>
+            `${t.title}${t.opportunity?.title ? ` (${t.opportunity.title})` : ""}`
+        )
+        .join("; ") || "—"
     }`,
     `CONTACTOS NUEVOS HOY (${newContacts.length}): ${
       newContacts.map((c) => c.name).join("; ") || "—"
