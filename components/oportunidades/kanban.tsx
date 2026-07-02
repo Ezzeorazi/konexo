@@ -47,25 +47,26 @@ function OpportunityCard({
     opportunity.nextFollowUpAt && opportunity.nextFollowUpAt < new Date();
   const isOwn = opportunity.kind === "own";
   const accent = getOwnAccent(opportunity.accentColor);
+  // El acento (franja/chip) aplica a proyectos propios (siempre, para
+  // distinguirlos) y a cualquier proyecto que el usuario haya personalizado.
+  const hasStripe = isOwn || opportunity.accentColor != null;
+  const hasChip = isOwn || opportunity.accentEmoji != null;
 
   return (
     <div
       className={cn(
         "relative space-y-2 overflow-hidden rounded-md border-[2.5px] border-ink bg-background p-3 shadow-[3px_3px_0_var(--color-ink)] transition-shadow",
-        isOwn && "pl-4",
+        hasStripe && "pl-4",
         dragging && "rotate-2 shadow-[5px_5px_0_var(--color-ink)]"
       )}
     >
-      {isOwn ? (
+      {hasStripe ? (
         <span
-          className={cn(
-            "absolute inset-y-0 left-0 w-2",
-            accent.stripe
-          )}
+          className={cn("absolute inset-y-0 left-0 w-2", accent.stripe)}
           aria-hidden
         />
       ) : null}
-      {isOwn ? (
+      {hasChip ? (
         <span
           className={cn(
             "inline-flex items-center gap-1 rounded border-2 border-ink px-1.5 py-0.5 font-display text-[10px] leading-none tracking-wide",
@@ -77,7 +78,7 @@ function OpportunityCard({
               {opportunity.accentEmoji}
             </span>
           ) : null}
-          PROPIO
+          {isOwn ? "PROPIO" : null}
         </span>
       ) : null}
       <Link

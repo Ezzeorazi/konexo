@@ -51,7 +51,7 @@ import {
 import { PROJECT_KINDS, projectKindLabels } from "@/lib/labels";
 import { getVocab, type Track } from "@/lib/tracks";
 import { getOwnAccent } from "@/lib/appearance";
-import { OwnProjectAppearance } from "@/components/oportunidades/own-appearance";
+import { ProjectAppearance } from "@/components/oportunidades/project-appearance";
 import { getTrackStages } from "@/lib/stages";
 import { cn } from "@/lib/utils";
 import type { RelationshipStrength } from "@/lib/generated/prisma/client";
@@ -159,7 +159,7 @@ export default async function OportunidadDetailPage({
                 inputClassName="font-display text-3xl tracking-wide text-ink md:text-4xl"
               />
               <StageBadge stage={opportunity.stage} track={track} stages={stages} />
-              {isOwn ? (
+              {isOwn || opportunity.accentEmoji ? (
                 <span
                   className={cn(
                     "inline-flex items-center gap-1 rounded-md border-2 border-ink px-2 py-0.5 font-display text-xs tracking-wide shadow-[2px_2px_0_var(--color-ink)]",
@@ -171,7 +171,7 @@ export default async function OportunidadDetailPage({
                       {opportunity.accentEmoji}
                     </span>
                   ) : null}
-                  PROPIO
+                  {isOwn ? "PROPIO" : null}
                 </span>
               ) : null}
             </div>
@@ -350,9 +350,9 @@ export default async function OportunidadDetailPage({
                   />
                 </FieldRow>
               ) : null}
-              {isOwn ? (
+              {vocab.hasDelivery ? (
                 <FieldRow label="Apariencia">
-                  <OwnProjectAppearance
+                  <ProjectAppearance
                     opportunityId={opportunity.id}
                     accentColor={opportunity.accentColor}
                     accentEmoji={opportunity.accentEmoji}

@@ -5,16 +5,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { patchOpportunityField } from "@/app/(app)/oportunidades/actions";
-import {
-  OWN_ACCENTS,
-  OWN_EMOJIS,
-  getOwnAccent,
-} from "@/lib/appearance";
+import { OWN_ACCENTS, OWN_EMOJIS, getOwnAccent } from "@/lib/appearance";
 import { cn } from "@/lib/utils";
 
-// Personalización de un proyecto propio: color de acento + emoji. Guarda cada
-// cambio al toque (patchOpportunityField), sin apariencia de formulario.
-export function OwnProjectAppearance({
+// Personalización visual de un proyecto (propio o de cliente): color de acento
+// + emoji. Guarda cada cambio al toque (patchOpportunityField), sin apariencia
+// de formulario.
+export function ProjectAppearance({
   opportunityId,
   accentColor,
   accentEmoji,
@@ -39,7 +36,7 @@ export function OwnProjectAppearance({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {OWN_ACCENTS.map((a) => {
-          const active = a.key === current.key;
+          const active = a.key === current.key && accentColor != null;
           return (
             <button
               key={a.key}
@@ -47,7 +44,7 @@ export function OwnProjectAppearance({
               disabled={pending}
               title={a.label}
               aria-label={`Acento ${a.label}`}
-              onClick={() => save("accentColor", a.key)}
+              onClick={() => save("accentColor", active ? "" : a.key)}
               className={cn(
                 "flex size-7 items-center justify-center rounded-full border-2 border-ink transition-transform hover:scale-110 disabled:opacity-50",
                 a.swatch,
