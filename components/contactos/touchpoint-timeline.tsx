@@ -13,7 +13,7 @@ import {
   deleteTouchpoint,
 } from "@/app/(app)/contactos/actions";
 import { TOUCHPOINT_TYPES, touchpointTypeLabels } from "@/lib/labels";
-import { formatDate, toDateInputValue } from "@/lib/dates";
+import { formatDate, formatRelative, toDateInputValue } from "@/lib/dates";
 import type { TouchpointType } from "@/lib/generated/prisma/client";
 
 export type TimelineTouchpoint = {
@@ -77,6 +77,9 @@ function TouchpointRow({ tp }: { tp: TimelineTouchpoint }) {
           className="text-xs text-muted-foreground"
           onSave={(v) => updateTouchpoint(tp.id, { occurredAt: v })}
         />
+        <span className="text-xs text-muted-foreground/70">
+          ({formatRelative(tp.occurredAt)})
+        </span>
         {tp.link ? (
           <Link
             href={tp.link.href}
