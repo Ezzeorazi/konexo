@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Sidebar } from "@/components/sidebar";
 import { ChatWidget } from "@/components/asistente/chat-widget";
+import { PomodoroWidget } from "@/components/pomodoro/pomodoro-widget";
 import { getActiveTrack } from "@/lib/active-track";
 
 export default async function AppLayout({
@@ -16,6 +17,7 @@ export default async function AppLayout({
         {children}
       </main>
       <ChatWidget />
+      <PomodoroWidget activeTrack={track} />
       <Toaster richColors position="bottom-right" />
     </div>
   );
