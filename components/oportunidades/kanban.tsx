@@ -15,7 +15,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { toast } from "sonner";
-import { Building2, CalendarClock } from "lucide-react";
+import { Building2, CalendarClock, Hand } from "lucide-react";
 import { updateOpportunityStage } from "@/app/(app)/oportunidades/actions";
 import { PriorityBadge } from "@/components/badges";
 import { labelFor, type StageDef } from "@/lib/tracks";
@@ -90,7 +90,12 @@ function DraggableCard({ opportunity }: { opportunity: KanbanOpportunity }) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={cn("cursor-grab touch-none", isDragging && "opacity-30")}
+      className={cn(
+        // `active:` da feedback táctil inmediato mientras se mantiene apretado
+        // durante los 2s previos a que arranque el arrastre.
+        "cursor-grab touch-none transition-transform active:scale-[0.98]",
+        isDragging && "opacity-30"
+      )}
     >
       <OpportunityCard opportunity={opportunity} />
     </div>
@@ -157,9 +162,14 @@ export function Kanban({
     setItems(opportunities);
   }
 
-  // Distancia mínima para iniciar drag: deja pasar los clicks al link de la card
+  // Arrastre por RETENCIÓN: hay que mantener presionada la card 2 s antes de
+  // que empiece a moverse. Evita drags accidentales al hacer scroll o al tocar
+  // para abrir la card. `tolerance` cancela la activación si el dedo se corre
+  // más de 8px durante la espera, así un tap sigue abriendo el link.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+    useSensor(PointerSensor, {
+      activationConstraint: { delay: 2000, tolerance: 8 },
+    })
   );
 
   function handleDragStart(event: DragStartEvent) {
@@ -200,6 +210,10 @@ export function Kanban({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
+      <p className="mb-2 flex items-center gap-1.5 font-hand text-sm text-muted-foreground">
+        <Hand className="size-4" />
+        Mantené presionada una card 2 segundos para arrastrarla.
+      </p>
       <div className="flex gap-4 overflow-x-auto pb-4">
         {stages.map((stage) => (
           <Column
