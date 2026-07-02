@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { TRACKS, getVocab } from "@/lib/tracks";
+import { AVAILABLE_TRACKS, getVocab, trackUsesVentures } from "@/lib/tracks";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -30,8 +30,8 @@ const SECTIONS: Section[] = [
           Konexo es un <b>CRM personal</b>: te ayuda a manejar cualquier proceso
           que se gane con <b>relaciones y seguimiento</b>, no con una planilla.
           Nació para la <b>búsqueda de empleo</b> (postulaciones, entrevistas y
-          referidos) y el mismo motor sirve para ventas, freelance,
-          inmobiliarias, fundraising o reclutamiento.
+          referidos) y el mismo motor sirve para <b>ventas</b> y{" "}
+          <b>trabajo freelance</b>.
         </p>
         <p>
           La idea central: cada <b>oportunidad</b> vive conectada a las{" "}
@@ -74,7 +74,8 @@ const SECTIONS: Section[] = [
         <li>
           <b>Oportunidad</b> — la unidad central. En empleo es una postulación;
           en ventas, un negocio; en freelance, un proyecto. Tiene etapa,
-          prioridad, fecha de próximo follow-up y, según el modo, un monto.
+          prioridad, <b>fecha y hora</b> de próximo follow-up y, según el modo,
+          un monto.
         </li>
         <li>
           <b>Empresa</b> (o cuenta / cliente / fondo, según el modo) — el lugar
@@ -83,12 +84,15 @@ const SECTIONS: Section[] = [
         <li>
           <b>Contacto</b> — una persona de tu red. Tiene{" "}
           <b>fuerza de relación</b> (frío / tibio / fuerte) y su propio
-          historial.
+          historial. En <b>Contactos</b> ves tu red <b>completa de todos los
+          modos</b>, con un badge que indica de cuál es cada una y{" "}
+          <b>chips para filtrar</b> por modo.
         </li>
         <li>
           <b>Touchpoint</b> — cada interacción: email, LinkedIn, llamada,
           reunión, pedido de referido o nota. Es lo que construye la historia
-          con cada persona y oportunidad.
+          con cada persona y oportunidad. Desde el <b>timeline</b> editás su{" "}
+          <b>tipo, fecha y nota</b> con un clic.
         </li>
         <li>
           <b>Etapas</b> — las columnas del embudo (ej. Guardada → Aplicada →
@@ -104,8 +108,10 @@ const SECTIONS: Section[] = [
       <>
         <p>
           En <b>Oportunidades</b> ves tu embudo como un tablero. Cada card es una
-          oportunidad; <b>arrastrala</b> entre columnas para moverla de etapa.
-          El cambio se guarda solo.
+          oportunidad: <b>mantenela presionada un instante</b> y{" "}
+          <b>arrastrala</b> entre columnas para moverla de etapa. El cambio se
+          guarda solo. (El clic corto queda libre para abrir la card, así no la
+          movés sin querer al scrollear.)
         </p>
         <p>
           Tocá una card para abrir su <b>detalle</b>: datos, descripción,
@@ -133,6 +139,18 @@ const SECTIONS: Section[] = [
           <b>Forecast</b> (en los modos con monto) — proyección ponderada del
           pipeline: suma cada monto por la probabilidad de su etapa.
         </li>
+        <li>
+          <b>Cierre del día</b> — un botón que le pide a la IA un repaso de{" "}
+          <b>todo lo que avanzaste hoy</b> (interacciones, avances, altas,
+          tareas completadas y oportunidades movidas) y te deja los próximos
+          pasos para mañana.
+        </li>
+        <li>
+          <b>Foco Pomodoro</b> — un temporizador de concentración (bloques de
+          25/40/50 min + recreo) siempre a mano, que te <b>sugiere qué hacer</b>{" "}
+          en cada bloque con tus follow-ups y tareas reales. Sigue corriendo
+          aunque cambies de página.
+        </li>
       </ul>
     ),
   },
@@ -142,10 +160,12 @@ const SECTIONS: Section[] = [
     body: (
       <>
         <p>
-          El corazón de Konexo. Poné una <b>fecha de próximo follow-up</b> en
-          cada oportunidad y contacto: el Dashboard te los trae a tiempo para que
-          ningún seguimiento se te escape (la mayoría de los procesos se cierran
-          en el follow-up, no en el primer contacto).
+          El corazón de Konexo. Poné una <b>fecha y hora de próximo follow-up</b>{" "}
+          en cada oportunidad y contacto: el Dashboard te los trae a tiempo para
+          que ningún seguimiento se te escape (la mayoría de los procesos se
+          cierran en el follow-up, no en el primer contacto). En el detalle de
+          una oportunidad, el follow-up vive en una <b>tarjeta destacada</b>{" "}
+          arriba de todo, con un botón para <b>registrar la reunión</b>.
         </p>
         <p>
           En el detalle de una oportunidad, el panel{" "}
@@ -163,9 +183,11 @@ const SECTIONS: Section[] = [
       <>
         <p>
           Cada oportunidad y contacto puede tener una{" "}
-          <b>fecha de próximo follow-up</b>. En <b>Calendario</b> los ves todos
-          juntos, en una agenda con dos bloques: <b>vencidos</b> (en rojo, lo más
-          urgente) y <b>próximos</b>. Cada ítem te lleva a su detalle con un clic.
+          <b>fecha y hora de próximo follow-up</b>. En <b>Calendario</b> los ves
+          todos juntos, en una agenda con dos bloques: <b>vencidos</b> (en rojo,
+          lo más urgente) y <b>próximos</b>. Cada ítem te lleva a su detalle con
+          un clic. Si le pusiste hora, la alarma del calendario suena a esa hora;
+          si no, queda como evento de día completo.
         </p>
         <p>
           Lo mejor: <b>llevátelo al teléfono</b>. Generá un{" "}
@@ -204,9 +226,9 @@ const SECTIONS: Section[] = [
         <ul className="space-y-3">
           <li>
             <b>Tareas del proyecto</b> — un checklist de hitos y entregables.
-            Marcá lo hecho, <b>arrastrá para reordenar</b> por prioridad y las
-            completadas caen al fondo. Siempre a la vista cuántas llevás (“2 de 5
-            hechas”).
+            Marcá lo hecho, <b>editá el título con un clic</b>,{" "}
+            <b>arrastrá para reordenar</b> por prioridad y las completadas caen al
+            fondo. Siempre a la vista cuántas llevás (“2 de 5 hechas”).
           </li>
           <li>
             <b>Bitácora</b> — un registro cronológico de <b>ideas</b> y{" "}
@@ -217,10 +239,17 @@ const SECTIONS: Section[] = [
         </ul>
         <p>
           <b>¿Propio o de cliente?</b> Marcá cada proyecto según sea tuyo o de un
-          cliente. La IA los trata distinto: a los <b>propios</b> los gestiona
-          como ejecución (resúmenes y próximos pasos, sin proponer mensajes a
-          nadie); en los <b>de cliente</b> redacta solo si se lo pedís y, por
-          defecto, te ayuda a ponerte al día.
+          cliente. Al elegirlo, el formulario se adapta: un proyecto{" "}
+          <b>propio</b> no pide cliente ni monto. La IA también los trata
+          distinto: a los <b>propios</b> los gestiona como ejecución (resúmenes y
+          próximos pasos, sin proponer mensajes a nadie); en los{" "}
+          <b>de cliente</b> redacta solo si se lo pedís y, por defecto, te ayuda a
+          ponerte al día.
+        </p>
+        <p>
+          <b>Personalizalo:</b> ponele un <b>color de acento</b> y un{" "}
+          <b>emoji</b> a cada proyecto para reconocerlo de un vistazo en el
+          tablero. Los propios además llevan un distintivo <b>“PROPIO”</b>.
         </p>
         <p>
           Lo mejor: <b>la IA lo lee</b>. El asistente y los agentes ven el estado
@@ -353,8 +382,9 @@ const SECTIONS: Section[] = [
     body: (
       <ul className="space-y-3">
         <li>
-          <b>Modos</b> — activá uno o varios (empleo, ventas, freelance, etc.).
-          Cambian el vocabulario, las etapas y el tablero.
+          <b>Modos</b> — activá uno o varios de los tres: <b>empleo</b>,{" "}
+          <b>ventas</b> y <b>freelance</b>. Cambian el vocabulario, las etapas y
+          el tablero. Al cambiar de modo te llevamos al Dashboard de ese modo.
         </li>
         <li>
           <b>Etapas del embudo</b> — renombrá, reordená, agregá o borrá etapas de
@@ -403,12 +433,13 @@ function ModesReference() {
         siempre el mismo.
       </p>
       <div className="space-y-4">
-        {TRACKS.map((t) => {
+        {AVAILABLE_TRACKS.map((t) => {
           const v = getVocab(t);
           const caps = [
             v.hasValue && "💰 Forecast por monto",
             v.usesCv && "📄 Adapta tu CV con IA",
             v.hasDelivery && "🗂️ Tareas + bitácora del proyecto",
+            trackUsesVentures(t) && "🏷️ Emprendimientos para segmentar",
           ].filter(Boolean) as string[];
           return (
             <div key={t} className="panel rough p-5">
