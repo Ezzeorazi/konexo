@@ -9,10 +9,23 @@ import {
   Smartphone,
   ArrowRight,
 } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
 import { Faq } from "@/components/faq";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import { clerkEnabled } from "@/lib/auth";
 import { KONEXO_FAQ } from "@/lib/faq";
 import { pageMetadata } from "@/lib/seo";
+
+// Frases del marquee (banda negra). Se repiten en dos mitades idénticas para
+// que el scroll sea infinito y sin huecos (ver más abajo).
+const MARQUEE = [
+  "¡ZAS! PIPELINE ORGANIZADO",
+  "¡BAM! FOLLOW-UPS A TIEMPO",
+  "¡POW! TODO BAJO CONTROL",
+];
+// Cada "mitad" repite las frases lo suficiente para superar el ancho de la
+// pantalla; con la animación -50% las dos mitades hacen un loop sin salto.
+const MARQUEE_HALF = Array.from({ length: 4 }, () => MARQUEE).flat();
 
 export const metadata: Metadata = pageMetadata({
   path: "/home",
@@ -153,7 +166,11 @@ const ACTOS = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Sesión: si el visitante ya está logueado, los CTA de "entrar/empezar"
+  // pasan a "ir a la plataforma" (al dashboard).
+  const { userId } = clerkEnabled() ? await auth() : { userId: null };
+  const isSignedIn = Boolean(userId);
   return (
     <main className="halftone min-h-screen overflow-x-hidden bg-paper font-hand text-ink selection:bg-komic selection:text-ink">
       <script
@@ -194,18 +211,29 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/sign-in"
-              className="hidden font-display text-lg tracking-wide hover:text-alarm sm:inline"
-            >
-              ENTRAR
-            </Link>
-            <Link
-              href="/sign-up"
-              className="btn-comic rough bg-komic px-4 py-2 font-display text-lg tracking-wider sm:text-xl"
-            >
-              ¡EMPIEZA YA!
-            </Link>
+            {isSignedIn ? (
+              <Link
+                href="/dashboard"
+                className="btn-comic rough bg-komic px-4 py-2 font-display text-lg tracking-wider sm:text-xl"
+              >
+                MI PLATAFORMA →
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/sign-in"
+                  className="hidden font-display text-lg tracking-wide hover:text-alarm sm:inline"
+                >
+                  ENTRAR
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="btn-comic rough bg-komic px-4 py-2 font-display text-lg tracking-wider sm:text-xl"
+                >
+                  ¡EMPIEZA YA!
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -227,10 +255,10 @@ export default function HomePage() {
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link
-              href="/sign-up"
+              href={isSignedIn ? "/dashboard" : "/sign-up"}
               className="btn-comic rough bg-komic px-6 py-3 font-display text-xl tracking-wider sm:text-2xl"
             >
-              ¡QUIERO ENTRAR!
+              {isSignedIn ? "IR A MI PLATAFORMA →" : "¡QUIERO ENTRAR!"}
             </Link>
             <Link
               href="/guia"
@@ -278,18 +306,19 @@ export default function HomePage() {
       </section>
 
       {/* ===== MARQUEE ===== */}
+      {/* Loop infinito sin huecos: dos mitades IDÉNTICAS, cada una repetida lo
+          suficiente para pasar el ancho de pantalla; la animación mueve -50%
+          (una mitad), así la segunda ocupa el lugar de la primera sin salto. */}
       <div className="overflow-hidden border-y-4 border-ink bg-ink py-2.5 text-paper">
-        <div className="marquee-track flex whitespace-nowrap font-display text-lg tracking-widest">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <span key={i} className="flex shrink-0">
-              {["¡ZAS! PIPELINE ORGANIZADO", "¡BAM! FOLLOW-UPS A TIEMPO", "¡POW! TODO BAJO CONTROL"].map(
-                (t) => (
-                  <span key={t} className="mx-4 flex items-center gap-4">
-                    {t} <span className="text-komic">★</span>
-                  </span>
-                )
-              )}
-            </span>
+        <div className="marquee-track flex w-max whitespace-nowrap font-display text-lg tracking-widest">
+          {[0, 1].map((half) => (
+            <div key={half} className="flex shrink-0" aria-hidden={half === 1}>
+              {MARQUEE_HALF.map((t, i) => (
+                <span key={i} className="mx-4 flex items-center gap-4">
+                  {t} <span className="text-komic">★</span>
+                </span>
+              ))}
+            </div>
           ))}
         </div>
       </div>
@@ -527,10 +556,10 @@ export default function HomePage() {
           Creá tu cuenta gratis y tomá el control de tu búsqueda hoy mismo.
         </p>
         <Link
-          href="/sign-up"
+          href={isSignedIn ? "/dashboard" : "/sign-up"}
           className="btn-comic rough mt-7 inline-block bg-komic px-8 py-4 font-display text-2xl tracking-wider sm:text-3xl"
         >
-          ¡EMPEZAR CON KONEXO! →
+          {isSignedIn ? "IR A MI PLATAFORMA →" : "¡EMPEZAR CON KONEXO! →"}
         </Link>
         <p className="mt-4 font-display text-xs tracking-widest text-ink/60">
           SIN TARJETA · SIN SPAM · TUS DATOS, PRIVADOS
@@ -608,8 +637,17 @@ export default function HomePage() {
             </nav>
           </div>
           <p className="mt-8 border-t border-paper/20 pt-6 text-xs text-paper/60">
-            © {new Date().getFullYear()} Konexo · konexo.site · Hecho con 🦾 para
-            que ninguna oportunidad se te escape.
+            © {new Date().getFullYear()} Konexo · konexo.site · Desarrollado con
+            🦾 por{" "}
+            <a
+              href="https://ezequiel-orazi.online"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-komic underline underline-offset-2 hover:text-alarm"
+            >
+              Ezequiel Orazi
+            </a>
+            .
           </p>
         </div>
       </footer>
