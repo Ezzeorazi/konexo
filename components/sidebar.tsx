@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { UserButton } from "@clerk/nextjs";
 import { setActiveTrack } from "@/app/(app)/configuracion/actions";
+import { PomodoroWidget } from "@/components/pomodoro/pomodoro-widget";
 import { getVocab, type Track } from "@/lib/tracks";
 import { cn } from "@/lib/utils";
 
@@ -123,6 +124,9 @@ export function Sidebar({
           })}
         </nav>
 
+        {/* Pomodoro acoplado: panel compacto/colapsable, arriba del pie. */}
+        <PomodoroWidget activeTrack={activeTrack} />
+
         <div className="flex flex-col gap-1 border-t-[3px] border-sidebar-border px-3 py-2">
           <Link
             href="/home"
@@ -175,7 +179,9 @@ export function Sidebar({
         <div className="flex h-16 items-center border-b-[3px] border-sidebar-border px-4">
           {logo}
         </div>
-        {renderBody()}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {renderBody()}
+        </div>
       </aside>
 
       {/* ===== Barra superior (móvil) ===== */}

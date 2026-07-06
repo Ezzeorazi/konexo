@@ -2,15 +2,24 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Timer, X, Play, Pause, RotateCcw, Bell, Shuffle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  Timer,
+  Play,
+  Pause,
+  RotateCcw,
+  Bell,
+  Shuffle,
+  ChevronDown,
+} from "lucide-react";
 import { getVocab, isTrack, DEFAULT_TRACK, type Track } from "@/lib/tracks";
 import { getFocusSuggestions } from "@/app/(app)/pomodoro-actions";
 import { cn } from "@/lib/utils";
 
-// Widget de Pomodoro. Vive en el layout de la app (persiste entre navegaciones)
-// y guarda su estado en localStorage con un `endsAt` ABSOLUTO, para que el
-// tiempo siga corriendo aunque recargues la página o cambies de sección.
+// Pomodoro ACOPLADO al sidebar (Server layout lo monta dentro del riel/drawer).
+// Es un panel compacto y colapsable: la cabecera con el reloj y play/pausa
+// siempre visible; al expandir aparecen fases, presets y la sugerencia de foco.
+// Guarda su estado en localStorage con un `endsAt` ABSOLUTO, para que el tiempo
+// siga corriendo aunque recargues la página o cambies de sección.
 
 type Phase = "focus" | "break";
 
@@ -24,7 +33,7 @@ type Persisted = {
   running: boolean;
   endsAt: number | null;
   pausedRemaining: number; // segundos restantes cuando está pausado
-  open: boolean;
+  open: boolean; // panel expandido
 };
 
 function loadPersisted(): Persisted | null {
@@ -58,7 +67,7 @@ function buildSuggestions(track: Track): string[] {
     `Preparate para tu próxima reunión: repasá el historial del contacto.`,
     `Depurá el pipeline: cerrá lo que ya no va y priorizá lo caliente.`,
     `Escribí un mensaje de seguimiento para tu ${opp} más importante.`,
-    `Anotá en la bitácora qué avanzaste hoy y qué sigue.`,
+    `Anotá en la Actividad un avance del proyecto: qué hiciste y qué sigue.`,
   ];
   if (v.usesCv) {
     base.push(`Adaptá tu CV a una ${opp} concreta y guardá la versión.`);
@@ -72,7 +81,7 @@ function buildSuggestions(track: Track): string[] {
 export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
   const track = isTrack(activeTrack) ? activeTrack : DEFAULT_TRACK;
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // panel expandido (false = "chiquito")
   const [phase, setPhase] = useState<Phase>("focus");
   const [focusMin, setFocusMin] = useState(40);
   const [running, setRunning] = useState(false);
@@ -82,7 +91,7 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
   const [hydrated, setHydrated] = useState(false);
   const [suggestionIdx, setSuggestionIdx] = useState(0);
   // Sugerencias con DATOS REALES (follow-ups vencidos, tareas, etc.). Se cargan
-  // la primera vez que abrís el widget; si no hay, caemos a las genéricas.
+  // la primera vez que abrís el panel; si no hay, caemos a las genéricas.
   const [dataSuggestions, setDataSuggestions] = useState<string[] | null>(null);
 
   // Genéricas por modo (fallback), sin efecto: puro dato.
@@ -97,9 +106,7 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
       : pausedRemaining;
   const progress = 1 - remaining / totalForPhase;
 
-  // Restaurar estado al montar (después de hidratar, para no romper SSR). El
-  // estado del timer solo existe en el cliente: leerlo en un effect de montaje
-  // es el patrón correcto (mismo enfoque que el ChatWidget).
+  // Restaurar estado al montar (después de hidratar, para no romper SSR).
   useEffect(() => {
     const p = loadPersisted();
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -109,8 +116,6 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
       setOpen(p.open);
       if (p.running && p.endsAt != null) {
         if (Date.now() >= p.endsAt) {
-          // El bloque terminó mientras no estabas: lo dejamos listo en la
-          // siguiente fase, en pausa.
           const next: Phase = p.phase === "focus" ? "break" : "focus";
           setPhase(next);
           setPausedRemaining((next === "focus" ? p.focusMin : BREAK_MIN) * 60);
@@ -126,7 +131,7 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
-  // Cargar sugerencias reales cada vez que abrís el widget (y al cambiar de
+  // Cargar sugerencias reales cada vez que expandís el panel (y al cambiar de
   // modo mientras está abierto): así reflejan follow-ups y tareas al día.
   useEffect(() => {
     if (!open) return;
@@ -243,7 +248,6 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
     setNow(Date.now());
     setEndsAt(Date.now() + secs * 1000);
     setRunning(true);
-    // Pedimos permiso de notificación la primera vez que arrancás.
     try {
       if (
         typeof Notification !== "undefined" &&
@@ -302,151 +306,160 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
     ? suggestions[suggestionIdx % suggestions.length]
     : "";
 
-  if (!open) {
-    return (
-      <Button
-        size="icon-lg"
-        variant="outline"
-        className="fixed bottom-5 left-5 z-40 size-12 rounded-full bg-background shadow-lg"
-        onClick={() => setOpen(true)}
-      >
-        <Timer className="size-5" />
-        {running ? (
-          <span className="absolute -top-1 -right-1 rounded-full border-2 border-background bg-hero px-1.5 py-0.5 font-display text-[10px] leading-none text-paper">
+  return (
+    <div className="border-t-[3px] border-sidebar-border p-3">
+      {/* Cabecera compacta (siempre visible): reloj + play/pausa + expandir */}
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="flex flex-1 items-center gap-2 rounded-md px-1 py-1 text-left transition-colors hover:bg-sidebar-accent"
+          title={open ? "Ocultar Pomodoro" : "Mostrar Pomodoro"}
+        >
+          <Timer className="size-4 shrink-0" />
+          <span className="font-display text-[11px] tracking-[0.15em] text-sidebar-foreground/70">
+            {phase === "focus" ? "FOCO" : "RECREO"}
+          </span>
+          <span className="ml-auto font-display text-base tabular-nums">
             {mmss(remaining)}
           </span>
-        ) : null}
-        <span className="sr-only">Abrir temporizador de foco</span>
-      </Button>
-    );
-  }
-
-  return (
-    <div className="fixed bottom-5 left-5 z-40 w-[min(20rem,calc(100vw-2.5rem))] overflow-hidden rounded-xl bg-popover shadow-xl ring-1 ring-foreground/10">
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Timer className="size-4 text-primary" />
-          <p className="text-sm font-medium">Foco Pomodoro</p>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={enableNotifications}
-            title="Activar notificaciones"
-          >
-            <Bell className="size-4" />
-            <span className="sr-only">Activar notificaciones</span>
-          </Button>
-          <Button variant="ghost" size="icon-sm" onClick={() => setOpen(false)}>
-            <X className="size-4" />
-            <span className="sr-only">Cerrar</span>
-          </Button>
-        </div>
+          <ChevronDown
+            className={cn("size-4 shrink-0 transition-transform", open && "rotate-180")}
+          />
+        </button>
+        <button
+          type="button"
+          onClick={() => (running ? pause() : start())}
+          aria-label={running ? "Pausar" : "Empezar"}
+          className="flex size-8 shrink-0 items-center justify-center rounded-md border-[2.5px] border-paper bg-sidebar-accent text-sidebar-foreground transition-transform active:translate-y-px"
+        >
+          {running ? <Pause className="size-4" /> : <Play className="size-4" />}
+        </button>
       </div>
 
-      <div className="space-y-4 p-4">
-        {/* Selector de fase */}
-        <div className="flex gap-1 rounded-lg bg-muted p-1">
-          {(["focus", "break"] as Phase[]).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => switchPhase(p)}
-              className={cn(
-                "flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors",
-                phase === p
-                  ? "bg-background shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {p === "focus" ? "Foco" : "Recreo"}
-            </button>
-          ))}
-        </div>
+      {/* Barra de progreso fina (siempre visible) */}
+      <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-sidebar-accent">
+        <div
+          className="h-full rounded-full bg-komic transition-[width] duration-500"
+          style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
+        />
+      </div>
 
-        {/* Reloj */}
-        <div className="text-center">
-          <p className="font-display text-6xl tracking-wider tabular-nums text-ink">
-            {mmss(remaining)}
-          </p>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-hero transition-[width] duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Presets de foco */}
-        {phase === "focus" ? (
-          <div className="flex items-center justify-center gap-2">
-            {FOCUS_PRESETS.map((m) => (
+      {/* Panel expandido */}
+      {open ? (
+        <div className="mt-3 space-y-3">
+          {/* Fase */}
+          <div className="flex gap-1 rounded-md border-[2.5px] border-paper p-0.5">
+            {(["focus", "break"] as Phase[]).map((p) => (
               <button
-                key={m}
+                key={p}
                 type="button"
-                onClick={() => pickFocusMin(m)}
-                disabled={running}
+                onClick={() => switchPhase(p)}
                 className={cn(
-                  "rounded-md border-2 px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-40",
-                  focusMin === m
-                    ? "border-ink bg-komic text-ink"
-                    : "border-muted text-muted-foreground hover:border-ink"
+                  "flex-1 rounded px-2 py-1 font-display text-[11px] tracking-wide transition-colors",
+                  phase === p
+                    ? "bg-komic text-ink"
+                    : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
                 )}
               >
-                {m} min
+                {p === "focus" ? "FOCO" : "RECREO"}
               </button>
             ))}
           </div>
-        ) : null}
 
-        {/* Controles */}
-        <div className="flex items-center justify-center gap-2">
-          {running ? (
-            <Button onClick={pause} className="flex-1">
-              <Pause className="size-4" />
-              Pausar
-            </Button>
-          ) : (
-            <Button onClick={start} className="flex-1">
-              <Play className="size-4" />
-              {remaining < totalForPhase ? "Seguir" : "Empezar"}
-            </Button>
-          )}
-          <Button variant="outline" size="icon" onClick={reset} title="Reiniciar">
-            <RotateCcw className="size-4" />
-            <span className="sr-only">Reiniciar</span>
-          </Button>
-        </div>
+          {/* Presets de foco */}
+          {phase === "focus" ? (
+            <div className="flex items-center justify-center gap-1.5">
+              {FOCUS_PRESETS.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => pickFocusMin(m)}
+                  disabled={running}
+                  className={cn(
+                    "flex-1 rounded-md border-2 px-2 py-1 font-display text-[11px] tracking-wide transition-colors disabled:opacity-40",
+                    focusMin === m
+                      ? "border-paper bg-komic text-ink"
+                      : "border-sidebar-border text-sidebar-foreground/60 hover:border-paper"
+                  )}
+                >
+                  {m}m
+                </button>
+              ))}
+            </div>
+          ) : null}
 
-        {/* Sugerencia para el bloque de foco */}
-        {phase === "focus" ? (
-          <div className="rounded-lg border border-dashed p-3">
-            <div className="mb-1 flex items-center justify-between">
-              <p className="font-display text-[10px] tracking-[0.18em] text-muted-foreground">
-                EN ESTOS {focusMin} MIN
-              </p>
+          {/* Controles */}
+          <div className="flex items-center gap-1.5">
+            {running ? (
               <button
                 type="button"
-                onClick={() =>
-                  setSuggestionIdx((i) =>
-                    suggestions.length ? (i + 1) % suggestions.length : 0
-                  )
-                }
-                title="Otra sugerencia"
-                className="text-muted-foreground transition-colors hover:text-foreground"
+                onClick={pause}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-md border-[2.5px] border-paper bg-alarm px-2 py-1.5 font-display text-xs tracking-wide text-paper"
               >
-                <Shuffle className="size-3.5" />
+                <Pause className="size-3.5" /> PAUSAR
               </button>
-            </div>
-            <p className="text-sm">{currentSuggestion}</p>
+            ) : (
+              <button
+                type="button"
+                onClick={start}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-md border-[2.5px] border-paper bg-komic px-2 py-1.5 font-display text-xs tracking-wide text-ink"
+              >
+                <Play className="size-3.5" />
+                {remaining < totalForPhase ? "SEGUIR" : "EMPEZAR"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={reset}
+              aria-label="Reiniciar"
+              className="flex size-8 shrink-0 items-center justify-center rounded-md border-[2.5px] border-paper bg-sidebar-accent"
+            >
+              <RotateCcw className="size-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={enableNotifications}
+              aria-label="Activar notificaciones"
+              title="Activar notificaciones"
+              className="flex size-8 shrink-0 items-center justify-center rounded-md border-[2.5px] border-paper bg-sidebar-accent"
+            >
+              <Bell className="size-3.5" />
+            </button>
           </div>
-        ) : (
-          <p className="text-center text-sm text-muted-foreground">
-            Estirá las piernas, tomá agua y volvé recargado. 💧
-          </p>
-        )}
-      </div>
+
+          {/* Sugerencia de foco */}
+          {phase === "focus" ? (
+            <div className="rounded-md border-2 border-dashed border-sidebar-border p-2">
+              <div className="mb-1 flex items-center justify-between">
+                <p className="font-display text-[9px] tracking-[0.15em] text-sidebar-foreground/50">
+                  EN ESTOS {focusMin} MIN
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSuggestionIdx((i) =>
+                      suggestions.length ? (i + 1) % suggestions.length : 0
+                    )
+                  }
+                  title="Otra sugerencia"
+                  className="text-sidebar-foreground/50 transition-colors hover:text-sidebar-foreground"
+                >
+                  <Shuffle className="size-3" />
+                </button>
+              </div>
+              <p className="text-xs leading-snug text-sidebar-foreground/90">
+                {currentSuggestion}
+              </p>
+            </div>
+          ) : (
+            <p className="text-center font-hand text-xs text-sidebar-foreground/70">
+              Estirá las piernas, tomá agua y volvé recargado. 💧
+            </p>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
