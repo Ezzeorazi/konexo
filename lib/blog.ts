@@ -18,6 +18,11 @@ export type PostMeta = {
   tags?: string[];
   /** Preguntas frecuentes del post → schema FAQPage (rich results). */
   faq?: PostFaq[];
+  /** Si es true, NO se lista en el índice ni en el sitemap, pero la URL
+   * /blog/<slug> sigue viva (se sigue generando y renderizando). Se usa para
+   * posts de modos retirados: se despublican del índice pero se conservan por
+   * SEO/enlaces existentes. */
+  unlisted?: boolean;
 };
 
 export type Post = PostMeta & { slug: string };
@@ -54,5 +59,6 @@ export async function getAllPosts(): Promise<Post[]> {
   );
   return posts
     .filter((p): p is Post => p !== null)
+    .filter((p) => !p.unlisted) // los despublicados quedan fuera del índice/sitemap
     .sort((a, b) => b.date.localeCompare(a.date));
 }
