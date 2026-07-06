@@ -314,7 +314,7 @@ export function buildTemplateWorkbook(): ExcelJS.Workbook {
     { text: "" },
     { text: "1) Completá la hoja \"Empresas\" y la hoja \"Contactos\". No cambies los nombres de las hojas ni de las columnas (la fila 1 de cada hoja)." },
     { text: "2) Guardá el archivo y subílo por el chat del asistente (botón del clip 📎)." },
-    { text: "3) Los datos se cargan en el MODO en el que estés (Búsqueda laboral, Ventas, Freelance, etc.). Cambiá de modo antes de importar si querés cargarlos en otro." },
+    { text: "3) Los datos se cargan en el MODO en el que estés (Búsqueda laboral o Tu negocio). Cambiá de modo antes de importar si querés cargarlos en otro." },
     { text: "" },
     { text: "FORMATO DE LAS CELDAS — importante", bold: true },
     { text: "• Empresa (en Contactos): escribí el nombre EXACTAMENTE igual que en la hoja Empresas para que se vinculen. Si no coincide, el contacto se carga sin empresa." },

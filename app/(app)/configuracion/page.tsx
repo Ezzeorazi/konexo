@@ -65,10 +65,10 @@ export default async function ConfiguracionPage() {
 
       <Card className="mb-6 h-fit">
         <CardHeader>
-          <CardTitle className="text-base">¿Para qué usás Konexo?</CardTitle>
+          <CardTitle className="text-base">¿Qué estás haciendo ahora?</CardTitle>
           <CardDescription>
-            Elegí uno o ambos modos. Cambia el vocabulario, las etapas del
-            embudo y el tablero según para qué lo uses.
+            Elegí uno o los dos. Cambia el vocabulario, las etapas del embudo y
+            el tablero según lo que estés haciendo.
           </CardDescription>
         </CardHeader>
         <CardContent>

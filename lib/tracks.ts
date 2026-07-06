@@ -5,7 +5,6 @@
 
 export type Track =
   | "jobs"
-  | "sales"
   | "realestate"
   | "freelance"
   | "startup"
@@ -13,7 +12,6 @@ export type Track =
 
 export const TRACKS: Track[] = [
   "jobs",
-  "sales",
   "realestate",
   "freelance",
   "startup",
@@ -25,10 +23,10 @@ export const DEFAULT_TRACK: Track = "jobs";
 // Nicho fijado: la app se ofrece en DOS modos ("Búsqueda laboral" y "Tu
 // negocio"). "Tu negocio" reusa internamente la clave de track "freelance"
 // (renombrada solo en la UI) para NO migrar los datos existentes de ese modo.
-// El modo "sales" quedó retirado: sus datos se remapean a "freelance" (ver la
-// migración dos-modos) y su vocabulario/UI se quitan en la Fase 2. Los otros
-// presets siguen en VOCAB (para no romper datos/landings viejas) pero no se
-// ofrecen para habilitar.
+// El modo "sales" quedó retirado por completo (Fase 2): sus datos ya se
+// remaparon a "freelance" (migración dos-modos) y su vocabulario/UI se
+// eliminaron. Los otros presets (realestate/startup/recruiting) siguen en VOCAB
+// para no romper datos/landings viejas, pero no se ofrecen para habilitar.
 export const AVAILABLE_TRACKS: Track[] = ["jobs", "freelance"];
 
 export function isTrack(value: unknown): value is Track {
@@ -128,45 +126,6 @@ const VOCAB: Record<Track, TrackVocab> = {
       { key: "INTERVIEW", label: "Entrevista", type: "open", probability: 50 },
       { key: "OFFER", label: "Oferta", type: "won", probability: 90 },
       { key: "CLOSED", label: "Cerrada", type: "lost", probability: 0 },
-    ],
-  },
-  // TODO FASE 2: modo "sales" RETIRADO. Sus datos ya se remapean a "freelance"
-  // ("Tu negocio") en la migración dos-modos y salió de AVAILABLE_TRACKS. Esta
-  // entrada queda solo para que compile el código de UI que todavía referencia
-  // `track === "sales"`; se elimina junto con el SalesBoard y el vocabulario de
-  // ventas al desmontar la UI de sales.
-  sales: {
-    key: "sales",
-    name: "Ventas",
-    emoji: "💰",
-    tagline:
-      "Administrá tu pipeline comercial: prospectos, propuestas y seguimientos para cerrar.",
-    status: "live",
-    oppSingular: "negocio",
-    oppPlural: "Negocios",
-    newOpp: "Nuevo negocio",
-    boardDescription:
-      "Tu pipeline de ventas: arrastrá las cards para moverlas de etapa.",
-    companySingular: "cuenta",
-    companyPlural: "Cuentas",
-    hasValue: true,
-    valueLabel: "Monto del negocio",
-    valuePlaceholder: "Ej.: 15000",
-    usesCv: false,
-    hasDelivery: false,
-    descriptionLabel: "Necesidad / contexto",
-    descriptionPlaceholder:
-      "Qué necesita el prospecto, dolor que resolvés, presupuesto...",
-    firstDateLabel: "Primer contacto",
-    decisionTitle: "¿Quién decide acá?",
-    decisionHint: "Identificá a los decisores. Estos son tus contactos en",
-    // Comparte las keys con jobs para no migrar datos existentes.
-    stages: [
-      { key: "SAVED", label: "Prospecto", type: "open", probability: 10 },
-      { key: "APPLIED", label: "Contactado", type: "open", probability: 25 },
-      { key: "INTERVIEW", label: "Propuesta", type: "open", probability: 50 },
-      { key: "OFFER", label: "Negociación", type: "open", probability: 75 },
-      { key: "CLOSED", label: "Cerrado", type: "won", probability: 100 },
     ],
   },
   realestate: {

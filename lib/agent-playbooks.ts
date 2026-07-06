@@ -21,12 +21,6 @@ const PLAYBOOKS: Record<Track, AgentPlaybook> = {
     drafter:
       "El mensaje típico es un follow-up de postulación, un pedido de referido a un contacto, o un agradecimiento post-entrevista. Tono entusiasta, humilde y profesional, breve. Mostrá interés genuino en el rol y la empresa; nunca suenes desesperado. Si es pedido de referido, hacéselo fácil al contacto (ofrecé tu CV o un resumen de una línea).",
   },
-  sales: {
-    qualifier:
-      "Priorizá por monto y por etapa avanzada (Negociación > Propuesta > Contactado > Prospecto), y tratá los follow-ups vencidos como urgentes: la mayoría de las ventas se cierra en el seguimiento. Un decisor identificado sube la probabilidad; si no hay contacto, el próximo paso es identificar al decisor. Un deal grande y estancado es máxima prioridad.",
-    drafter:
-      "El mensaje típico es un follow-up comercial que empuja al próximo paso (call, demo, propuesta), reactivar un deal frío, o seguir una propuesta ya enviada. Tono cálido y consultivo, centrado en el valor para el cliente, sin venta agresiva. Cerrá siempre con un próximo paso concreto y una pregunta que invite a responder.",
-  },
   realestate: {
     qualifier:
       "Priorizá por etapa (Reserva > Oferta > Visita > Prospecto) y por valor de la propiedad. Un comprador que ya visitó y mostró interés es lo más caliente: coordinar la próxima visita o seguir una oferta es lo urgente. Tené en cuenta tiempos y financiamiento; un interesado que se enfría tras una visita es prioridad.",

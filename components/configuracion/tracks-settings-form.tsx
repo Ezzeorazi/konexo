@@ -8,6 +8,14 @@ import { saveEnabledTracks } from "@/app/(app)/configuracion/actions";
 import { AVAILABLE_TRACKS, getVocab, type Track } from "@/lib/tracks";
 import { cn } from "@/lib/utils";
 
+// Etiqueta en primera persona para la elección inicial ("¿Qué estás haciendo
+// ahora?"). El nombre del modo (Búsqueda laboral / Tu negocio) queda como
+// subtítulo. Fallback al nombre del modo para cualquier track sin frase propia.
+const ACTION_LABELS: Partial<Record<Track, string>> = {
+  jobs: "Buscando trabajo",
+  freelance: "Haciendo crecer lo mío",
+};
+
 export function TracksSettingsForm({
   initialEnabled,
 }: {
@@ -62,12 +70,15 @@ export function TracksSettingsForm({
               ) : null}
               <span className="text-2xl">{vocab.emoji}</span>
               <span className="flex items-center gap-2 font-display text-lg tracking-wide">
-                {vocab.name}
+                {ACTION_LABELS[track] ?? vocab.name}
                 {vocab.status === "soon" ? (
                   <span className="rounded border border-current px-1 text-[10px] font-normal uppercase tracking-wider opacity-70">
                     beta
                   </span>
                 ) : null}
+              </span>
+              <span className="text-[11px] font-medium uppercase tracking-wide opacity-60">
+                Modo {vocab.name}
               </span>
               <span className="font-hand text-sm leading-snug">
                 {vocab.tagline}
@@ -77,8 +88,8 @@ export function TracksSettingsForm({
         })}
       </div>
       <p className="text-xs text-muted-foreground">
-        Activá los dos para manejar búsqueda laboral y ventas en la misma cuenta:
-        vas a ver un selector arriba para cambiar de pipeline.
+        Activá los dos para manejar tu búsqueda laboral y tu negocio en la misma
+        cuenta: vas a ver un selector arriba para cambiar de pipeline.
       </p>
       <Button onClick={handleSave} disabled={pending}>
         {pending ? "Guardando..." : "Guardar modos"}

@@ -32,19 +32,9 @@ const LANDINGS: Record<string, Landing> = {
     ],
     ctaKicker: "Tu próximo trabajo empieza ordenado.",
   },
-  ventas: {
-    track: "sales",
-    slug: "ventas",
-    headline: ["CERRÁ MÁS,", "PERSIGUIENDO", "MENOS"],
-    sub: "Prospectos, propuestas y seguimientos en un pipeline que te dice exactamente a quién llamar hoy.",
-    audience: "Para vendedores, consultores y dueños que cierran ellos mismos.",
-    pains: [
-      { emoji: "🧊", title: "EL DEAL CONGELADO", text: "Una propuesta enviada y nunca seguida. El 80% de las ventas se cierra en el follow-up." },
-      { emoji: "🤷", title: "¿EN QUÉ QUEDAMOS?", text: "Sin historial, cada llamada empieza de cero y el prospecto lo nota." },
-      { emoji: "📉", title: "EL FORECAST FANTASMA", text: "¿Cuánto vas a cerrar este mes? Sin pipeline, es pura corazonada." },
-    ],
-    ctaKicker: "Que ningún negocio se enfríe.",
-  },
+  // NOTA (Fase 2 · dos modos): la landing de "ventas" (track "sales", retirado)
+  // se eliminó. Ya estaba despublicada (getLanding/LANDING_SLUGS filtran por
+  // isAvailableTrack). El pitch de "Tu negocio" (freelance) se rehace en Fase 4.
   inmobiliarias: {
     track: "realestate",
     slug: "inmobiliarias",

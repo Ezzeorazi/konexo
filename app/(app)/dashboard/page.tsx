@@ -371,9 +371,9 @@ export default async function DashboardPage() {
                   SIN CONTACTO
                 </CardTitle>
                 <CardDescription className="font-hand text-base text-ink/70">
-                  {track === "sales"
-                    ? "Acá todavía no identificaste un decisor: buscá con quién hablar."
-                    : "Acá no conocés a nadie todavía: buscá un puente que pueda referirte."}
+                  {track === "jobs"
+                    ? "Acá no conocés a nadie todavía: buscá un puente que pueda referirte."
+                    : "Acá todavía no identificaste con quién hablar: buscá a quien decide."}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -416,7 +416,7 @@ export default async function DashboardPage() {
             <Card className="bg-hero text-paper">
               <CardHeader>
                 <CardTitle className="text-paper">
-                  {track === "sales" ? "TU PIPELINE EN NÚMEROS" : "TU BÚSQUEDA EN NÚMEROS"}
+                  {track === "jobs" ? "TU BÚSQUEDA EN NÚMEROS" : "TU PIPELINE EN NÚMEROS"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">

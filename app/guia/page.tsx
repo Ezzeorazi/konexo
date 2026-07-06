@@ -30,8 +30,8 @@ const SECTIONS: Section[] = [
           Konexo es un <b>CRM personal</b>: te ayuda a manejar cualquier proceso
           que se gane con <b>relaciones y seguimiento</b>, no con una planilla.
           Nació para la <b>búsqueda de empleo</b> (postulaciones, entrevistas y
-          referidos) y el mismo motor sirve para <b>ventas</b> y{" "}
-          <b>trabajo freelance</b>.
+          referidos) y el mismo motor sirve para <b>hacer crecer tu negocio</b>{" "}
+          (clientes, propuestas, proyectos y cobros).
         </p>
         <p>
           La idea central: cada <b>oportunidad</b> vive conectada a las{" "}
@@ -55,9 +55,9 @@ const SECTIONS: Section[] = [
           pendientes y el estado del embudo.
         </li>
         <li>
-          Elegí <b>para qué</b> usás Konexo en{" "}
-          <b>Configuración → ¿Para qué usás Konexo?</b> (empleo viene activo por
-          defecto; podés sumar más modos).
+          Elegí <b>qué estás haciendo</b> en{" "}
+          <b>Configuración → ¿Qué estás haciendo ahora?</b> (la búsqueda laboral
+          viene activa por defecto; podés sumar tu negocio).
         </li>
         <li>
           Cargá tu <b>primera oportunidad</b> y registrá un{" "}
@@ -72,8 +72,8 @@ const SECTIONS: Section[] = [
     body: (
       <ul className="space-y-3">
         <li>
-          <b>Oportunidad</b> — la unidad central. En empleo es una postulación;
-          en ventas, un negocio; en freelance, un proyecto. Tiene etapa,
+          <b>Oportunidad</b> — la unidad central. En Búsqueda laboral es una
+          postulación; en Tu negocio, un proyecto o una venta. Tiene etapa,
           prioridad, <b>fecha y hora</b> de próximo follow-up y, según el modo,
           un monto.
         </li>
@@ -382,9 +382,9 @@ const SECTIONS: Section[] = [
     body: (
       <ul className="space-y-3">
         <li>
-          <b>Modos</b> — activá uno o varios de los tres: <b>empleo</b>,{" "}
-          <b>ventas</b> y <b>freelance</b>. Cambian el vocabulario, las etapas y
-          el tablero. Al cambiar de modo te llevamos al Dashboard de ese modo.
+          <b>Modos</b> — activá uno o los dos: <b>Búsqueda laboral</b> y{" "}
+          <b>Tu negocio</b>. Cambian el vocabulario, las etapas y el tablero. Al
+          cambiar de modo te llevamos al Dashboard de ese modo.
         </li>
         <li>
           <b>Etapas del embudo</b> — renombrá, reordená, agregá o borrá etapas de
