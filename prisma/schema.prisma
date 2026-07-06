@@ -72,16 +72,12 @@ model Opportunity {
   appliedAt      DateTime?
   nextFollowUpAt DateTime?
   cvVersionId    String?
-  // Emprendimiento (Venture) al que pertenece esta oportunidad. Solo se usa en
-  // el modo Ventas, para segmentar el pipeline por negocio propio.
-  ventureId      String?
   notes          String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
   cvVersion    CVVersion?    @relation(fields: [cvVersionId], references: [id], onDelete: SetNull)
-  venture      Venture?      @relation(fields: [ventureId], references: [id], onDelete: SetNull)
   touchpoints  Touchpoint[]
   projectNotes ProjectNote[]
   projectTasks ProjectTask[]
@@ -90,22 +86,9 @@ model Opportunity {
   @@index([userId, track, stage])
 }
 
-// Emprendimiento del usuario: un negocio propio desde el cual vende. Permite
-// segmentar el pipeline de Ventas (cada emprendimiento con sus propias
-// oportunidades: presupuestadas, propuestas, cobradas, etc.).
-model Venture {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  color     String? // clave de acento (lib/appearance.ts)
-  emoji     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  opportunities Opportunity[]
-
-  @@index([userId])
-}
+// NOTA (Fase 1 · dos modos): el modelo `Venture` (emprendimientos) se eliminó
+// por completo (0 registros, feature nunca usada). Con él se fueron la FK
+// `Opportunity.ventureId`, el SalesBoard y la segmentación por emprendimiento.
 
 model Contact {
   id                   String               @id @default(cuid())
@@ -129,6 +112,10 @@ model Contact {
   @@index([userId, track])
 }
 
+// TODO FASE 3 (fusión Actividad): `Touchpoint` (lo que pasó, ligado a contacto
+// y/o oportunidad) y `ProjectNote` (bitácora de ejecución, más abajo) se van a
+// unificar en un único stream de "Actividad". Acá vive el modelo de interacción;
+// la bitácora está en `ProjectNote`. NO fusionar todavía: solo dejar marcado.
 model Touchpoint {
   id            String         @id @default(cuid())
   userId        String
@@ -179,8 +166,12 @@ model Setting {
 }
 
 // Seguimiento de EJECUCIÓN del proyecto (separado del embudo comercial).
-// Solo aplica a tracks con fase de entrega (hoy: freelance). La bitácora es un
-// stream de ideas/avances; las tareas son un checklist de hitos.
+// Solo aplica a tracks con fase de entrega (hoy: "Tu negocio"). La bitácora es
+// un stream de ideas/avances; las tareas son un checklist de hitos.
+// TODO FASE 3 (fusión Actividad): esta bitácora se fusiona con `Touchpoint` en
+// un único stream de "Actividad". La lógica CRUD de la bitácora vive en
+// app/(app)/oportunidades/project-actions.ts (createProjectNote/update/delete);
+// la de Touchpoint en app/(app)/contactos/actions.ts. NO fusionar en Fase 1.
 model ProjectNote {
   id            String   @id @default(cuid())
   userId        String

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { AVAILABLE_TRACKS, getVocab, trackUsesVentures } from "@/lib/tracks";
+import { AVAILABLE_TRACKS, getVocab } from "@/lib/tracks";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -439,7 +439,6 @@ function ModesReference() {
             v.hasValue && "💰 Forecast por monto",
             v.usesCv && "📄 Adapta tu CV con IA",
             v.hasDelivery && "🗂️ Tareas + bitácora del proyecto",
-            trackUsesVentures(t) && "🏷️ Emprendimientos para segmentar",
           ].filter(Boolean) as string[];
           return (
             <div key={t} className="panel rough p-5">

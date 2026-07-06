@@ -36,7 +36,6 @@ export type OpportunityInput = {
   appliedAt?: string; // yyyy-MM-dd
   nextFollowUpAt?: string; // yyyy-MM-dd
   cvVersionId?: string;
-  ventureId?: string; // emprendimiento (solo Ventas)
   notes?: string;
 };
 
@@ -59,7 +58,6 @@ function clean(input: OpportunityInput) {
     appliedAt: parseDateInput(input.appliedAt),
     nextFollowUpAt: parseDateTimeInput(input.nextFollowUpAt),
     cvVersionId: input.cvVersionId || null,
-    ventureId: input.ventureId || null,
     notes: input.notes?.trim() || null,
   };
 }
@@ -120,7 +118,6 @@ const OPPORTUNITY_FIELDS = [
   "appliedAt",
   "nextFollowUpAt",
   "cvVersionId",
-  "ventureId",
   "notes",
 ] as const;
 
@@ -167,8 +164,6 @@ function cleanOpportunityField(
       return { nextFollowUpAt: parseDateTimeInput(value) };
     case "cvVersionId":
       return { cvVersionId: value || null };
-    case "ventureId":
-      return { ventureId: value || null };
     case "notes":
       return { notes: value.trim() || null };
   }

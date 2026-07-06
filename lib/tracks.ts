@@ -22,10 +22,14 @@ export const TRACKS: Track[] = [
 
 export const DEFAULT_TRACK: Track = "jobs";
 
-// Nicho fijado: hoy la app se ofrece en TRES modos. Los otros presets siguen en
-// VOCAB (para no romper datos/landings viejas) pero no se ofrecen para habilitar
-// ni tienen landing pública.
-export const AVAILABLE_TRACKS: Track[] = ["jobs", "sales", "freelance"];
+// Nicho fijado: la app se ofrece en DOS modos ("Búsqueda laboral" y "Tu
+// negocio"). "Tu negocio" reusa internamente la clave de track "freelance"
+// (renombrada solo en la UI) para NO migrar los datos existentes de ese modo.
+// El modo "sales" quedó retirado: sus datos se remapean a "freelance" (ver la
+// migración dos-modos) y su vocabulario/UI se quitan en la Fase 2. Los otros
+// presets siguen en VOCAB (para no romper datos/landings viejas) pero no se
+// ofrecen para habilitar.
+export const AVAILABLE_TRACKS: Track[] = ["jobs", "freelance"];
 
 export function isTrack(value: unknown): value is Track {
   return typeof value === "string" && (TRACKS as string[]).includes(value);
@@ -35,11 +39,9 @@ export function isAvailableTrack(value: unknown): value is Track {
   return isTrack(value) && (AVAILABLE_TRACKS as string[]).includes(value);
 }
 
-// ¿El modo segmenta su pipeline por "emprendimiento" (Venture)? Hoy solo Ventas:
-// un mismo usuario puede vender para varios negocios propios.
-export function trackUsesVentures(track: Track): boolean {
-  return track === "sales";
-}
+// NOTA (Fase 1 · dos modos): la segmentación por "emprendimiento" (Venture) se
+// eliminó por completo. La función `trackUsesVentures` y el modelo Venture ya no
+// existen. Antes solo aplicaba a "sales", que además quedó retirado.
 
 export type StageType = "open" | "won" | "lost";
 export type StageDef = {
@@ -128,6 +130,11 @@ const VOCAB: Record<Track, TrackVocab> = {
       { key: "CLOSED", label: "Cerrada", type: "lost", probability: 0 },
     ],
   },
+  // TODO FASE 2: modo "sales" RETIRADO. Sus datos ya se remapean a "freelance"
+  // ("Tu negocio") en la migración dos-modos y salió de AVAILABLE_TRACKS. Esta
+  // entrada queda solo para que compile el código de UI que todavía referencia
+  // `track === "sales"`; se elimina junto con el SalesBoard y el vocabulario de
+  // ventas al desmontar la UI de sales.
   sales: {
     key: "sales",
     name: "Ventas",
@@ -195,12 +202,16 @@ const VOCAB: Record<Track, TrackVocab> = {
       { key: "RE_DEED", label: "Escritura", type: "won", probability: 100 },
     ],
   },
+  // "Tu negocio" (Fase 1 · dos modos): es el antiguo modo "freelance" renombrado.
+  // Conserva la CLAVE de track "freelance" a propósito, para no migrar los datos
+  // existentes de ese modo. Absorbe lo poco rescatable de "sales" (los datos de
+  // sales se remapean acá). Mantiene hasDelivery + hasValue; ya no usa ventures.
   freelance: {
     key: "freelance",
-    name: "Freelance",
-    emoji: "🧑‍💻",
+    name: "Tu negocio",
+    emoji: "💼",
     tagline:
-      "Clientes, propuestas y cobros. Que ningún proyecto se enfríe ni ninguna factura se olvide.",
+      "Clientes, propuestas, proyectos y cobros. Que nada se enfríe ni ninguna factura se olvide.",
     status: "live",
     oppSingular: "proyecto",
     oppPlural: "Proyectos",

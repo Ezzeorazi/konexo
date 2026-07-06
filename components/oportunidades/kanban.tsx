@@ -34,13 +34,6 @@ export type KanbanOpportunity = {
   kind?: string;
   accentColor?: string | null;
   accentEmoji?: string | null;
-  /** Emprendimiento (Ventas): para segmentar visualmente el tablero. */
-  venture?: {
-    id: string;
-    name: string;
-    color: string | null;
-    emoji: string | null;
-  } | null;
 };
 
 function OpportunityCard({
@@ -99,19 +92,6 @@ function OpportunityCard({
           <Building2 className="size-3" />
           {opportunity.company.name}
         </p>
-      ) : null}
-      {opportunity.venture ? (
-        <span
-          className={cn(
-            "inline-flex items-center gap-1 rounded border-2 border-ink px-1.5 py-0.5 font-display text-[10px] leading-none tracking-wide",
-            getOwnAccent(opportunity.venture.color).badge
-          )}
-        >
-          {opportunity.venture.emoji ? (
-            <span className="leading-none">{opportunity.venture.emoji}</span>
-          ) : null}
-          {opportunity.venture.name}
-        </span>
       ) : null}
       <div className="flex flex-wrap items-center gap-2">
         <PriorityBadge priority={opportunity.priority} />

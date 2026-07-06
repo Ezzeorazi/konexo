@@ -49,7 +49,7 @@ import {
   toDateTimeInputValue,
 } from "@/lib/dates";
 import { PROJECT_KINDS, projectKindLabels } from "@/lib/labels";
-import { getVocab, trackUsesVentures, type Track } from "@/lib/tracks";
+import { getVocab, type Track } from "@/lib/tracks";
 import { getOwnAccent } from "@/lib/appearance";
 import { ProjectAppearance } from "@/components/oportunidades/project-appearance";
 import { getTrackStages } from "@/lib/stages";
@@ -107,9 +107,8 @@ export default async function OportunidadDetailPage({
   const vocab = getVocab(track);
   const isOwn = vocab.hasDelivery && opportunity.kind === "own";
   const accent = getOwnAccent(opportunity.accentColor);
-  const usesVentures = trackUsesVentures(track);
   // Empresas filtradas por el track de la oportunidad: no se cruzan modos.
-  const [companies, cvVersions, stages, ventures] = await Promise.all([
+  const [companies, cvVersions, stages] = await Promise.all([
     prisma.company.findMany({
       where: { userId, track },
       orderBy: { name: "asc" },
@@ -121,13 +120,6 @@ export default async function OportunidadDetailPage({
       select: { id: true, label: true },
     }),
     getTrackStages(track),
-    usesVentures
-      ? prisma.venture.findMany({
-          where: { userId },
-          orderBy: { name: "asc" },
-          select: { id: true, name: true },
-        })
-      : Promise.resolve([] as { id: string; name: string }[]),
   ]);
 
   const companyContacts = [...(opportunity.company?.contacts ?? [])].sort(
@@ -143,10 +135,6 @@ export default async function OportunidadDetailPage({
   const cvOptions = [
     { value: "", label: "Sin versión de CV" },
     ...cvVersions.map((cv) => ({ value: cv.id, label: cv.label })),
-  ];
-  const ventureOptions = [
-    { value: "", label: "Sin emprendimiento" },
-    ...ventures.map((v) => ({ value: v.id, label: v.name })),
   ];
 
   return (
@@ -345,21 +333,6 @@ export default async function OportunidadDetailPage({
                   value={opportunity.priority}
                 />
               </FieldRow>
-              {usesVentures ? (
-                <FieldRow label="Emprendimiento">
-                  <EditableSelect
-                    value={opportunity.ventureId ?? ""}
-                    ariaLabel="Cambiar emprendimiento"
-                    placeholder="Sin emprendimiento"
-                    options={ventureOptions}
-                    onSave={patchOpportunityField.bind(
-                      null,
-                      opportunity.id,
-                      "ventureId"
-                    )}
-                  />
-                </FieldRow>
-              ) : null}
               {vocab.hasDelivery ? (
                 <FieldRow label="Tipo de proyecto">
                   <EditableSelect

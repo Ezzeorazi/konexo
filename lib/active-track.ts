@@ -2,7 +2,13 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import { getSetting } from "@/lib/settings";
-import { DEFAULT_TRACK, TRACKS, isTrack, type Track } from "@/lib/tracks";
+import {
+  DEFAULT_TRACK,
+  TRACKS,
+  isTrack,
+  isAvailableTrack,
+  type Track,
+} from "@/lib/tracks";
 
 export const ACTIVE_TRACK_COOKIE = "konexo-track";
 export const ENABLED_TRACKS_KEY = "enabledTracks";
@@ -36,10 +42,13 @@ export async function getEnabledTracks(): Promise<Track[]> {
     }),
   ]);
 
+  // Defensa (Fase 1 · dos modos): filtramos por isAvailableTrack (no isTrack)
+  // para que un modo RETIRADO guardado en un Setting viejo (p.ej. "sales") no
+  // reviva en el switcher aunque la migración de datos no lo haya limpiado.
   const saved = (value ?? "")
     .split(",")
     .map((t) => t.trim())
-    .filter(isTrack);
+    .filter(isAvailableTrack);
   const withData = [...oppTracks, ...companyTracks, ...contactTracks]
     .map((r) => r.track)
     .filter(isTrack);

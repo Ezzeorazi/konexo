@@ -30,13 +30,11 @@ import {
   type OpportunityInput,
 } from "@/app/(app)/oportunidades/actions";
 import { createCVVersion } from "@/app/(app)/configuracion/actions";
-import { createVenture } from "@/app/(app)/oportunidades/venture-actions";
 import { PRIORITIES, priorityLabels, PROJECT_KINDS, projectKindLabels } from "@/lib/labels";
 import {
   getVocab,
   isTrack,
   defaultStageKeyOf,
-  trackUsesVentures,
   type Track,
   type StageDef,
 } from "@/lib/tracks";
@@ -45,13 +43,11 @@ import type { Opportunity, Priority } from "@/lib/generated/prisma/client";
 
 export type CompanyOption = { id: string; name: string };
 export type CVVersionOption = { id: string; label: string };
-export type VentureOption = { id: string; name: string };
 
 export function OpportunityDialog({
   opportunity,
   companies,
   cvVersions,
-  ventures = [],
   defaultCompanyId,
   track = "jobs",
   stages,
@@ -60,7 +56,6 @@ export function OpportunityDialog({
   opportunity?: Opportunity;
   companies: CompanyOption[];
   cvVersions: CVVersionOption[];
-  ventures?: VentureOption[];
   defaultCompanyId?: string;
   track?: Track;
   stages: StageDef[];
@@ -111,32 +106,6 @@ export function OpportunityDialog({
     });
   }
 
-  // Emprendimiento (solo Ventas): select + alta rápida sin salir del form.
-  const usesVentures = trackUsesVentures(formTrack);
-  const [ventureOptions, setVentureOptions] = useState(ventures);
-  const [ventureId, setVentureId] = useState(opportunity?.ventureId ?? "");
-  const [creatingVenture, setCreatingVenture] = useState(false);
-  const [newVentureName, setNewVentureName] = useState("");
-
-  function handleQuickCreateVenture() {
-    if (!newVentureName.trim()) return;
-    startTransition(async () => {
-      const result = await createVenture({ name: newVentureName });
-      if (result.ok) {
-        setVentureOptions((prev) => [
-          ...prev,
-          { id: result.id, name: newVentureName.trim() },
-        ]);
-        setVentureId(result.id);
-        setCreatingVenture(false);
-        setNewVentureName("");
-        toast.success("Emprendimiento creado.");
-      } else {
-        toast.error(result.error);
-      }
-    });
-  }
-
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -156,7 +125,6 @@ export function OpportunityDialog({
       appliedAt: String(form.get("appliedAt") ?? ""),
       nextFollowUpAt: String(form.get("nextFollowUpAt") ?? ""),
       cvVersionId,
-      ventureId: usesVentures ? ventureId : "",
       notes: String(form.get("notes") ?? ""),
     };
     startTransition(async () => {
@@ -381,73 +349,6 @@ export function OpportunityDialog({
               />
             </div>
           </div>
-          {usesVentures ? (
-            <div className="space-y-2">
-              <Label>Emprendimiento</Label>
-              {creatingVenture ? (
-                <div className="flex gap-2">
-                  <Input
-                    value={newVentureName}
-                    onChange={(e) => setNewVentureName(e.target.value)}
-                    placeholder="Nombre del emprendimiento"
-                    autoFocus
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleQuickCreateVenture}
-                    disabled={pending || !newVentureName.trim()}
-                  >
-                    Crear
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setCreatingVenture(false)}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Select
-                    value={ventureId}
-                    onValueChange={(v) => setVentureId(String(v ?? ""))}
-                    items={[
-                      { value: "", label: "Sin emprendimiento" },
-                      ...ventureOptions.map((v) => ({
-                        value: v.id,
-                        label: v.name,
-                      })),
-                    ]}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Sin emprendimiento</SelectItem>
-                      {ventureOptions.map((v) => (
-                        <SelectItem key={v.id} value={v.id}>
-                          {v.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setCreatingVenture(true)}
-                    title="Nuevo emprendimiento"
-                  >
-                    <Plus className="size-4" />
-                    Nuevo
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : null}
           {vocab.usesCv ? (
           <div className="space-y-2">
             <Label>Versión de CV</Label>
