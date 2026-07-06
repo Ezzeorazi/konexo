@@ -12,12 +12,11 @@ import { INJECTION_GUARD, userData } from "@/lib/prompt-safety";
 import { getActiveTrack } from "@/lib/active-track";
 import { getVocab, type StageDef, type Track, type TrackVocab } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
-import { relationshipStrengthLabels } from "@/lib/labels";
 import {
+  relationshipStrengthLabels,
   priorityLabels,
   touchpointTypeLabels,
-  projectNoteKindLabels,
-  type ProjectNoteKind,
+  INTERNAL_TOUCHPOINT_TYPES,
 } from "@/lib/labels";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -99,10 +98,7 @@ export function deliveryBrief(d: PipelineDelivery | null): string {
     parts.push(
       `bitácora reciente: ${d.notes
         .slice(0, 3)
-        .map(
-          (n) =>
-            `[${projectNoteKindLabels[n.kind as ProjectNoteKind] ?? n.kind}] ${n.body.slice(0, 140)}`
-        )
+        .map((n) => `[${n.kind}] ${n.body.slice(0, 140)}`)
         .join(" · ")}`
     );
   return parts.join(" · ");
@@ -164,20 +160,17 @@ export async function gatherPipeline(): Promise<PipelineData> {
               },
             },
           },
+          // Actividad (Fase 3): un solo stream. Traemos varias para separar la
+          // última INTERACCIÓN (lastTouch) de la bitácora interna (IDEA/AVANCE).
           touchpoints: {
             orderBy: { occurredAt: "desc" },
-            take: 1,
+            take: 20,
             select: { type: true, note: true, occurredAt: true },
           },
           projectTasks: {
             orderBy: [{ done: "asc" }, { order: "asc" }],
             take: 50,
             select: { title: true, done: true },
-          },
-          projectNotes: {
-            orderBy: { createdAt: "desc" },
-            take: 5,
-            select: { kind: true, body: true },
           },
         },
       }),
@@ -252,7 +245,14 @@ export async function gatherPipeline(): Promise<PipelineData> {
       strength: relationshipStrengthLabels[c.relationshipStrength],
     }));
     if (contacts.length === 0) noContact.push(o.title);
-    const last = o.touchpoints[0];
+    // Separamos la Actividad: interacciones (con persona) vs bitácora interna.
+    const interactions = o.touchpoints.filter(
+      (t) => !INTERNAL_TOUCHPOINT_TYPES.includes(t.type)
+    );
+    const bitacora = o.touchpoints.filter((t) =>
+      INTERNAL_TOUCHPOINT_TYPES.includes(t.type)
+    );
+    const last = interactions[0];
     const lastTouch = last
       ? `${touchpointTypeLabels[last.type]} (${iso(last.occurredAt)})${last.note ? `: ${last.note}` : ""}`
       : null;
@@ -263,7 +263,10 @@ export async function gatherPipeline(): Promise<PipelineData> {
           pendingTasks: o.projectTasks
             .filter((t) => !t.done)
             .map((t) => t.title),
-          notes: o.projectNotes.map((n) => ({ kind: n.kind, body: n.body })),
+          // `kind` ya es la etiqueta legible (Idea/Avance); body = la nota.
+          notes: bitacora
+            .slice(0, 5)
+            .map((n) => ({ kind: touchpointTypeLabels[n.type], body: n.note ?? "" })),
         }
       : null;
     return {

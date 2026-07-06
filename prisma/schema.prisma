@@ -26,6 +26,10 @@ enum TouchpointType {
   MEETING
   REFERRAL_ASK
   NOTE
+  // Fase 3 (fusión Actividad): tipos internos de la ex-bitácora (ProjectNote).
+  // No son interacciones con una persona: son notas de ejecución del proyecto.
+  IDEA
+  AVANCE
 }
 
 model Company {
@@ -79,7 +83,6 @@ model Opportunity {
   company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
   cvVersion    CVVersion?    @relation(fields: [cvVersionId], references: [id], onDelete: SetNull)
   touchpoints  Touchpoint[]
-  projectNotes ProjectNote[]
   projectTasks ProjectTask[]
 
   @@index([userId, track])
@@ -112,10 +115,11 @@ model Contact {
   @@index([userId, track])
 }
 
-// TODO FASE 3 (fusión Actividad): `Touchpoint` (lo que pasó, ligado a contacto
-// y/o oportunidad) y `ProjectNote` (bitácora de ejecución, más abajo) se van a
-// unificar en un único stream de "Actividad". Acá vive el modelo de interacción;
-// la bitácora está en `ProjectNote`. NO fusionar todavía: solo dejar marcado.
+// Actividad (Fase 3): stream unificado de "lo que pasó". Cubre interacciones
+// (EMAIL/LINKEDIN/CALL/MEETING/REFERRAL_ASK/NOTE) y las notas internas de
+// ejecución (IDEA/AVANCE), que antes vivían en el modelo ProjectNote (fusionado
+// acá). Va ligado a un contacto y/o una oportunidad. Las notas internas
+// (IDEA/AVANCE) siempre cuelgan de una oportunidad y sin contacto.
 model Touchpoint {
   id            String         @id @default(cuid())
   userId        String
@@ -166,26 +170,10 @@ model Setting {
 }
 
 // Seguimiento de EJECUCIÓN del proyecto (separado del embudo comercial).
-// Solo aplica a tracks con fase de entrega (hoy: "Tu negocio"). La bitácora es
-// un stream de ideas/avances; las tareas son un checklist de hitos.
-// TODO FASE 3 (fusión Actividad): esta bitácora se fusiona con `Touchpoint` en
-// un único stream de "Actividad". La lógica CRUD de la bitácora vive en
-// app/(app)/oportunidades/project-actions.ts (createProjectNote/update/delete);
-// la de Touchpoint en app/(app)/contactos/actions.ts. NO fusionar en Fase 1.
-model ProjectNote {
-  id            String   @id @default(cuid())
-  userId        String
-  opportunityId String
-  kind          String   @default("avance") // idea | avance
-  body          String
-  createdAt     DateTime @default(now())
-
-  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([opportunityId, createdAt])
-}
-
+// Solo aplica a tracks con fase de entrega (hoy: "Tu negocio"). Las tareas son
+// un checklist de hitos. La BITÁCORA (ideas/avances) se fusionó en el stream de
+// Actividad (ver `Touchpoint`, tipos IDEA/AVANCE): el modelo ProjectNote ya no
+// existe (Fase 3). TODO FASE "Pendientes": tareas + follow-ups se unificarán.
 model ProjectTask {
   id            String    @id @default(cuid())
   userId        String

@@ -96,7 +96,6 @@ export default async function OportunidadDetailPage({
         orderBy: { occurredAt: "desc" },
         include: { contact: { select: { id: true, name: true } } },
       },
-      projectNotes: { orderBy: { createdAt: "desc" } },
       projectTasks: { orderBy: [{ done: "asc" }, { order: "asc" }] },
     },
   });
@@ -596,13 +595,17 @@ export default async function OportunidadDetailPage({
         <Card className="h-fit">
           <CardHeader>
             <CardTitle className="text-base">
-              Timeline ({opportunity.touchpoints.length})
+              Actividad ({opportunity.touchpoints.length})
             </CardTitle>
+            <CardDescription>
+              Interacciones y notas de ejecución (ideas y avances), en un solo
+              hilo. Registrá una con “Registrar touchpoint”.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {opportunity.touchpoints.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Sin interacciones registradas para esta oportunidad.
+                Sin actividad registrada para esta oportunidad.
               </p>
             ) : (
               <TouchpointTimeline
@@ -631,12 +634,6 @@ export default async function OportunidadDetailPage({
             id: t.id,
             title: t.title,
             done: t.done,
-          }))}
-          notes={opportunity.projectNotes.map((n) => ({
-            id: n.id,
-            kind: n.kind,
-            body: n.body,
-            createdAt: n.createdAt,
           }))}
         />
       ) : null}

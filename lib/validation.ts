@@ -89,22 +89,11 @@ export const CVVersionSchema = z.object({
 });
 
 export const TouchpointSchema = z.object({
-  type: z.enum(["EMAIL", "LINKEDIN", "CALL", "MEETING", "REFERRAL_ASK", "NOTE"]),
+  type: z.enum(["EMAIL", "LINKEDIN", "CALL", "MEETING", "REFERRAL_ASK", "NOTE", "IDEA", "AVANCE"]),
   note: optionalText(20000),
   occurredAt: optionalDate,
   contactId: optionalId,
   opportunityId: optionalId,
-});
-
-export const ProjectNoteSchema = z.object({
-  opportunityId: requiredText(64),
-  kind: z.enum(["idea", "avance"]),
-  body: requiredText(20000),
-});
-
-export const ProjectNoteUpdateSchema = z.object({
-  kind: z.enum(["idea", "avance"]),
-  body: requiredText(20000),
 });
 
 export const ProjectTaskSchema = z.object({
@@ -120,7 +109,7 @@ export const ProjectTaskUpdateSchema = z.object({
 // uno desde los editores inline), pero si viene, se valida.
 export const TouchpointUpdateSchema = z.object({
   type: z
-    .enum(["EMAIL", "LINKEDIN", "CALL", "MEETING", "REFERRAL_ASK", "NOTE"])
+    .enum(["EMAIL", "LINKEDIN", "CALL", "MEETING", "REFERRAL_ASK", "NOTE", "IDEA", "AVANCE"])
     .optional(),
   note: optionalText(20000),
   occurredAt: optionalDate,

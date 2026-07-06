@@ -29,8 +29,8 @@ export async function deleteAccount(
   // Borrado de datos primero (lo importante para la privacidad). Orden que
   // respeta las FKs: hijos antes que padres. Todo scopeado por userId.
   await prisma.$transaction([
+    // Touchpoint incluye ahora la bitácora (Actividad IDEA/AVANCE, Fase 3).
     prisma.touchpoint.deleteMany({ where: { userId } }),
-    prisma.projectNote.deleteMany({ where: { userId } }),
     prisma.projectTask.deleteMany({ where: { userId } }),
     prisma.opportunity.deleteMany({ where: { userId } }),
     prisma.contact.deleteMany({ where: { userId } }),

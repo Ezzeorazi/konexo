@@ -89,9 +89,10 @@ const SECTIONS: Section[] = [
           <b>chips para filtrar</b> por modo.
         </li>
         <li>
-          <b>Touchpoint</b> — cada interacción: email, LinkedIn, llamada,
-          reunión, pedido de referido o nota. Es lo que construye la historia
-          con cada persona y oportunidad. Desde el <b>timeline</b> editás su{" "}
+          <b>Actividad</b> — cada interacción (email, LinkedIn, llamada, reunión,
+          pedido de referido o nota) y también tus notas internas de ejecución
+          (idea, avance), en un solo hilo. Es lo que construye la historia con
+          cada persona y oportunidad. Desde el <b>timeline</b> editás su{" "}
           <b>tipo, fecha y nota</b> con un clic.
         </li>
         <li>
@@ -220,8 +221,9 @@ const SECTIONS: Section[] = [
         <p>
           Cerrar el trato es la mitad del juego: después hay que{" "}
           <b>entregar</b>. En los modos con fase de ejecución (hoy{" "}
-          <b>Freelance</b>), el detalle de cada oportunidad suma dos herramientas
-          para que ningún proyecto se enfríe ni se pierdan las ideas:
+          <b>Tu negocio</b>), el detalle de cada oportunidad suma un checklist de{" "}
+          <b>Tareas</b> y, en el hilo de <b>Actividad</b>, tus ideas y avances —
+          para que ningún proyecto se enfríe ni se pierda una idea:
         </p>
         <ul className="space-y-3">
           <li>
@@ -231,10 +233,10 @@ const SECTIONS: Section[] = [
             fondo. Siempre a la vista cuántas llevás (“2 de 5 hechas”).
           </li>
           <li>
-            <b>Bitácora</b> — un registro cronológico de <b>ideas</b> y{" "}
-            <b>avances</b>. Anotá lo que se te ocurre y lo que vas logrando;
-            podés <b>editar</b> cualquier entrada. Es la memoria viva del
-            proyecto.
+            <b>Ideas y avances</b> — se registran como parte de la{" "}
+            <b>Actividad</b> del proyecto (tipos <i>Idea</i> y <i>Avance</i>), en
+            el mismo hilo cronológico que las interacciones. Anotá lo que se te
+            ocurre y lo que vas logrando: la memoria viva del proyecto.
           </li>
         </ul>
         <p>
@@ -256,13 +258,13 @@ const SECTIONS: Section[] = [
           de ejecución —qué falta y qué avanzaste— y lo usan para priorizar y
           gestionar. En el detalle, el botón <b>“Ponme al día”</b> te da en
           segundos un resumen del proyecto y los próximos pasos a partir de tus
-          tareas y tu bitácora.
+          tareas y tu actividad.
         </p>
         <p className="text-base text-ink/70">
           Este eje es <b>independiente del embudo comercial</b>: una cosa es{" "}
           <i>conseguir</i> el proyecto (las etapas) y otra <i>ejecutarlo</i>{" "}
-          (tareas y bitácora). Cualquier modo nuevo con fase de entrega lo hereda
-          con solo activarlo.
+          (tareas y la actividad del proyecto). Cualquier modo nuevo con fase de
+          entrega lo hereda con solo activarlo.
         </p>
       </>
     ),

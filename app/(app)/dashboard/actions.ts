@@ -9,8 +9,7 @@ import { generateAiText } from "@/lib/ai";
 import { INJECTION_GUARD, userData } from "@/lib/prompt-safety";
 import {
   touchpointTypeLabels,
-  projectNoteKindLabels,
-  type ProjectNoteKind,
+  INTERNAL_TOUCHPOINT_TYPES,
 } from "@/lib/labels";
 
 // "Cierre del día": junta todo lo que avanzaste HOY en el modo activo (touch-
@@ -38,8 +37,7 @@ export async function dailyReview(): Promise<
     ).padStart(2, "0")}`;
 
   const [
-    touchpoints,
-    notes,
+    activity,
     newOpps,
     movedOpps,
     newContacts,
@@ -48,7 +46,8 @@ export async function dailyReview(): Promise<
     overdueOpps,
     overdueContacts,
   ] = await Promise.all([
-    // Interacciones registradas hoy (ligadas a una entidad de este modo).
+    // Actividad registrada hoy (ligada a una entidad de este modo). Incluye
+    // interacciones Y bitácora interna (IDEA/AVANCE); se separan abajo por tipo.
     prisma.touchpoint.findMany({
       where: {
         userId,
@@ -62,16 +61,6 @@ export async function dailyReview(): Promise<
         occurredAt: true,
         opportunity: { select: { title: true } },
         contact: { select: { name: true } },
-      },
-    }),
-    // Avances/ideas escritos hoy en la bitácora.
-    prisma.projectNote.findMany({
-      where: { userId, createdAt: { gte: startOfToday }, opportunity: { track } },
-      orderBy: { createdAt: "asc" },
-      select: {
-        kind: true,
-        body: true,
-        opportunity: { select: { title: true } },
       },
     }),
     // Oportunidades creadas hoy.
@@ -117,9 +106,17 @@ export async function dailyReview(): Promise<
     }),
   ]);
 
+  // Actividad (Fase 3): un solo stream, se separa por tipo para el repaso.
+  const bitacora = activity.filter((t) =>
+    INTERNAL_TOUCHPOINT_TYPES.includes(t.type)
+  );
+  const interactions = activity.filter(
+    (t) => !INTERNAL_TOUCHPOINT_TYPES.includes(t.type)
+  );
+
   const totalActivity =
-    touchpoints.length +
-    notes.length +
+    interactions.length +
+    bitacora.length +
     newOpps.length +
     movedOpps.length +
     newContacts.length +
@@ -143,9 +140,9 @@ export async function dailyReview(): Promise<
     `Modo: ${vocab.name}. Entidad central: "${vocab.oppSingular}"; empresas/cuentas: "${vocab.companyPlural}".`,
     `Fecha: ${iso(now)}.`,
     "",
-    `INTERACCIONES REGISTRADAS HOY (${touchpoints.length}):`,
-    touchpoints.length
-      ? touchpoints
+    `INTERACCIONES REGISTRADAS HOY (${interactions.length}):`,
+    interactions.length
+      ? interactions
           .map((t) => {
             const withWhom =
               t.contact?.name ?? t.opportunity?.title ?? "sin vincular";
@@ -156,14 +153,14 @@ export async function dailyReview(): Promise<
           .join("\n")
       : "(ninguna)",
     "",
-    `AVANCES / IDEAS EN BITÁCORA HOY (${notes.length}):`,
-    notes.length
-      ? notes
+    `AVANCES / IDEAS EN BITÁCORA HOY (${bitacora.length}):`,
+    bitacora.length
+      ? bitacora
           .map(
             (n) =>
-              `- [${projectNoteKindLabels[n.kind as ProjectNoteKind] ?? n.kind}] ${
+              `- [${touchpointTypeLabels[n.type]}] ${
                 n.opportunity?.title ? `${n.opportunity.title}: ` : ""
-              }${userData(n.body, 200)}`
+              }${n.note ? userData(n.note, 200) : ""}`
           )
           .join("\n")
       : "(ninguno)",

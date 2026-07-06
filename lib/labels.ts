@@ -33,6 +33,9 @@ export const TOUCHPOINT_TYPES: TouchpointType[] = [
   "MEETING",
   "REFERRAL_ASK",
   "NOTE",
+  // Actividad interna (ex-bitácora, Fase 3): notas de ejecución, sin persona.
+  "IDEA",
+  "AVANCE",
 ];
 
 export const touchpointTypeLabels: Record<TouchpointType, string> = {
@@ -42,18 +45,18 @@ export const touchpointTypeLabels: Record<TouchpointType, string> = {
   MEETING: "Reunión",
   REFERRAL_ASK: "Pedido de referido",
   NOTE: "Nota",
+  IDEA: "Idea",
+  AVANCE: "Avance",
 };
 
-// Bitácora de ejecución del proyecto (track con hasDelivery). No es un enum de
-// Prisma: el campo `kind` es String, lo acotamos acá y en validation.ts.
-export type ProjectNoteKind = "idea" | "avance";
+// Subconjunto de tipos que son ACTIVIDAD INTERNA (ex-bitácora): no son
+// interacciones con una persona, sino notas de ejecución del proyecto.
+export const INTERNAL_TOUCHPOINT_TYPES: TouchpointType[] = ["IDEA", "AVANCE"];
 
-export const PROJECT_NOTE_KINDS: ProjectNoteKind[] = ["idea", "avance"];
-
-export const projectNoteKindLabels: Record<ProjectNoteKind, string> = {
-  idea: "Idea",
-  avance: "Avance",
-};
+// Nota (Fase 3): la bitácora (ProjectNote, kinds "idea"/"avance") se fusionó en
+// el stream de Actividad como tipos de Touchpoint IDEA/AVANCE. Sus labels viven
+// ahora en `touchpointTypeLabels`; `ProjectNoteKind`/`projectNoteKindLabels` se
+// eliminaron.
 
 // Tipo de proyecto (track con hasDelivery). No es un enum de Prisma: el campo
 // `kind` en Opportunity es String, lo acotamos acá y en validation.ts.

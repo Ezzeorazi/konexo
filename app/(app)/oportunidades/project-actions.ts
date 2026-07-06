@@ -4,15 +4,15 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import {
-  ProjectNoteSchema,
-  ProjectNoteUpdateSchema,
   ProjectTaskSchema,
   ProjectTaskUpdateSchema,
   firstZodError,
 } from "@/lib/validation";
 
-// Seguimiento de ejecución del proyecto: bitácora (ideas/avances) + checklist.
-// Vive sobre el Opportunity del track freelance, separado del embudo comercial.
+// Ejecución del proyecto: checklist de tareas. Vive sobre el Opportunity del
+// track "Tu negocio", separado del embudo comercial. La BITÁCORA (ideas/avances)
+// se fusionó en el stream de Actividad (Fase 3): sus altas/ediciones pasan por
+// los touchpoints tipo IDEA/AVANCE (ver contactos/actions.ts), no por acá.
 
 /** Confirma que la oportunidad existe y es del usuario antes de colgarle cosas. */
 async function assertOwnedOpportunity(userId: string, opportunityId: string) {
@@ -21,61 +21,6 @@ async function assertOwnedOpportunity(userId: string, opportunityId: string) {
     select: { id: true },
   });
   return Boolean(opp);
-}
-
-export type ProjectNoteInput = {
-  opportunityId: string;
-  kind: string;
-  body: string;
-};
-
-export async function createProjectNote(input: ProjectNoteInput) {
-  const parsed = ProjectNoteSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false as const, error: firstZodError(parsed.error) };
-  }
-  const userId = await currentUserId();
-  if (!(await assertOwnedOpportunity(userId, parsed.data.opportunityId))) {
-    return { ok: false as const, error: "No encontré el proyecto." };
-  }
-  await prisma.projectNote.create({
-    data: {
-      userId,
-      opportunityId: parsed.data.opportunityId,
-      kind: parsed.data.kind,
-      body: parsed.data.body,
-    },
-  });
-  revalidatePath(`/oportunidades/${parsed.data.opportunityId}`);
-  return { ok: true as const };
-}
-
-export async function updateProjectNote(
-  id: string,
-  opportunityId: string,
-  input: { kind: string; body: string }
-) {
-  const parsed = ProjectNoteUpdateSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false as const, error: firstZodError(parsed.error) };
-  }
-  const userId = await currentUserId();
-  const { count } = await prisma.projectNote.updateMany({
-    where: { id, userId },
-    data: { kind: parsed.data.kind, body: parsed.data.body },
-  });
-  if (count === 0) {
-    return { ok: false as const, error: "No encontré la entrada." };
-  }
-  revalidatePath(`/oportunidades/${opportunityId}`);
-  return { ok: true as const };
-}
-
-export async function deleteProjectNote(id: string, opportunityId: string) {
-  const userId = await currentUserId();
-  await prisma.projectNote.deleteMany({ where: { id, userId } });
-  revalidatePath(`/oportunidades/${opportunityId}`);
-  return { ok: true as const };
 }
 
 export type ProjectTaskInput = {

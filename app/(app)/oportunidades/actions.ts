@@ -13,10 +13,9 @@ import { isTrack, DEFAULT_TRACK, getVocab, type Track } from "@/lib/tracks";
 import { completeMission } from "@/lib/onboarding";
 import {
   projectKindLabels,
-  projectNoteKindLabels,
   touchpointTypeLabels,
+  INTERNAL_TOUCHPOINT_TYPES,
   type ProjectKind,
-  type ProjectNoteKind,
 } from "@/lib/labels";
 import { OpportunitySchema, firstZodError } from "@/lib/validation";
 import type { Priority } from "@/lib/generated/prisma/client";
@@ -214,7 +213,16 @@ export async function patchOpportunityField(
 
 export async function deleteOpportunity(id: string) {
   const userId = await currentUserId();
-  await prisma.opportunity.deleteMany({ where: { id, userId } });
+  // La bitácora (Actividad interna IDEA/AVANCE) muere con la oportunidad: no hay
+  // contacto que la sostenga, así que la borramos explícitamente ANTES de que el
+  // SetNull de la FK de Touchpoint la deje huérfana. Las interacciones (ligadas
+  // a un contacto) sobreviven con opportunityId = null, como hasta ahora.
+  await prisma.$transaction([
+    prisma.touchpoint.deleteMany({
+      where: { userId, opportunityId: id, type: { in: INTERNAL_TOUCHPOINT_TYPES } },
+    }),
+    prisma.opportunity.deleteMany({ where: { id, userId } }),
+  ]);
   revalidatePath("/oportunidades");
   return { ok: true as const };
 }
@@ -279,8 +287,9 @@ export async function catchMeUp(opportunityId: string): Promise<
     include: {
       company: true,
       projectTasks: { orderBy: [{ done: "asc" }, { order: "asc" }] },
-      projectNotes: { orderBy: { createdAt: "desc" }, take: 10 },
-      touchpoints: { orderBy: { occurredAt: "desc" }, take: 5 },
+      // Actividad (Fase 3): un solo stream. La bitácora son los touchpoints
+      // internos IDEA/AVANCE; las interacciones, el resto. Los separamos abajo.
+      touchpoints: { orderBy: { occurredAt: "desc" }, take: 20 },
     },
   });
   if (!o) return { ok: false as const, error: "No encontré el proyecto." };
@@ -292,6 +301,12 @@ export async function catchMeUp(opportunityId: string): Promise<
 
   const pending = o.projectTasks.filter((t) => !t.done);
   const done = o.projectTasks.filter((t) => t.done);
+  const bitacora = o.touchpoints.filter((t) =>
+    INTERNAL_TOUCHPOINT_TYPES.includes(t.type)
+  );
+  const interactions = o.touchpoints.filter(
+    (t) => !INTERNAL_TOUCHPOINT_TYPES.includes(t.type)
+  );
 
   const ctx = [
     `Proyecto: ${o.title}${o.company ? ` (${o.company.name})` : ""}`,
@@ -310,18 +325,20 @@ export async function catchMeUp(opportunityId: string): Promise<
     `Tareas pendientes (${pending.length}): ${pending.map((t) => t.title).join("; ") || "—"}`,
     "",
     "Bitácora (más reciente primero):",
-    o.projectNotes.length
-      ? o.projectNotes
+    bitacora.length
+      ? bitacora
+          .slice(0, 10)
           .map(
             (n) =>
-              `- [${projectNoteKindLabels[n.kind as ProjectNoteKind] ?? n.kind}] ${iso(n.createdAt)}: ${userData(n.body, 300)}`
+              `- [${touchpointTypeLabels[n.type]}] ${iso(n.occurredAt)}: ${userData(n.note ?? "", 300)}`
           )
           .join("\n")
       : "(sin entradas)",
     "",
     "Timeline reciente:",
-    o.touchpoints.length
-      ? o.touchpoints
+    interactions.length
+      ? interactions
+          .slice(0, 5)
           .map(
             (t) =>
               `- ${touchpointTypeLabels[t.type]} (${iso(t.occurredAt)})${t.note ? `: ${userData(t.note, 200)}` : ""}`
