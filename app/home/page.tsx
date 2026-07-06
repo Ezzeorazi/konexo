@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { Faq } from "@/components/faq";
+import { LandingNav } from "@/components/landing-nav";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { clerkEnabled } from "@/lib/auth";
 import { KONEXO_FAQ } from "@/lib/faq";
@@ -178,65 +179,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSON_LD) }}
       />
       {/* ===== NAV ===== */}
-      <nav className="sticky top-0 z-50 halftone border-b-4 border-ink bg-paper">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/home" className="shrink-0">
-            <Image
-              src="/logotipo-konexo.webp"
-              alt="Konexo"
-              width={853}
-              height={226}
-              priority
-              className="h-8 w-auto sm:h-10"
-            />
-          </Link>
-          <div className="hidden items-center gap-7 font-display text-lg tracking-wide md:flex lg:text-xl">
-            <a href="#modos" className="hover:text-alarm">
-              MODOS
-            </a>
-            <a href="#poderes" className="hover:text-alarm">
-              PODERES
-            </a>
-            <a href="#ia" className="hover:text-alarm">
-              IA
-            </a>
-            <a href="#app" className="hover:text-alarm">
-              APP
-            </a>
-            <Link href="/blog" className="hover:text-alarm">
-              BLOG
-            </Link>
-            <Link href="/guia" className="hover:text-alarm">
-              GUÍA
-            </Link>
-          </div>
-          <div className="flex items-center gap-3">
-            {isSignedIn ? (
-              <Link
-                href="/dashboard"
-                className="btn-comic rough bg-komic px-4 py-2 font-display text-lg tracking-wider sm:text-xl"
-              >
-                MI PLATAFORMA →
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/sign-in"
-                  className="hidden font-display text-lg tracking-wide hover:text-alarm sm:inline"
-                >
-                  ENTRAR
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="btn-comic rough bg-komic px-4 py-2 font-display text-lg tracking-wider sm:text-xl"
-                >
-                  ¡EMPIEZA YA!
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <LandingNav isSignedIn={isSignedIn} />
 
       {/* ===== HERO ===== */}
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-2 md:py-20">
