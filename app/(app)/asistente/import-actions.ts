@@ -2,8 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
-import { getActiveTrack } from "@/lib/active-track";
-import { getVocab } from "@/lib/tracks";
+import { getActiveTrack, getBusinessName } from "@/lib/active-track";
+import { getVocab, withBusinessName } from "@/lib/tracks";
 import { normalizeUrl } from "@/lib/utils";
 import { parseDateInput } from "@/lib/dates";
 import { CompanySchema, ContactSchema } from "@/lib/validation";
@@ -56,7 +56,7 @@ export async function importFromExcel(
 
   // El track lo decide el SERVIDOR según el modo activo, nunca el cliente.
   const { track } = await getActiveTrack();
-  const vocab = getVocab(track);
+  const vocab = withBusinessName(getVocab(track), await getBusinessName());
 
   let parsed;
   try {

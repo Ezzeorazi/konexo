@@ -40,6 +40,7 @@ export default async function ConfiguracionPage() {
       "aiApiKey",
       "aiModel",
       "aiBaseUrl",
+      "businessName",
     ]),
     prisma.cVVersion.findMany({
       where: { userId },
@@ -72,7 +73,10 @@ export default async function ConfiguracionPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <TracksSettingsForm initialEnabled={enabledTracks} />
+          <TracksSettingsForm
+            initialEnabled={enabledTracks}
+            initialBusinessName={settingsMap.get("businessName") ?? ""}
+          />
         </CardContent>
       </Card>
 
@@ -87,7 +91,12 @@ export default async function ConfiguracionPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {stagesByTrack.map(({ track, stages }) => (
-            <StagesEditor key={track} track={track} stages={stages} />
+            <StagesEditor
+              key={track}
+              track={track}
+              stages={stages}
+              businessName={settingsMap.get("businessName") ?? ""}
+            />
           ))}
         </CardContent>
       </Card>

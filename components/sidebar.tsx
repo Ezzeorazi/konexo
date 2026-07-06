@@ -21,21 +21,24 @@ import { toast } from "sonner";
 import { UserButton } from "@clerk/nextjs";
 import { setActiveTrack } from "@/app/(app)/configuracion/actions";
 import { PomodoroWidget } from "@/components/pomodoro/pomodoro-widget";
-import { getVocab, type Track } from "@/lib/tracks";
+import { getVocab, withBusinessName, type Track } from "@/lib/tracks";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({
   activeTrack,
   enabledTracks,
+  businessName,
 }: {
   activeTrack: Track;
   enabledTracks: Track[];
+  /** Nombre custom del modo "Tu negocio" ("" = default). */
+  businessName?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const vocab = getVocab(activeTrack);
+  const vocab = withBusinessName(getVocab(activeTrack), businessName);
   // NEXT_PUBLIC_* se inlinea en build: si no hay key, no montamos UI de Clerk.
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
@@ -59,7 +62,7 @@ export function Sidebar({
       // que ya no aplica. El dashboard es el punto de entrada neutro del modo.
       router.push("/dashboard");
       router.refresh();
-      toast.success(`Modo ${getVocab(track).name}.`);
+      toast.success(`Modo ${withBusinessName(getVocab(track), businessName).name}.`);
     });
   }
 
@@ -75,7 +78,7 @@ export function Sidebar({
             </p>
             <div className="flex flex-col gap-1">
               {enabledTracks.map((track) => {
-                const v = getVocab(track);
+                const v = withBusinessName(getVocab(track), businessName);
                 const active = track === activeTrack;
                 return (
                   <button

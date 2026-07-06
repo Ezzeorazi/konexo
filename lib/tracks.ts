@@ -269,6 +269,20 @@ export function getVocab(track: Track): TrackVocab {
   return VOCAB[isTrack(track) ? track : DEFAULT_TRACK];
 }
 
+/** Aplica el nombre personalizado del modo "Tu negocio" (Setting `businessName`,
+ * ej. el nombre del emprendimiento). Solo afecta al track freelance; si no hay
+ * nombre custom, deja el default ("Tu negocio"). Es PURO: el businessName lo
+ * trae el caller (server: getBusinessName; client: prop). */
+export function withBusinessName(
+  vocab: TrackVocab,
+  businessName?: string | null
+): TrackVocab {
+  if (vocab.key === "freelance" && businessName && businessName.trim()) {
+    return { ...vocab, name: businessName.trim() };
+  }
+  return vocab;
+}
+
 /** Etapas POR DEFECTO del vertical (presets en código). La fuente de verdad
  * en runtime es la DB (lib/stages.ts); esto siembra y sirve de fallback. */
 export function getStages(track: Track): StageDef[] {

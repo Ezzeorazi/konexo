@@ -1,13 +1,16 @@
 import { PageHeader } from "@/components/page-header";
 import { AgentTeam } from "@/components/asistente/agent-team";
-import { getActiveTrack } from "@/lib/active-track";
-import { getVocab } from "@/lib/tracks";
+import { getActiveTrack, getBusinessName } from "@/lib/active-track";
+import { getVocab, withBusinessName } from "@/lib/tracks";
 
 export const dynamic = "force-dynamic";
 
 export default async function AsistentePage() {
-  const { track } = await getActiveTrack();
-  const vocab = getVocab(track);
+  const [{ track }, businessName] = await Promise.all([
+    getActiveTrack(),
+    getBusinessName(),
+  ]);
+  const vocab = withBusinessName(getVocab(track), businessName);
 
   return (
     <div>

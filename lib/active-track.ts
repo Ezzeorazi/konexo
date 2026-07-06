@@ -12,6 +12,14 @@ import {
 
 export const ACTIVE_TRACK_COOKIE = "konexo-track";
 export const ENABLED_TRACKS_KEY = "enabledTracks";
+// Nombre personalizado del modo "Tu negocio" (ej. el nombre del emprendimiento).
+// Vacío/sin setear => se usa el default "Tu negocio".
+export const BUSINESS_NAME_KEY = "businessName";
+
+/** Nombre custom del modo "Tu negocio" del usuario actual ("" si no lo definió). */
+export async function getBusinessName(): Promise<string> {
+  return (await getSetting(BUSINESS_NAME_KEY))?.trim() ?? "";
+}
 
 /**
  * Tracks visibles para el usuario (siempre al menos uno). Es la UNIÓN de:

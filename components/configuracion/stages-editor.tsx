@@ -13,7 +13,7 @@ import {
   moveStage,
   resetStages,
 } from "@/app/(app)/configuracion/stage-actions";
-import { getVocab, type Track } from "@/lib/tracks";
+import { getVocab, withBusinessName, type Track } from "@/lib/tracks";
 import { cn } from "@/lib/utils";
 
 export type EditableStage = {
@@ -34,12 +34,15 @@ const TYPE_OPTIONS = [
 export function StagesEditor({
   track,
   stages,
+  businessName,
 }: {
   track: Track;
   stages: EditableStage[];
+  /** Nombre custom del modo "Tu negocio" ("" = default). */
+  businessName?: string;
 }) {
   const router = useRouter();
-  const vocab = getVocab(track);
+  const vocab = withBusinessName(getVocab(track), businessName);
   const [pending, startTransition] = useTransition();
   const [newLabel, setNewLabel] = useState("");
 

@@ -8,7 +8,11 @@ import { setSettings } from "@/lib/settings";
 import { generateAiText } from "@/lib/ai";
 import { TRACKS, isTrack, type Track } from "@/lib/tracks";
 import { CVVersionSchema, firstZodError } from "@/lib/validation";
-import { ACTIVE_TRACK_COOKIE, ENABLED_TRACKS_KEY } from "@/lib/active-track";
+import {
+  ACTIVE_TRACK_COOKIE,
+  ENABLED_TRACKS_KEY,
+  BUSINESS_NAME_KEY,
+} from "@/lib/active-track";
 
 export type CVVersionInput = {
   label: string;
@@ -87,7 +91,7 @@ export async function setActiveTrack(track: Track) {
   return { ok: true as const };
 }
 
-export async function saveEnabledTracks(tracks: Track[]) {
+export async function saveEnabledTracks(tracks: Track[], businessName?: string) {
   const enabled = TRACKS.filter((t) => tracks.includes(t));
   if (enabled.length === 0) {
     return {
@@ -95,7 +99,12 @@ export async function saveEnabledTracks(tracks: Track[]) {
       error: "Tenés que dejar al menos un modo activo.",
     };
   }
-  await setSettings([{ key: ENABLED_TRACKS_KEY, value: enabled.join(",") }]);
+  const entries = [{ key: ENABLED_TRACKS_KEY, value: enabled.join(",") }];
+  // Nombre personalizado del modo "Tu negocio" (opcional, máx 60). Vacío = default.
+  if (businessName !== undefined) {
+    entries.push({ key: BUSINESS_NAME_KEY, value: businessName.trim().slice(0, 60) });
+  }
+  await setSettings(entries);
   // Si el track activo quedó deshabilitado, lo movemos al primero disponible.
   const cookieStore = await cookies();
   const current = cookieStore.get(ACTIVE_TRACK_COOKIE)?.value;

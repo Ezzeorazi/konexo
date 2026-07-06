@@ -4,8 +4,15 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { saveEnabledTracks } from "@/app/(app)/configuracion/actions";
-import { AVAILABLE_TRACKS, getVocab, type Track } from "@/lib/tracks";
+import {
+  AVAILABLE_TRACKS,
+  getVocab,
+  withBusinessName,
+  type Track,
+} from "@/lib/tracks";
 import { cn } from "@/lib/utils";
 
 // Etiqueta en primera persona para la elección inicial ("¿Qué estás haciendo
@@ -18,10 +25,13 @@ const ACTION_LABELS: Partial<Record<Track, string>> = {
 
 export function TracksSettingsForm({
   initialEnabled,
+  initialBusinessName = "",
 }: {
   initialEnabled: Track[];
+  initialBusinessName?: string;
 }) {
   const [enabled, setEnabled] = useState<Track[]>(initialEnabled);
+  const [businessName, setBusinessName] = useState(initialBusinessName);
   const [pending, startTransition] = useTransition();
 
   function toggle(track: Track) {
@@ -38,7 +48,7 @@ export function TracksSettingsForm({
       return;
     }
     startTransition(async () => {
-      const res = await saveEnabledTracks(enabled);
+      const res = await saveEnabledTracks(enabled, businessName);
       if (res.ok) toast.success("Modos actualizados.");
       else toast.error(res.error);
     });
@@ -78,7 +88,7 @@ export function TracksSettingsForm({
                 ) : null}
               </span>
               <span className="text-[11px] font-medium uppercase tracking-wide opacity-60">
-                Modo {vocab.name}
+                Modo {withBusinessName(vocab, businessName).name}
               </span>
               <span className="font-hand text-sm leading-snug">
                 {vocab.tagline}
@@ -91,6 +101,24 @@ export function TracksSettingsForm({
         Activá los dos para manejar tu búsqueda laboral y tu negocio en la misma
         cuenta: vas a ver un selector arriba para cambiar de pipeline.
       </p>
+
+      {enabled.includes("freelance") ? (
+        <div className="space-y-1.5 rounded-lg border-2 border-dashed border-muted p-3">
+          <Label htmlFor="businessName">Nombre de tu negocio</Label>
+          <Input
+            id="businessName"
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+            placeholder="Tu negocio"
+            maxLength={60}
+          />
+          <p className="text-xs text-muted-foreground">
+            Cómo se llama tu modo de negocio en el menú (ej. el nombre de tu
+            emprendimiento). Dejalo vacío para usar “Tu negocio”.
+          </p>
+        </div>
+      ) : null}
+
       <Button onClick={handleSave} disabled={pending}>
         {pending ? "Guardando..." : "Guardar modos"}
       </Button>

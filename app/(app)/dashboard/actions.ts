@@ -2,8 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
-import { getActiveTrack } from "@/lib/active-track";
-import { getVocab } from "@/lib/tracks";
+import { getActiveTrack, getBusinessName } from "@/lib/active-track";
+import { getVocab, withBusinessName } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
 import { generateAiText } from "@/lib/ai";
 import { INJECTION_GUARD, userData } from "@/lib/prompt-safety";
@@ -21,8 +21,11 @@ export async function dailyReview(): Promise<
   { ok: true; text: string } | { ok: false; error: string }
 > {
   const userId = await currentUserId();
-  const { track } = await getActiveTrack();
-  const vocab = getVocab(track);
+  const [{ track }, businessName] = await Promise.all([
+    getActiveTrack(),
+    getBusinessName(),
+  ]);
+  const vocab = withBusinessName(getVocab(track), businessName);
   const stages = await getTrackStages(track);
   const stageLabel = (key: string) =>
     stages.find((s) => s.key === key)?.label ?? key;
