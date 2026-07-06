@@ -10,6 +10,7 @@ import { INJECTION_GUARD, userData } from "@/lib/prompt-safety";
 import { parseDateInput, parseDateTimeInput } from "@/lib/dates";
 import { normalizeUrl } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK, getVocab, type Track } from "@/lib/tracks";
+import { getTrackStages } from "@/lib/stages";
 import { completeMission } from "@/lib/onboarding";
 import {
   projectKindLabels,
@@ -185,14 +186,21 @@ export async function patchOpportunityField(
   const userId = await currentUserId();
   const data = cleanOpportunityField(field, value);
 
-  // Misma regla que updateOpportunityStage: al pasar a "Aplicada" sin fecha, la
-  // fijamos ahora (búsqueda laboral).
-  if (field === "stage" && value === "APPLIED") {
+  // Reglas al cambiar de etapa desde la edición in-context (espejo de
+  // updateOpportunityStage):
+  if (field === "stage") {
     const current = await prisma.opportunity.findFirst({
       where: { id, userId },
-      select: { appliedAt: true },
+      select: { appliedAt: true, track: true },
     });
-    if (current && !current.appliedAt) data.appliedAt = new Date();
+    // Al pasar a "Aplicada" sin fecha, la fijamos ahora (búsqueda laboral).
+    if (value === "APPLIED" && current && !current.appliedAt) {
+      data.appliedAt = new Date();
+    }
+    // Al llegar a la ÚLTIMA etapa (card finalizada), cerramos el follow-up.
+    if (current && (await isLastStage(current.track, value))) {
+      data.nextFollowUpAt = null;
+    }
   }
 
   const { count } = await prisma.opportunity.updateMany({
@@ -362,17 +370,35 @@ export async function catchMeUp(opportunityId: string): Promise<
   return generateAiText({ system, prompt: ctx });
 }
 
+/** ¿`stageKey` es la ÚLTIMA etapa del embudo del track (la card "finalizada")? */
+async function isLastStage(track: string, stageKey: string): Promise<boolean> {
+  const t = (isTrack(track) ? track : DEFAULT_TRACK) as Track;
+  const stages = await getTrackStages(t);
+  const last = stages[stages.length - 1];
+  return Boolean(last && last.key === stageKey);
+}
+
 export async function updateOpportunityStage(id: string, stage: string) {
   const userId = await currentUserId();
-  const data: { stage: string; appliedAt?: Date } = { stage };
+  const current = await prisma.opportunity.findFirst({
+    where: { id, userId },
+    select: { appliedAt: true, track: true },
+  });
+
+  const data: { stage: string; appliedAt?: Date; nextFollowUpAt?: null } = {
+    stage,
+  };
   // Si pasa a Aplicada y no tenía fecha, la marcamos ahora (solo búsqueda laboral).
-  if (stage === "APPLIED") {
-    const current = await prisma.opportunity.findFirst({
-      where: { id, userId },
-      select: { appliedAt: true },
-    });
-    if (current && !current.appliedAt) data.appliedAt = new Date();
+  if (stage === "APPLIED" && current && !current.appliedAt) {
+    data.appliedAt = new Date();
   }
+  // Al llegar a la ÚLTIMA etapa del embudo (card "finalizada"), cerramos el
+  // follow-up pendiente: una oportunidad terminada no debe seguir apareciendo en
+  // la agenda ni entre los vencidos del Dashboard/Calendario.
+  if (current && (await isLastStage(current.track, stage))) {
+    data.nextFollowUpAt = null;
+  }
+
   await prisma.opportunity.updateMany({ where: { id, userId }, data });
   revalidatePath("/oportunidades");
   revalidatePath(`/oportunidades/${id}`);
