@@ -155,11 +155,9 @@ const nextConfig: NextConfig = {
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
   async headers() {
     return [
-      // Catch-all con la CSP estricta de la app.
+      // Catch-all con la CSP estricta de la app. (La landing estática /home.html
+      // se eliminó: hoy la landing es el Server Component React en /home.)
       { source: "/:path*", headers: securityHeaders({ landing: false }) },
-      // /home.html (la landing estática) sobrescribe con la CSP relajada. Va
-      // último: ante claves repetidas, Next aplica el último valor.
-      { source: "/home.html", headers: securityHeaders({ landing: true }) },
     ];
   },
 };
