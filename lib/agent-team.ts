@@ -163,7 +163,7 @@ async function runCalificador(
 
   const prompt = `Estas son las ${vocab.oppPlural.toLowerCase()} abiertas a calificar:\n\n${list}`;
 
-  const res = await generateAiChat({ system, messages: [{ role: "user", content: prompt }] });
+  const res = await generateAiChat({ system, surface: "agents", messages: [{ role: "user", content: prompt }] });
   // Propagamos el error real (ej. límite diario de IA alcanzado) para que el
   // usuario lo vea, en vez de un mensaje genérico.
   if (!res.ok) return { ok: false, error: res.error };
@@ -239,7 +239,7 @@ async function runRedactor(
     .filter(Boolean)
     .join("\n");
 
-  const res = await generateAiChat({ system, messages: [{ role: "user", content: ctx }] });
+  const res = await generateAiChat({ system, surface: "agents", messages: [{ role: "user", content: ctx }] });
   if (!res.ok) return null;
 
   type Raw = { channel?: string; subject?: string; body?: string };

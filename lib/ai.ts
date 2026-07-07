@@ -1,6 +1,21 @@
 import { getSettingsMap } from "@/lib/settings";
 import { currentUserId } from "@/lib/auth";
 import { consumeAiQuota } from "@/lib/ai-usage";
+import { track } from "@/lib/analytics";
+
+/**
+ * Superficie de IA que originó la llamada. Se emite como propiedad del evento
+ * `ai_call` para poder medir uso superficie por superficie (hoy `AiUsage` solo
+ * guarda un contador agregado por usuario/día, sin discriminar por superficie).
+ * Instrumentación previa a la consolidación 6→3 del asistente.
+ */
+export type AiSurface =
+  | "chat"
+  | "agents"
+  | "cv"
+  | "catchup"
+  | "daily_review"
+  | "test_connection";
 
 export const DEFAULT_MODELS: Record<string, string> = {
   groq: "llama-3.3-70b-versatile",
@@ -78,27 +93,48 @@ export type AiResult =
 export async function generateAiText({
   system,
   prompt,
+  surface,
 }: {
   system: string;
   prompt: string;
+  surface: AiSurface;
 }): Promise<AiResult> {
-  return generateAiChat({ system, messages: [{ role: "user", content: prompt }] });
+  return generateAiChat({
+    system,
+    surface,
+    messages: [{ role: "user", content: prompt }],
+  });
 }
 
 export async function generateAiChat({
   system,
   messages,
+  surface,
 }: {
   system: string;
   messages: ChatMessage[];
+  surface: AiSurface;
 }): Promise<AiResult> {
   const config = await getAiConfig();
+  const userId = await currentUserId();
+
+  // Instrumentación (analytics): una llamada real al proveedor, etiquetada por
+  // superficie. Fire-and-forget a propósito: NO la esperamos para no sumar el
+  // round-trip a PostHog a la latencia de cada respuesta de IA; el flush corre
+  // holgado durante la llamada al proveedor (que tarda segundos). track() es
+  // no-op sin POSTHOG_API_KEY y traga sus propios errores, así que nunca puede
+  // tumbar el flujo ni dejar una promesa rechazada suelta.
+  void track(userId, "ai_call", {
+    surface,
+    provider: config.provider,
+    usingServerKey: config.usingServerKey,
+  });
 
   // Rate limit (Tarea 3): solo cuando se usa la key compartida del dueño. Con la
   // key propia del usuario no hay tope. Se cuenta cada llamada al LLM (el equipo
   // de agentes hace varias por corrida, lo cual es uso real de la cuota).
   if (config.usingServerKey) {
-    const quota = await consumeAiQuota(await currentUserId());
+    const quota = await consumeAiQuota(userId);
     if (!quota.ok) {
       return { ok: false, error: quota.error };
     }

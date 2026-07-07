@@ -205,5 +205,5 @@ export async function dailyReview(): Promise<
     INJECTION_GUARD,
   ].join("\n");
 
-  return generateAiText({ system, prompt: ctx });
+  return generateAiText({ system, prompt: ctx, surface: "daily_review" });
 }

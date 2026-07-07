@@ -16,6 +16,7 @@ export async function sendChatMessage(messages: ChatMessage[]) {
   const system = buildChatSystemPrompt(data);
   return generateAiChat({
     system,
+    surface: "chat",
     // Limitamos el historial para no exceder el contexto del modelo, y truncamos
     // cada mensaje a un largo máximo.
     messages: messages.slice(-20).map((m) => ({

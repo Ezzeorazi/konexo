@@ -71,6 +71,7 @@ export async function deleteCVVersion(id: string) {
 
 export async function testAiConnection() {
   return generateAiText({
+    surface: "test_connection",
     system:
       "Sos un asistente de prueba. Respondé exactamente lo que se te pide, sin agregar nada.",
     prompt: 'Respondé únicamente con la palabra "listo".',

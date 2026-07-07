@@ -11,6 +11,7 @@ import {
   Shuffle,
   ChevronDown,
 } from "lucide-react";
+import posthog from "posthog-js";
 import { getVocab, isTrack, DEFAULT_TRACK, type Track } from "@/lib/tracks";
 import { getFocusSuggestions } from "@/app/(app)/pomodoro-actions";
 import { cn } from "@/lib/utils";
@@ -306,13 +307,31 @@ export function PomodoroWidget({ activeTrack }: { activeTrack: Track }) {
     ? suggestions[suggestionIdx % suggestions.length]
     : "";
 
+  // Instrumentación: emitimos SOLO al expandir el panel (no al colapsar, y nunca
+  // en el mount, que ocurre en todas las páginas por estar acoplado al sidebar).
+  // Sin esto no hay forma de medir el uso real de Pomodoro: no es una ruta y no
+  // persiste nada en Postgres. Calculamos fuera del updater de setState para no
+  // duplicar el evento bajo StrictMode. distinct_id ya lo setea el provider vía
+  // identify(userId); no-op y a prueba de fallos si PostHog no está inicializado.
+  function toggleOpen() {
+    const next = !open;
+    if (next) {
+      try {
+        posthog.capture("pomodoro_opened", { track });
+      } catch {
+        // la analítica nunca debe romper el widget
+      }
+    }
+    setOpen(next);
+  }
+
   return (
     <div className="border-t-[3px] border-sidebar-border p-3">
       {/* Cabecera compacta (siempre visible): reloj + play/pausa + expandir */}
       <div className="flex items-center gap-1.5">
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={toggleOpen}
           aria-expanded={open}
           className="flex flex-1 items-center gap-2 rounded-md px-1 py-1 text-left transition-colors hover:bg-sidebar-accent"
           title={open ? "Ocultar Pomodoro" : "Mostrar Pomodoro"}

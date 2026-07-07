@@ -260,6 +260,7 @@ export async function tailorCv(opportunityId: string) {
   }
 
   return generateAiText({
+    surface: "cv",
     system: [
       "Sos un experto en reclutamiento y redacción de CVs. Ayudás a adaptar el CV de una persona a un aviso de trabajo concreto. Respondés en español, en texto plano sin Markdown, de forma directa y accionable. Nunca inventás experiencia que la persona no tiene.",
       INJECTION_GUARD,
@@ -367,7 +368,7 @@ export async function catchMeUp(opportunityId: string): Promise<
     INJECTION_GUARD,
   ].join("\n");
 
-  return generateAiText({ system, prompt: ctx });
+  return generateAiText({ system, prompt: ctx, surface: "catchup" });
 }
 
 export async function updateOpportunityStage(id: string, stage: string) {
