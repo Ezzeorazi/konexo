@@ -212,7 +212,7 @@ export default async function VerticalLandingPage({
             <div className="panel rough p-6">
               <h3 className="mb-2 font-display text-3xl tracking-wide text-alarm">IA DE TU LADO</h3>
               <p className="text-xl leading-snug">
-                Te resume el estado, te pone al día y decide próximos pasos; y si lo pedís, redacta tus mensajes. Con tu propia API key o con Ollama gratis y local: tus datos no salen de tu máquina.
+                Te resume el estado, te pone al día y decide próximos pasos; y si lo pedís, redacta tus mensajes. Funciona con proveedores en la nube (Groq, Anthropic, OpenAI, Google) o, si querés que tus datos no salgan de tu máquina, con Ollama local y gratis.
               </p>
             </div>
           </div>

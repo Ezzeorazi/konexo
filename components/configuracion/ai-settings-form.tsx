@@ -212,8 +212,8 @@ export function AiSettingsForm({
         {isOllama
           ? "Con Ollama todo corre en tu máquina: ni tu CV ni los avisos salen a internet."
           : provider === "groq"
-            ? "Groq tiene capa gratuita: creá tu key en console.groq.com (botón API Keys), sin tarjeta. Tu key se guarda cifrada y solo se usa para llamar al proveedor que elegiste."
-            : "Tu key se guarda cifrada (AES-256) y solo se usa para llamar al proveedor que elegiste."}
+            ? "Groq tiene capa gratuita: creá tu key en console.groq.com (botón API Keys), sin tarjeta. Ojo: para procesar tus pedidos, tus datos (contactos, notas, CV) viajan a los servidores de Groq. Tu key se guarda cifrada y solo se usa para llamar al proveedor que elegiste. ¿Querés que nada salga de tu máquina? Elegí Ollama."
+            : "Con este proveedor, para procesar tus pedidos, tus datos (contactos, notas, CV) viajan a sus servidores. Tu key se guarda cifrada (AES-256) y solo se usa para llamar al proveedor que elegiste. ¿Querés que nada salga de tu máquina? Elegí Ollama."}
       </p>
 
       <div className="flex flex-wrap gap-2">

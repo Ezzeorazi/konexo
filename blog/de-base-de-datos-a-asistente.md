@@ -56,7 +56,7 @@ La clave es ese "al mismo tiempo". No es estética: es la diferencia entre un as
 
 ## Cómo lo construimos de verdad (caso Konexo)
 
-No quiero que esto quede en teoría, así que lo apliqué en [Konexo](https://ezequiel-orazi.online), un CRM personal *local-first* (tus datos quedan en tu máquina). Konexo ya tenía un asistente conversacional: un agente al que le preguntás y te responde. Bien, pero reactivo —solo trabaja cuando vos arrancás—.
+No quiero que esto quede en teoría, así que lo apliqué en [Konexo](https://ezequiel-orazi.online), un CRM personal donde vos sos dueño de tus datos (y, si querés máxima privacidad, el asistente puede correr 100% local con Ollama). Konexo ya tenía un asistente conversacional: un agente al que le preguntás y te responde. Bien, pero reactivo —solo trabaja cuando vos arrancás—.
 
 Esta semana le sumé un **equipo de agentes** proactivo. Botón de "Poner el equipo a trabajar" y, por debajo, una orquestación real:
 
