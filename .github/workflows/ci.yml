@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancela corridas viejas de la misma rama/PR cuando llega un push nuevo.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint + typecheck + tests (unit y de integración). La integración corre contra
+  # PGlite en proceso, así que NO necesita un Postgres externo.
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # URL dummy: las tools de Prisma que usamos acá (migrate diff --from-empty)
+      # no se conectan, pero prisma.config espera la variable presente.
+      DATABASE_URL: postgresql://user:pass@localhost:5432/db
+      SETTINGS_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Unit tests
+        run: npm test
+      - name: Integration tests (PGlite)
+        run: npm run test:integration
+
+  # E2E + accesibilidad: Playwright arranca la DB (PGlite por TCP) y `next dev`
+  # sin Clerk (usuario-dev), y maneja la app en un navegador real. No necesita
+  # Postgres externo.
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      # Dummy: db-server.mjs corre `prisma migrate diff --from-empty` (no conecta);
+      # el server de Next recibe su DATABASE_URL desde playwright.config.ts.
+      DATABASE_URL: postgresql://user:pass@localhost:5432/db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Instalar navegador de Playwright
+        run: npx playwright install --with-deps chromium
+      - name: E2E + accesibilidad
+        run: npm run test:e2e
+
+  # Valida que las migraciones apliquen limpio en Postgres real y que NO haya
+  # drift entre las migraciones y schema.prisma. Protege el `vercel-build`
+  # (que corre `prisma migrate deploy` en cada deploy).
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: konexo
+          POSTGRES_PASSWORD: konexo
+          POSTGRES_DB: konexo_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://konexo:konexo@localhost:5432/konexo_test
+      DIRECT_URL: postgresql://konexo:konexo@localhost:5432/konexo_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Aplicar migraciones (deben aplicar en orden y sin error)
+        run: npx prisma migrate deploy
+      - name: Chequear drift (la DB migrada debe coincidir con schema.prisma)
+        # Compara la DB ya migrada contra el schema. --exit-code: 0 si no hay
+        # diferencias, 2 si las hay → falla el job y avisa del drift.
+        run: >-
+          npx prisma migrate diff
+          --from-config-datasource
+          --to-schema prisma/schema.prisma
+          --exit-code

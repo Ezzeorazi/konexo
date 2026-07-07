@@ -124,6 +124,7 @@ export function StagesEditor({
 
             <Input
               defaultValue={stage.label}
+              aria-label={`Nombre de la etapa ${stage.label}`}
               className="h-8 min-w-32 flex-1"
               onBlur={(e) => {
                 const v = e.target.value.trim();
@@ -134,6 +135,7 @@ export function StagesEditor({
             <select
               defaultValue={stage.type}
               disabled={pending}
+              aria-label={`Tipo de la etapa ${stage.label}`}
               onChange={(e) => saveRow(stage, { type: e.target.value })}
               className={cn(
                 "h-8 rounded-md border-2 border-input bg-background px-2 text-sm"
@@ -153,6 +155,7 @@ export function StagesEditor({
                   min={0}
                   max={100}
                   defaultValue={stage.probability}
+                  aria-label={`Probabilidad de la etapa ${stage.label}`}
                   className="h-8 w-16"
                   onBlur={(e) => {
                     const v = Math.round(Number(e.target.value));
@@ -182,6 +185,7 @@ export function StagesEditor({
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
           placeholder="Nueva etapa…"
+          aria-label="Nombre de la nueva etapa"
           className="h-9"
           onKeyDown={(e) => {
             if (e.key === "Enter" && newLabel.trim()) {

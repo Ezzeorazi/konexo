@@ -8,7 +8,7 @@ import { maybeTrackActivation } from "@/lib/activation";
 import { generateAiText } from "@/lib/ai";
 import { INJECTION_GUARD, userData } from "@/lib/prompt-safety";
 import { parseDateInput, parseDateTimeInput } from "@/lib/dates";
-import { normalizeUrl } from "@/lib/utils";
+import { normalizeUrl, parseMoney } from "@/lib/utils";
 import { isTrack, DEFAULT_TRACK, getVocab, type Track } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
 import { completeMission } from "@/lib/onboarding";
@@ -40,10 +40,6 @@ export type OpportunityInput = {
 };
 
 function clean(input: OpportunityInput) {
-  const parsedValue =
-    input.value && input.value.trim()
-      ? Number(input.value.replace(/[^\d.,-]/g, "").replace(",", "."))
-      : null;
   return {
     title: input.title.trim(),
     companyId: input.companyId || null,
@@ -52,7 +48,7 @@ function clean(input: OpportunityInput) {
     url: normalizeUrl(input.url),
     location: input.location?.trim() || null,
     salaryRange: input.salaryRange?.trim() || null,
-    value: parsedValue !== null && !Number.isNaN(parsedValue) ? parsedValue : null,
+    value: parseMoney(input.value),
     jobDescription: input.jobDescription?.trim() || null,
     priority: input.priority,
     appliedAt: parseDateInput(input.appliedAt),
@@ -146,14 +142,8 @@ function cleanOpportunityField(
       return { location: value.trim() || null };
     case "salaryRange":
       return { salaryRange: value.trim() || null };
-    case "value": {
-      const parsed = value.trim()
-        ? Number(value.replace(/[^\d.,-]/g, "").replace(",", "."))
-        : null;
-      return {
-        value: parsed !== null && !Number.isNaN(parsed) ? parsed : null,
-      };
-    }
+    case "value":
+      return { value: parseMoney(value) };
     case "jobDescription":
       return { jobDescription: value.trim() || null };
     case "priority":
@@ -193,12 +183,22 @@ export async function patchOpportunityField(
       where: { id, userId },
       select: { appliedAt: true, track: true },
     });
+    if (!current) {
+      return { ok: false as const, error: "No encontré la oportunidad." };
+    }
+    const t = (isTrack(current.track) ? current.track : DEFAULT_TRACK) as Track;
+    const stages = await getTrackStages(t);
+    // La etapa tiene que existir en el embudo del track: si no, la card quedaría
+    // invisible en el kanban y en los stat tiles del dashboard.
+    if (!stages.some((s) => s.key === value)) {
+      return { ok: false as const, error: "Esa etapa no existe en el embudo." };
+    }
     // Al pasar a "Aplicada" sin fecha, la fijamos ahora (búsqueda laboral).
-    if (value === "APPLIED" && current && !current.appliedAt) {
+    if (value === "APPLIED" && !current.appliedAt) {
       data.appliedAt = new Date();
     }
     // Al llegar a la ÚLTIMA etapa (card finalizada), cerramos el follow-up.
-    if (current && (await isLastStage(current.track, value))) {
+    if (stages[stages.length - 1]?.key === value) {
       data.nextFollowUpAt = null;
     }
   }
@@ -370,32 +370,35 @@ export async function catchMeUp(opportunityId: string): Promise<
   return generateAiText({ system, prompt: ctx });
 }
 
-/** ¿`stageKey` es la ÚLTIMA etapa del embudo del track (la card "finalizada")? */
-async function isLastStage(track: string, stageKey: string): Promise<boolean> {
-  const t = (isTrack(track) ? track : DEFAULT_TRACK) as Track;
-  const stages = await getTrackStages(t);
-  const last = stages[stages.length - 1];
-  return Boolean(last && last.key === stageKey);
-}
-
 export async function updateOpportunityStage(id: string, stage: string) {
   const userId = await currentUserId();
   const current = await prisma.opportunity.findFirst({
     where: { id, userId },
     select: { appliedAt: true, track: true },
   });
+  if (!current) {
+    return { ok: false as const, error: "No encontré la oportunidad." };
+  }
+
+  const t = (isTrack(current.track) ? current.track : DEFAULT_TRACK) as Track;
+  const stages = await getTrackStages(t);
+  // La etapa tiene que existir en el embudo del track: una etapa fantasma dejaría
+  // la card invisible en el kanban y en los stat tiles del dashboard.
+  if (!stages.some((s) => s.key === stage)) {
+    return { ok: false as const, error: "Esa etapa no existe en el embudo." };
+  }
 
   const data: { stage: string; appliedAt?: Date; nextFollowUpAt?: null } = {
     stage,
   };
   // Si pasa a Aplicada y no tenía fecha, la marcamos ahora (solo búsqueda laboral).
-  if (stage === "APPLIED" && current && !current.appliedAt) {
+  if (stage === "APPLIED" && !current.appliedAt) {
     data.appliedAt = new Date();
   }
   // Al llegar a la ÚLTIMA etapa del embudo (card "finalizada"), cerramos el
   // follow-up pendiente: una oportunidad terminada no debe seguir apareciendo en
   // la agenda ni entre los vencidos del Dashboard/Calendario.
-  if (current && (await isLastStage(current.track, stage))) {
+  if (stages[stages.length - 1]?.key === stage) {
     data.nextFollowUpAt = null;
   }
 

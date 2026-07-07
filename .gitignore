@@ -53,3 +53,10 @@ _backup-*.json
 next-env.d.ts
 
 /lib/generated/prisma
+
+# DDL generado por los tests de integración (se regenera solo)
+tests/integration/.schema.sql
+
+# Playwright / E2E
+test-results/
+playwright-report/

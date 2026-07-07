@@ -16,10 +16,13 @@ const optionalText = (max: number) => z.string().trim().max(max).optional();
 // Texto obligatorio (al menos 1 caracter tras trim).
 const requiredText = (max: number) =>
   z.string().trim().min(1, "Este campo es obligatorio.").max(max);
-// Email opcional: vacío o un email válido.
-const optionalEmail = z
-  .union([z.literal(""), z.email("Email inválido.").max(320)])
-  .optional();
+// Email opcional: vacío o un email válido. Recortamos ANTES de validar: el
+// usuario suele pegar el mail con espacios alrededor, y validarlo crudo lo
+// rechazaría aunque sea válido tras el trim.
+const optionalEmail = z.preprocess(
+  (v) => (typeof v === "string" ? v.trim() : v),
+  z.union([z.literal(""), z.email("Email inválido.").max(320)]).optional()
+);
 // id tipo cuid (o vacío). Tope corto: estos vienen de selects, no de texto libre.
 const optionalId = z.string().trim().max(64).optional();
 // Fecha en formato yyyy-MM-dd (o vacío). parseDateInput() la interpreta luego.
@@ -122,7 +125,12 @@ export const StageSchema = z.object({
 });
 
 export const WaitlistSchema = z.object({
-  email: z.email("Email inválido.").max(320),
+  // Igual que optionalEmail: recortamos antes de validar (espacios alrededor no
+  // deben invalidar un email por lo demás correcto).
+  email: z.preprocess(
+    (v) => (typeof v === "string" ? v.trim() : v),
+    z.email("Email inválido.").max(320)
+  ),
   source: optionalText(40),
 });
 

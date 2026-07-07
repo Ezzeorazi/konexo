@@ -117,7 +117,7 @@ export function AiSettingsForm({
           onValueChange={(value) => setProvider(String(value))}
           items={PROVIDERS}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full" aria-label="Proveedor de IA">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
