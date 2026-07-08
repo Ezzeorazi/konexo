@@ -30,7 +30,13 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Typecheck
-        run: npx tsc --noEmit
+        # `next typegen` genera los tipos globales de rutas (RouteContext, etc.)
+        # en .next/types. Sin esto, `tsc` en un checkout limpio (sin `next dev`
+        # previo) falla con "Cannot find name 'RouteContext'" en las rutas
+        # dinámicas. Ver docs de Next 16: los tipos se generan en dev/build/typegen.
+        run: |
+          npx next typegen
+          npx tsc --noEmit
       - name: Unit tests
         run: npm test
       - name: Integration tests (PGlite)
