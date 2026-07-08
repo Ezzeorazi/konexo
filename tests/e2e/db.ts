@@ -54,12 +54,28 @@ export async function seedCompany(id: string, name: string, userId = DEV_USER) {
 export async function seedOpportunity(
   id: string,
   title: string,
-  opts: { companyId?: string; stage?: string; nextFollowUpAt?: Date; userId?: string } = {}
+  opts: {
+    companyId?: string;
+    stage?: string;
+    nextFollowUpAt?: Date;
+    userId?: string;
+    track?: string;
+    kind?: string;
+  } = {}
 ) {
   await query(
     `INSERT INTO "Opportunity" (id, "userId", title, track, stage, kind, priority, "companyId", "nextFollowUpAt", "updatedAt")
-     VALUES ($1,$2,$3,'jobs',$4,'client','MEDIUM',$5,$6,now())`,
-    [id, opts.userId ?? DEV_USER, title, opts.stage ?? "SAVED", opts.companyId ?? null, opts.nextFollowUpAt ?? null]
+     VALUES ($1,$2,$3,$4,$5,$6,'MEDIUM',$7,$8,now())`,
+    [
+      id,
+      opts.userId ?? DEV_USER,
+      title,
+      opts.track ?? "jobs",
+      opts.stage ?? "SAVED",
+      opts.kind ?? "client",
+      opts.companyId ?? null,
+      opts.nextFollowUpAt ?? null,
+    ]
   );
 }
 

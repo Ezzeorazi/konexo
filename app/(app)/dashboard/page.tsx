@@ -8,7 +8,6 @@ import {
   PartyPopper,
   Building2,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
 import { currentUserId } from "@/lib/auth";
 import {
   Card,
@@ -21,7 +20,7 @@ import { Reveal } from "@/components/comic/reveal";
 import { ComicMarquee } from "@/components/comic/comic-marquee";
 import { MissionsPanel } from "@/components/onboarding/missions-panel";
 import { DailyReviewButton } from "@/components/dashboard/daily-review";
-import { getProgress } from "@/lib/onboarding";
+import { getDashboardData } from "@/lib/dashboard";
 import { getActiveTrack } from "@/lib/active-track";
 import { getVocab, tileFor } from "@/lib/tracks";
 import { getTrackStages } from "@/lib/stages";
@@ -35,82 +34,19 @@ export default async function DashboardPage() {
   const { track } = await getActiveTrack();
   const vocab = getVocab(track);
   const stages = await getTrackStages(track);
-  const lastStageKey = stages[stages.length - 1]?.key ?? "CLOSED";
 
-  const inTwoWeeks = new Date();
-  inTwoWeeks.setDate(inTwoWeeks.getDate() + 14);
-
-  const [
-    stageCounts,
-    oppFollowUps,
-    contactFollowUps,
-    contactCount,
+  // Toda la carga de datos vive en lib/dashboard.ts (testeable y a escala).
+  const {
+    countByStage,
+    totalOpportunities,
+    followUps,
+    overdueCount,
     noContactOpps,
+    contactCount,
+    forecast: { pipelineValue, weightedValue, wonValue },
     onboarding,
-  ] = await Promise.all([
-    prisma.opportunity.groupBy({
-      by: ["stage"],
-      where: { userId, track },
-      _count: { _all: true },
-    }),
-    prisma.opportunity.findMany({
-      where: { userId, track, nextFollowUpAt: { not: null, lte: inTwoWeeks } },
-      orderBy: { nextFollowUpAt: "asc" },
-      include: { company: { select: { name: true } } },
-      take: 10,
-    }),
-    prisma.contact.findMany({
-      where: { userId, track, nextFollowUpAt: { not: null, lte: inTwoWeeks } },
-      orderBy: { nextFollowUpAt: "asc" },
-      include: { company: { select: { name: true } } },
-      take: 10,
-    }),
-    prisma.contact.count({ where: { userId, track } }),
-    // Oportunidades/negocios activos sin ningún contacto en su empresa (o sin
-    // empresa): ahí no hay puente posible para un referido / decisor todavía
-    prisma.opportunity.findMany({
-      where: {
-        userId,
-        track,
-        stage: { not: lastStageKey },
-        OR: [{ companyId: null }, { company: { contacts: { none: {} } } }],
-      },
-      orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        company: { select: { name: true } },
-      },
-    }),
-    getProgress(userId),
-  ]);
+  } = await getDashboardData({ userId, track, stages, hasValue: vocab.hasValue });
 
-  const countByStage = new Map(stageCounts.map((s) => [s.stage, s._count._all]));
-  const totalOpportunities = stageCounts.reduce(
-    (acc, s) => acc + s._count._all,
-    0
-  );
-
-  // Forecast ponderado: Σ (monto × probabilidad de su etapa) sobre lo abierto.
-  const stageByKey = new Map(stages.map((s) => [s.key, s]));
-  let pipelineValue = 0; // monto total en juego (etapas abiertas)
-  let weightedValue = 0; // monto ponderado por probabilidad
-  let wonValue = 0; // ya ganado
-  if (vocab.hasValue) {
-    const valued = await prisma.opportunity.findMany({
-      where: { userId, track, value: { not: null } },
-      select: { value: true, stage: true },
-    });
-    for (const o of valued) {
-      const st = stageByKey.get(o.stage);
-      const v = o.value ?? 0;
-      if (st?.type === "won") wonValue += v;
-      else if (st?.type !== "lost") {
-        pipelineValue += v;
-        weightedValue += (v * (st?.probability ?? 0)) / 100;
-      }
-    }
-  }
   const fmtMoney = (n: number) =>
     n.toLocaleString("es-AR", { maximumFractionDigits: 0 });
   // Para los chips del hero usamos las dos últimas etapas del embudo del track.
@@ -121,36 +57,8 @@ export default async function DashboardPage() {
     : 0;
   const lastCount = lastStage ? countByStage.get(lastStage.key) ?? 0 : 0;
 
-  type FollowUp = {
-    key: string;
-    href: string;
-    title: string;
-    subtitle: string | null;
-    date: Date;
-    kind: "opportunity" | "contact";
-  };
-
-  const followUps: FollowUp[] = [
-    ...oppFollowUps.map((o) => ({
-      key: `o-${o.id}`,
-      href: `/oportunidades/${o.id}`,
-      title: o.title,
-      subtitle: o.company?.name ?? null,
-      date: o.nextFollowUpAt!,
-      kind: "opportunity" as const,
-    })),
-    ...contactFollowUps.map((c) => ({
-      key: `c-${c.id}`,
-      href: `/contactos/${c.id}`,
-      title: c.name,
-      subtitle: [c.role, c.company?.name].filter(Boolean).join(" · ") || null,
-      date: c.nextFollowUpAt!,
-      kind: "contact" as const,
-    })),
-  ].sort((a, b) => a.date.getTime() - b.date.getTime());
-
+  // Para marcar cada follow-up como vencido en el render.
   const now = new Date();
-  const overdueCount = followUps.filter((fu) => fu.date < now).length;
 
   return (
     <div>

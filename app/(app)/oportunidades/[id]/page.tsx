@@ -249,15 +249,25 @@ export default async function OportunidadDetailPage({
                 </span>
                 <div>
                   <p className="font-display text-[11px] tracking-[0.18em] text-muted-foreground">
-                    PRÓXIMA REUNIÓN / FOLLOW-UP
+                    {/* En un proyecto PROPIO no hay cliente a quien reunir: el
+                        follow-up es un recordatorio personal de cuándo retomar. */}
+                    {isOwn ? "PRÓXIMO PENDIENTE" : "PRÓXIMA REUNIÓN / FOLLOW-UP"}
                   </p>
                   <div className="text-lg font-medium">
                     <EditableText
                       value={toDateTimeInputValue(followUp)}
                       display={followUp ? formatDateTime(followUp) : undefined}
                       type="datetime-local"
-                      placeholder="Sin agendar — hacé clic para elegir fecha y hora"
-                      ariaLabel="Editar próxima reunión o follow-up"
+                      placeholder={
+                        isOwn
+                          ? "Sin agendar — elegí cuándo retomar"
+                          : "Sin agendar — hacé clic para elegir fecha y hora"
+                      }
+                      ariaLabel={
+                        isOwn
+                          ? "Editar próximo pendiente"
+                          : "Editar próxima reunión o follow-up"
+                      }
                       onSave={patchOpportunityField.bind(
                         null,
                         opportunity.id,
@@ -282,20 +292,26 @@ export default async function OportunidadDetailPage({
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <TouchpointDialog
-                  opportunityId={opportunity.id}
-                  defaultType="MEETING"
-                  contacts={companyContacts.map((c) => ({
-                    id: c.id,
-                    name: c.name,
-                  }))}
-                  trigger={
-                    <Button variant="outline" size="sm">
-                      <CalendarPlus className="size-4" />
-                      Registrar reunión
-                    </Button>
-                  }
-                />
+                {/* "Registrar reunión" es central solo cuando hay un cliente
+                    (proyecto de cliente / búsqueda). En un proyecto propio la
+                    reunión sigue disponible dentro de "Registrar touchpoint"
+                    (arriba), pero no como acción central. */}
+                {!isOwn ? (
+                  <TouchpointDialog
+                    opportunityId={opportunity.id}
+                    defaultType="MEETING"
+                    contacts={companyContacts.map((c) => ({
+                      id: c.id,
+                      name: c.name,
+                    }))}
+                    trigger={
+                      <Button variant="outline" size="sm">
+                        <CalendarPlus className="size-4" />
+                        Registrar reunión
+                      </Button>
+                    }
+                  />
+                ) : null}
                 <Link
                   href="/calendario"
                   className="inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"

@@ -167,6 +167,13 @@ model Setting {
 
   @@unique([userId, key])
   @@index([userId])
+  // El feed .ics busca por (key = "calendarToken", value = token) sin sesión.
+  // Este índice por `key` acota la búsqueda a las filas de ese key (una por
+  // usuario con feed) en vez de escanear toda la tabla. No indexamos `value`
+  // (texto sin tope) para no arriesgar el límite de tamaño de entrada de btree
+  // con settings largos; la solución 100% escalable sería una columna dedicada
+  // para el token.
+  @@index([key])
 }
 
 // Seguimiento de EJECUCIÓN del proyecto (separado del embudo comercial).
