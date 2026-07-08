@@ -25,7 +25,13 @@ export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: false,
   workers: 1,
-  timeout: 60_000,
+  // En CI reintentamos: la primera visita a una ruta la compila `next dev`
+  // on-demand, y en un runner cargado ese compile en frío + el scan de axe de la
+  // página más pesada (/dashboard) puede pasarse del timeout. El reintento pega
+  // contra la ruta ya compilada y pasa. Local sin retries para ver fallos reales.
+  retries: process.env.CI ? 2 : 0,
+  // Colchón para el compile en frío bajo carga (antes 60s, se quedaba corto).
+  timeout: 90_000,
   expect: { timeout: 10_000 },
   reporter: [["list"]],
   use: {
