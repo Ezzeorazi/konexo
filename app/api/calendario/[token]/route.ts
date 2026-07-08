@@ -9,9 +9,13 @@ import { getVocab, stageLabel, isTrack, DEFAULT_TRACK, type Track } from "@/lib/
 
 export const dynamic = "force-dynamic";
 
+// Tipamos el context inline (params es una Promise en Next 16) en vez de usar el
+// helper global `RouteContext<...>`: ese tipo lo genera Next en .next/types
+// (dev/build/typegen), y en CI el typecheck corre sobre un checkout limpio sin
+// .next. El tipo inline es equivalente y está soportado por la doc de Next.
 export async function GET(
   _req: Request,
-  ctx: RouteContext<"/api/calendario/[token]">
+  ctx: { params: Promise<{ token: string }> }
 ) {
   const { token } = await ctx.params;
 
