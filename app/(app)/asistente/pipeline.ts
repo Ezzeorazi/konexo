@@ -359,8 +359,20 @@ export function buildChatSystemPrompt(data: PipelineData): string {
     } else {
       parts.push("sin follow-up agendado");
     }
+    parts.push(
+      o.contacts.length
+        ? `contactos: ${o.contacts
+            .map((c) => `${c.name}${c.role ? ` (${c.role})` : ""} [${c.strength}]`)
+            .join("; ")}`
+        : "sin contacto identificado"
+    );
+    if (o.lastTouch) parts.push(`último toque: ${o.lastTouch}`);
     const delivery = deliveryBrief(o.delivery);
     if (delivery) parts.push(delivery);
+    // El contexto libre (descripción del puesto/oportunidad) es dato del usuario:
+    // va envuelto para que no se confunda con instrucciones (mismo criterio que
+    // agent-team.ts, que ya incluye estos tres campos y dejó afuera al chat).
+    if (o.description) parts.push(`contexto: ${userData(o.description, 280)}`);
     return parts.join(" · ");
   });
 
