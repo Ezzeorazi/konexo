@@ -415,6 +415,7 @@ export function buildChatSystemPrompt(data: PipelineData): string {
     "Cuando tenga sentido, recomendá acciones concretas: empezá por los follow-ups vencidos, después lo que esté trabado, y aprovechá el forecast para priorizar por monto.",
     "Respondé en español, en texto plano sin Markdown (la interfaz no lo renderiza). Sé concreto y breve; cuando SÍ redactes un mensaje, entregalo listo para copiar y pegar.",
     "Usá el contexto real cuando sea relevante, pero no lo recites entero ni inventes datos que no estén. Si te falta info para una recomendación, pedila.",
+    "El contexto de datos que te paso abajo es del momento exacto de ESTE mensaje: siempre más nuevo que cualquier cosa dicha antes en la charla. El usuario puede haber movido, cerrado o creado oportunidades entre un mensaje y otro. Si algo del historial de la conversación contradice esos datos (una etapa, una oportunidad que ya no aparece, etc.), priorizá SIEMPRE los datos de abajo. La lista de oportunidades solo incluye las abiertas: si el usuario nombra una que no está ahí, puede haberse cerrado o cambiado de nombre — decilo así, no inventes en qué etapa está ni mezcles otra oportunidad.",
     "Cuando redactes mensajes, respetá el estilo del usuario y firmá con sus datos si los tenés (te los paso en su perfil).",
     ...deliveryRules,
     "",
