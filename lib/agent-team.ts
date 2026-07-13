@@ -33,6 +33,9 @@ export type Qualification = {
   reason: string;
   nextAction: string;
   overdue: boolean;
+  /** false = el próximo paso es interno/de espera (prepararse, esperar
+   * respuesta): no tiene sentido mandarlo al Redactor a escribir un mensaje. */
+  needsMessage: boolean;
 };
 
 export type Draft = {
@@ -151,9 +154,10 @@ async function runCalificador(
     vocab.hasDelivery
       ? "Cada proyecto viene marcado PROPIO o DE CLIENTE. Para los PROPIOS no hay outreach: su nextAction es siempre un paso interno de ejecución (avanzar/desbloquear una tarea, registrar un avance), nunca contactar a nadie. Para los DE CLIENTE, el nextAction puede ser de gestión o de contacto."
       : "",
+    "Para cada una decidí también needsMessage: true si el próximo paso implica escribirle a alguien (conseguir contacto, mandar un follow-up, responder); false si es un paso interno o de espera (ya hay una entrevista/reunión agendada y toca prepararse, esperar una respuesta, revisar algo) donde no tiene sentido redactar un mensaje todavía. Cuando sea false, igual hacé que nextAction sea un paso concreto y útil para AHORA (ej. \"Repasar la descripción del puesto y preparar preguntas para la entrevista\"), no una frase vacía.",
     "Usá el perfil del usuario (qué vende) para juzgar el fit: una oportunidad alineada con lo que ofrece vale más.",
     "Devolvé SOLO un JSON válido (sin texto antes ni después, sin Markdown) con esta forma:",
-    `[{"i": <número de la lista>, "tier": "hot"|"warm"|"cold", "score": <0-100>, "reason": "<por qué, máx 18 palabras>", "nextAction": "<próximo paso concreto, imperativo, máx 14 palabras>"}]`,
+    `[{"i": <número de la lista>, "tier": "hot"|"warm"|"cold", "score": <0-100>, "reason": "<por qué, máx 18 palabras>", "nextAction": "<próximo paso concreto, imperativo, máx 14 palabras>", "needsMessage": true|false}]`,
     "Incluí TODAS las oportunidades de la lista. Ordená de mayor a menor score.",
     INJECTION_GUARD,
     profilePromptBlock(data.profile),
@@ -168,7 +172,14 @@ async function runCalificador(
   // usuario lo vea, en vez de un mensaje genérico.
   if (!res.ok) return { ok: false, error: res.error };
 
-  type Raw = { i: number; tier: string; score: number; reason: string; nextAction: string };
+  type Raw = {
+    i: number;
+    tier: string;
+    score: number;
+    reason: string;
+    nextAction: string;
+    needsMessage?: boolean;
+  };
   const raw = extractJson<Raw[]>(res.text);
   if (!Array.isArray(raw)) {
     return {
@@ -194,6 +205,9 @@ async function runCalificador(
       reason: String(r.reason ?? "").trim(),
       nextAction: String(r.nextAction ?? "").trim(),
       overdue: o.overdue,
+      // Si el modelo no lo manda, asumimos que sí hace falta mensaje (el
+      // comportamiento de siempre) en vez de esconder oportunidades por defecto.
+      needsMessage: r.needsMessage !== false,
     });
   }
   out.sort((a, b) => b.score - a.score);
@@ -302,24 +316,34 @@ export async function runAgentTeam(data: PipelineData): Promise<AgentTeamResult>
     } frías.`,
   });
 
-  // El orquestador elige a quién contactar primero. Los proyectos PROPIOS no se
-  // redactan (no hay cliente a quien escribir): se quedan en la calificación con
-  // su próximo paso interno, pero no van al Redactor.
+  // El orquestador elige a quién contactar primero. Los proyectos PROPIOS (no
+  // hay cliente a quien escribir) y cualquier oportunidad cuyo próximo paso no
+  // sea un mensaje (needsMessage: false, ej. ya hay entrevista agendada y toca
+  // prepararse) se quedan en la calificación con su próximo paso, sin pasar
+  // por el Redactor.
   const byTitle = new Map(opps.map((o) => [o.title, o]));
-  const draftable = qualifications.filter(
-    (q) => !vocab.hasDelivery || byTitle.get(q.title)?.kind !== "own"
-  );
+  const isOwn = (q: Qualification) =>
+    vocab.hasDelivery && byTitle.get(q.title)?.kind === "own";
+  const draftable = qualifications.filter((q) => !isOwn(q) && q.needsMessage);
   const top = draftable.slice(0, MAX_TO_DRAFT);
-  const skippedOwn = qualifications.length - draftable.length;
+  const skippedOwn = qualifications.filter(isOwn).length;
+  const skippedNoMessage = qualifications.filter(
+    (q) => !isOwn(q) && !q.needsMessage
+  ).length;
 
   steps.push({
     agent: "orquestador",
     text:
-      `Selecciono las ${top.length} más prioritarias y se las paso al Redactor para que escriba los borradores en paralelo.` +
+      (top.length > 0
+        ? `Selecciono las ${top.length} más prioritarias y se las paso al Redactor para que escriba los borradores en paralelo.`
+        : "Ninguna necesita un mensaje ahora mismo: los próximos pasos ya están arriba, no hace falta redactar nada.") +
       (skippedOwn > 0
         ? ` Dejo fuera ${skippedOwn} proyecto${skippedOwn > 1 ? "s" : ""} propio${skippedOwn > 1 ? "s" : ""}: no llevan mensaje, solo próximo paso interno.`
+        : "") +
+      (skippedNoMessage > 0
+        ? ` Dejo fuera ${skippedNoMessage} que no necesita${skippedNoMessage > 1 ? "n" : ""} mensaje ahora: ya tiene${skippedNoMessage > 1 ? "n" : ""} su próximo paso arriba.`
         : ""),
-    parallel: true,
+    parallel: top.length > 0,
   });
 
   // AGENTES EN PARALELO: el redactor escribe los N borradores a la vez.
@@ -334,9 +358,12 @@ export async function runAgentTeam(data: PipelineData): Promise<AgentTeamResult>
 
   steps.push({
     agent: "redactor",
-    text: drafts.length
-      ? `Listo: ${drafts.length} borrador${drafts.length > 1 ? "es" : ""} para copiar y enviar.`
-      : "No pude generar borradores esta vez.",
+    text:
+      top.length === 0
+        ? "No hacía falta redactar ningún mensaje esta vez: ya tenés los próximos pasos arriba."
+        : drafts.length
+          ? `Listo: ${drafts.length} borrador${drafts.length > 1 ? "es" : ""} para copiar y enviar.`
+          : "No pude generar borradores esta vez.",
   });
 
   return { ok: true, qualifications, drafts, steps, providerLabel };
