@@ -53,7 +53,7 @@ export default defineConfig({
     },
     {
       command: "npx next dev --port 3100",
-      url: "http://localhost:3100/home",
+      url: "http://localhost:3100/",
       reuseExistingServer: false,
       timeout: 180_000,
       env: nextEnv,

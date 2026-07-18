@@ -6,7 +6,7 @@ test.beforeEach(async () => {
 });
 
 test("la landing pública carga", async ({ page }) => {
-  await page.goto("/home");
+  await page.goto("/");
   await expect(page).toHaveTitle(/Konexo/i);
 });
 

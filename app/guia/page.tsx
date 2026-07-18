@@ -490,7 +490,7 @@ export default function GuiaPage() {
       {/* NAV */}
       <nav className="sticky top-0 z-50 border-b-4 border-ink bg-paper halftone">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/home" className="shrink-0">
+          <Link href="/" className="shrink-0">
             <Image
               src="/logotipo-konexo.webp"
               alt="Konexo"
@@ -569,7 +569,7 @@ export default function GuiaPage() {
         </div>
 
         <div className="mt-10 text-center">
-          <Link href="/home" className="font-display text-lg tracking-wide text-ink/60 hover:text-ink">
+          <Link href="/" className="font-display text-lg tracking-wide text-ink/60 hover:text-ink">
             ← VOLVER A LA LANDING
           </Link>
         </div>

@@ -12,7 +12,9 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
-  "/home",
+  // La landing vive en la raíz "/" (canónica para Google). "/home" ya no existe
+  // como página: next.config la redirige 308 a "/" (SEO).
+  "/",
   "/para(.*)",
   "/guia",
   "/blog(.*)",
@@ -40,12 +42,9 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 const proxy = process.env.CLERK_SECRET_KEY || IS_PRODUCTION
   ? clerkMiddleware(async (auth, req) => {
-      // La raíz "/" es la puerta de calle: siempre muestra la landing. El
-      // dashboard vive en "/dashboard" (ruta propia). Redirigimos antes de
-      // auth.protect() para que el visitante anónimo vea la landing, no el login.
-      if (req.nextUrl.pathname === "/") {
-        return NextResponse.redirect(new URL("/home", req.url));
-      }
+      // La raíz "/" es la puerta de calle: la landing pública (app/page.tsx). El
+      // dashboard vive en "/dashboard" (ruta propia). "/" está en isPublicRoute,
+      // así que el visitante anónimo ve la landing, no el login.
       if (!isPublicRoute(req)) {
         await auth.protect();
       }

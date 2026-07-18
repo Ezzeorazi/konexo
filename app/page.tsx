@@ -29,7 +29,7 @@ const MARQUEE = [
 const MARQUEE_HALF = Array.from({ length: 4 }, () => MARQUEE).flat();
 
 export const metadata: Metadata = pageMetadata({
-  path: "/home",
+  path: "/",
   title: "Konexo — Organizá tu búsqueda de empleo como un pipeline",
   description:
     "Konexo organiza tu búsqueda laboral, ventas o freelance como un pipeline: oportunidades, contactos y follow-ups panel por panel. IA incluida. Gratis para empezar, en web y como app Android.",

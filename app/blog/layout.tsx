@@ -13,7 +13,7 @@ export default function BlogLayout({
       {/* NAV */}
       <nav className="sticky top-0 z-50 halftone border-b-4 border-ink bg-paper">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/home" className="shrink-0">
+          <Link href="/" className="shrink-0">
             <Image
               src="/logotipo-konexo.webp"
               alt="Konexo"
@@ -49,7 +49,7 @@ export default function BlogLayout({
             KONE<span className="text-alarm">X</span>O
           </p>
           <nav className="flex flex-wrap gap-x-5 gap-y-2 font-display text-sm tracking-wide">
-            <Link href="/home" className="hover:text-komic">
+            <Link href="/" className="hover:text-komic">
               INICIO
             </Link>
             <Link href="/blog" className="hover:text-komic">

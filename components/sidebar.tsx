@@ -132,7 +132,7 @@ export function Sidebar({
 
         <div className="flex flex-col gap-1 border-t-[3px] border-sidebar-border px-3 py-2">
           <Link
-            href="/home"
+            href="/"
             title="Ver la landing"
             onClick={onNavigate}
             className="flex items-center gap-2 rounded-md border-[2.5px] border-transparent px-2 py-1.5 font-display text-xs tracking-wide text-sidebar-foreground/60 transition-all hover:border-paper hover:text-sidebar-accent-foreground"

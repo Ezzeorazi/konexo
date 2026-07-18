@@ -22,7 +22,7 @@ const CONFIRM_WORD = "ELIMINAR";
 
 // "Zona de peligro": eliminación de cuenta (Tarea 5 · requisito de Google Play).
 // Pide escribir ELIMINAR, ofrece exportar antes, y tras borrar hace una
-// navegación dura a /home (la sesión de Clerk queda inválida: el usuario ya no
+// navegación dura a "/" (la sesión de Clerk queda inválida: el usuario ya no
 // existe, y cualquier ruta privada redirige al login).
 export function DeleteAccount() {
   const [confirm, setConfirm] = useState("");
@@ -40,7 +40,7 @@ export function DeleteAccount() {
       }
       toast.success("Cuenta eliminada. Cerrando sesión…");
       // Navegación dura: limpia el estado del cliente y sale del área privada.
-      window.location.assign("/home");
+      window.location.assign("/");
     });
   }
 

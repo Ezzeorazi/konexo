@@ -20,7 +20,7 @@ export function LegalShell({
       {/* NAV */}
       <nav className="sticky top-0 z-50 halftone border-b-4 border-ink bg-paper">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/home" className="shrink-0">
+          <Link href="/" className="shrink-0">
             <Image
               src="/logotipo-konexo.webp"
               alt="Konexo"
@@ -59,7 +59,7 @@ export function LegalShell({
 
         <footer className="mt-14 border-t-4 border-ink pt-6 text-sm text-ink/70">
           <div className="flex flex-wrap gap-x-5 gap-y-2 font-display tracking-wide">
-            <Link href="/home" className="hover:text-alarm hover:underline">
+            <Link href="/" className="hover:text-alarm hover:underline">
               Inicio
             </Link>
             <Link href="/guia" className="hover:text-alarm hover:underline">

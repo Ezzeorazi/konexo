@@ -23,7 +23,7 @@ export function LandingNav({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <nav className="sticky top-0 z-50 halftone border-b-4 border-ink bg-paper">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-        <Link href="/home" className="shrink-0" onClick={() => setOpen(false)}>
+        <Link href="/" className="shrink-0" onClick={() => setOpen(false)}>
           <Image
             src="/logotipo-konexo.webp"
             alt="Konexo"

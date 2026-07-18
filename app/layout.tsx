@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Konexo",
     locale: "es_AR",
-    url: "/home",
+    url: "/",
     title: "Konexo — Tu búsqueda de empleo, nivel héroe",
     description:
       "Organizá tu búsqueda de empleo, ventas o freelance como un pipeline. Con IA incluida. Gratis para empezar.",
@@ -102,7 +102,7 @@ export default function RootLayout({
         {hasClerk ? (
           <ClerkProvider
             appearance={konexoClerkAppearance}
-            afterSignOutUrl="/home"
+            afterSignOutUrl="/"
             signInFallbackRedirectUrl="/dashboard"
             signUpFallbackRedirectUrl="/dashboard"
           >

@@ -11,7 +11,7 @@ import { resetDb, seedCompany, seedOpportunity, seedContact } from "./db";
 const CLS_BUDGET = 0.1;
 const LCP_SMOKE_MS = 5000;
 
-const PAGES = ["/home", "/dashboard", "/oportunidades"];
+const PAGES = ["/", "/dashboard", "/oportunidades"];
 
 async function measureVitals(page: Page, path: string) {
   // En dev la 1ª navegación compila la ruta; medimos la 2ª (en caliente).

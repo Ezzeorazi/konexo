@@ -18,7 +18,7 @@ import { resetDb, seedCompany, seedOpportunity, seedContact } from "./db";
 const ALLOWED_RULES = new Set(["color-contrast", "nested-interactive"]);
 
 const PAGES = [
-  "/home",
+  "/",
   "/dashboard",
   "/oportunidades",
   "/contactos",

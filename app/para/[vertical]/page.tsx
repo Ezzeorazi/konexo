@@ -46,7 +46,7 @@ export default async function VerticalLandingPage({
       {/* ===== NAV ===== */}
       <nav className="sticky top-0 z-50 border-b-4 border-ink bg-paper halftone">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/home" className="shrink-0">
+          <Link href="/" className="shrink-0">
             <Image
               src="/logotipo-konexo.webp"
               alt="Konexo"
@@ -94,7 +94,7 @@ export default async function VerticalLandingPage({
                 {live ? "¡EMPEZAR GRATIS!" : "PROBAR LA BETA"}
               </Link>
               <Link
-                href="/home"
+                href="/"
                 className="btn-comic rough-2 bg-panelw px-7 py-3 font-display text-2xl tracking-wider md:text-3xl"
               >
                 VER TODO

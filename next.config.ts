@@ -153,10 +153,18 @@ function securityHeaders({ landing }: { landing: boolean }) {
 const nextConfig: NextConfig = {
   // Permite archivos .md/.mdx como páginas e imports (blog en content/blog).
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
+  // SEO: la landing histórica vivía en "/home" y el root redirigía ahí. Google
+  // eligió "/" como canónica e ignoraba la auto-canónica de "/home" ("Duplicada:
+  // Google eligió una canónica distinta"). Ahora la landing ES "/" y "/home"
+  // redirige 308 (permanente) a "/" para consolidar la URL ya indexada.
+  // `redirects` corre ANTES del proxy (ver docs redirecting.md).
+  async redirects() {
+    return [{ source: "/home", destination: "/", permanent: true }];
+  },
   async headers() {
     return [
       // Catch-all con la CSP estricta de la app. (La landing estática /home.html
-      // se eliminó: hoy la landing es el Server Component React en /home.)
+      // se eliminó: hoy la landing es el Server Component React en "/".)
       { source: "/:path*", headers: securityHeaders({ landing: false }) },
     ];
   },

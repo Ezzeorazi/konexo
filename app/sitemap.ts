@@ -10,7 +10,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticEntries: MetadataRoute.Sitemap = [
-    { url: `${SITE}/home`, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    // Sin barra final: debe coincidir EXACTO con la canónica que emite la home
+    // (Next resuelve canonical "/" a "https://konexo.site", sin barra).
+    { url: SITE, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${SITE}/guia`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE}/privacidad`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
