@@ -26,7 +26,7 @@ jobs:
       DATABASE_URL: postgresql://user:pass@localhost:5432/db
       SETTINGS_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -51,7 +51,7 @@ jobs:
       # el server de Next recibe su DATABASE_URL desde playwright.config.ts.
       DATABASE_URL: postgresql://user:pass@localhost:5432/db
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -85,7 +85,7 @@ jobs:
       DATABASE_URL: postgresql://konexo:konexo@localhost:5432/konexo_test
       DIRECT_URL: postgresql://konexo:konexo@localhost:5432/konexo_test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
