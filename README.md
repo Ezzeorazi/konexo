@@ -1,208 +1,189 @@
+<div align="center">
+
+<img src="public/og.png" alt="Konexo — CRM personal: tu búsqueda de empleo, ventas y follow-ups como un pipeline" width="720" />
+
 # Konexo
 
-**Konexo es un CRM personal que organiza tu trabajo de relación como un pipeline.** La misma estructura — empresa/cliente → oportunidad → contacto → interacción — se adapta a **dos modos**: **Búsqueda laboral** y **Tu negocio** (freelance / emprendimiento, con nombre personalizable). Trae un **asistente y un equipo de agentes de IA** que *gestionan* tu embudo —resúmenes, próximos pasos y, cuando lo pedís, los mensajes—, **importación de tu cartera desde Excel**, y un **calendario** que sincronizás con el teléfono para no perder ningún follow-up. Empezás gratis y crece con vos.
+**CRM personal con asistente de IA que organiza tu búsqueda laboral o tu negocio como un pipeline.**
+
+[![CI](https://github.com/Ezzeorazi/konexo/actions/workflows/ci.yml/badge.svg)](https://github.com/Ezzeorazi/konexo/actions/workflows/ci.yml)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Prisma%207-4169E1?logo=postgresql&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-234-brightgreen)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+
+[**🌐 Probalo en konexo.site**](https://konexo.site) · [Guía de uso](https://konexo.site/guia) · [Blog](https://konexo.site/blog)
+
+</div>
 
 ---
 
-## Tabla de contenidos
+Konexo es un producto real, en producción, diseñado y desarrollado de punta a punta por mí: desde el modelo de datos y la autenticación multi-tenant hasta el equipo de agentes de IA, la suite de tests y la publicación como app Android.
 
-- [Los dos modos](#los-dos-modos)
-- [Características principales](#características-principales)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [Backups y exportación de datos](#backups-y-exportación-de-datos)
-- [Guía de uso](#guía-de-uso)
+La misma estructura (**empresa/cliente → oportunidad → contacto → interacción**) se adapta a dos modos: **Búsqueda laboral** y **Tu negocio** (freelance o emprendimiento). Cada modo cambia el vocabulario, las etapas y las métricas de la app.
+
+## Índice
+
+- [Puntos destacados](#puntos-destacados)
+- [Stack](#stack)
+- [Funcionalidades](#funcionalidades)
 - [Arquitectura](#arquitectura)
-- [Contribución](#contribución)
-- [Licencia](#licencia)
+- [Seguridad](#seguridad)
+- [Calidad: tests y CI](#calidad-tests-y-ci)
+- [Correrlo localmente](#correrlo-localmente)
+- [Backups y exportación](#backups-y-exportación)
+- [Autor](#autor)
 
 ---
 
-## Los dos modos
+## Puntos destacados
 
-Konexo se ofrece en **dos modos** sobre la misma base de datos. Cada uno reetiqueta la app (vocabulario, etapas, métricas) a tu objetivo; podés activar uno o los dos y cambiar de pipeline con un selector arriba.
+Lo que muestra este repo, con enlaces al código:
 
-| | 🎯 **Búsqueda laboral** | 🧑‍💻 **Tu negocio** (freelance / emprendimiento) |
+| Área | Qué hice | Dónde mirar |
 |---|---|---|
-| Entidad central | Oportunidades (avisos) | Proyectos (propios o de cliente) |
-| "Empresas" se llaman | Empresas | Clientes |
-| Etapas | Guardada → Aplicada → Entrevista → Oferta → Cerrada | Consulta → Propuesta → Negociación → En curso → Cobrado |
-| Monto / forecast | No | Sí (monto del proyecto, forecast ponderado) |
-| Ejecución | — | Tareas + bitácora por proyecto |
-| Extra de IA | Adaptar el CV al aviso | "Ponme al día" de un proyecto |
-
-> **Nombre personalizable:** "Tu negocio" toma el nombre que le pongas en Configuración (ej. el de tu emprendimiento); vacío queda como "Tu negocio".
->
-> Internamente existen otros presets de vertical (inmobiliaria, fundraising, reclutamiento) que **no se ofrecen** hoy: quedan en el código solo para no romper datos históricos.
-
----
-
-## Características principales
-
-- **Un CRM, dos modos.** Una misma base (empresa/cliente → oportunidad → contacto → interacción) adaptada a búsqueda de empleo y a tu negocio. Cada modo trae su vocabulario, etapas y métricas.
-- **Embudo Kanban editable.** Arrastrá las cards entre etapas (drag & drop). Las etapas no son fijas: se siembran desde presets por modo y podés editarlas por usuario.
-- **Forecast ponderado.** Cada etapa tiene una probabilidad de cierre; en "Tu negocio" (con monto) se calcula el valor esperado del pipeline.
-- **Importar tu cartera desde Excel.** Descargá una plantilla, completala y subila por el chat del asistente (clip 📎): crea **empresas y contactos en bloque**, deduplicando por nombre y vinculando cada contacto a su empresa, en el modo activo. El instructivo de formato viene en la propia plantilla.
-- **Asistente de IA que gestiona, no solo redacta.** Un chat que conoce tu embudo real (y el estado de ejecución de tus proyectos): resume, te pone al día, prioriza y decide próximos pasos; redactar mensajes es opt-in. Multi-proveedor: Groq, Ollama, Anthropic, OpenAI o Google — configurable por usuario, con tu propia API key. La conversación se conserva aunque cambies de página.
-- **Equipo de agentes de IA.** Un orquestador despierta a un *Calificador* (prioriza tus oportunidades con tier + score) y a un *Redactor* (escribe borradores de contacto listos para enviar, en paralelo).
-- **Proyectos propios vs. de cliente** (Tu negocio). Marcás cada proyecto como propio o de cliente, con aspecto distinguible: la IA trata los propios como ejecución (sin outreach) y, en los de cliente, redacta solo si lo pedís. Botón **"Ponme al día"** que resume estado y próximos pasos.
-- **Actividad unificada.** Cada oportunidad/proyecto tiene un solo stream de Actividad que combina interacciones (email, llamada, reunión) con la bitácora interna (ideas y avances), más un checklist de tareas.
-- **Directorio de contactos compartido.** Los contactos se comparten entre modos, con badge del modo de origen y filtro, para no recargar a la misma persona dos veces.
-- **Seguimientos que no se escapan.** Cada oportunidad y contacto guarda su próximo follow-up; los vencidos se marcan y suben de prioridad.
-- **Calendario sincronizable con el teléfono.** Página de agenda con tus follow-ups (vencidos y próximos) y un **feed iCalendar** (`/api/calendario/[token]`) autenticado por token secreto: lo suscribís en el calendario del teléfono y se actualiza solo.
-- **Foco y cierre del día.** Un **Pomodoro** acoplado al sidebar con sugerencias sobre tus datos reales, y un **"Cierre del día"** en el dashboard: un repaso con IA de lo que avanzaste.
-- **Versiones de CV con adaptación por IA** (Búsqueda laboral): guardá variantes de tu CV y adaptalas al aviso, comparándolo para sugerir keywords y bullets.
-- **Multi-tenancy con Clerk.** Aislamiento real por usuario; toda la data está scopeada por `userId`. Sin keys de Clerk, corre con un usuario-dev local.
+| **IA aplicada** | Router multi-proveedor (Groq, Ollama, Anthropic, OpenAI, Google) con key por usuario y un **equipo de agentes**: un orquestador coordina a un *Calificador* (prioriza oportunidades con tier y score) y a un *Redactor* (arma borradores en paralelo). | [`lib/ai.ts`](lib/ai.ts), [`lib/agent-team.ts`](lib/agent-team.ts), [`lib/agent-playbooks.ts`](lib/agent-playbooks.ts) |
+| **Seguridad de LLMs** | Defensa contra *prompt injection*: los datos del usuario se delimitan y neutralizan antes de entrar al prompt. El modelo **no tiene acceso a la base**; solo recibe un resumen en texto armado del lado del servidor. | [`lib/prompt-safety.ts`](lib/prompt-safety.ts), [auditoría del asistente](AUDITORIA-ASISTENTE-IA.md) |
+| **Multi-tenancy** | Aislamiento por `userId` en todas las consultas, con un único punto de identidad *fail-closed* y tests que verifican que un usuario no puede leer ni modificar datos de otro. | [`lib/auth.ts`](lib/auth.ts), [`tests/integration/multitenancy.test.ts`](tests/integration/multitenancy.test.ts) |
+| **Criptografía** | Las API keys de los usuarios se guardan cifradas en la base con AES-256-GCM. | [`lib/crypto.ts`](lib/crypto.ts) |
+| **Modelo de dominio flexible** | Un mismo esquema "vestido" por modo (vocabulario, etapas, forecast), con etapas editables por usuario. | [`lib/tracks.ts`](lib/tracks.ts), [`lib/stages.ts`](lib/stages.ts) |
+| **Importación de datos** | Parser de Excel determinista (sin IA): deduplica, vincula contactos a empresas y reutiliza las mismas validaciones Zod que los formularios. | [`lib/excel-import.ts`](lib/excel-import.ts), [`lib/validation.ts`](lib/validation.ts) |
+| **Interoperabilidad** | Feed iCalendar autenticado por token para suscribir los follow-ups desde el calendario del teléfono. | [`lib/ics.ts`](lib/ics.ts), [`app/api/calendario/[token]`](app/api/calendario/%5Btoken%5D/route.ts) |
+| **Testing** | 234 tests en tres capas: unitarios, integración contra Postgres real en memoria (PGlite) y E2E con Playwright, incluyendo accesibilidad (axe) y Web Vitals. | [`TESTING.md`](TESTING.md), [`tests/`](tests) |
+| **Producto completo** | Landing con SEO (sitemap, JSON-LD, blog en MDX), analítica de producto (PostHog), PWA y app Android (TWA) para Google Play. | [`app/`](app), [`content/blog/`](content/blog) |
 
 ---
 
-## Requisitos
+## Stack
 
-- **Node.js 20+**
-- **PostgreSQL** — una base local o gestionada (ej. [Neon](https://neon.tech)). Necesitás la connection string en `DATABASE_URL`.
-- **npm** (o pnpm/yarn)
-
-Opcionales:
-- **Clerk** — para login real y aislamiento por usuario. Sin sus keys, la app corre con un usuario-dev. ([dashboard.clerk.com](https://dashboard.clerk.com))
-- **API key de un proveedor de IA** — para el asistente y el equipo de agentes. La de **Groq** es gratis en [console.groq.com](https://console.groq.com). También sirve Ollama (local), Anthropic, OpenAI o Google. Se carga desde **Configuración** dentro de la app, no en variables de entorno.
-- **`SETTINGS_ENCRYPTION_KEY`** — clave de 32 bytes (`openssl rand -base64 32`) para cifrar at-rest las API keys de IA que carga el usuario. Requerida en producción.
-- **PostHog** — analítica de producto (opcional).
-
----
-
-## Instalación
-
-```bash
-# 1. Cloná el repo
-git clone <url-del-repo> konexo
-cd konexo
-
-# 2. Instalá dependencias (genera el cliente de Prisma en postinstall)
-npm install
-
-# 3. Configurá las variables de entorno
-cp .env.example .env   # en Windows (PowerShell): Copy-Item .env.example .env
-#   Editá .env y poné tu DATABASE_URL de PostgreSQL.
-#   Clerk, PostHog y SETTINGS_ENCRYPTION_KEY son opcionales en dev (ver .env.example).
-
-# 4. Aplicá las migraciones a la base
-npx prisma migrate deploy
-
-# 5. (Opcional) Sembrá datos de ejemplo para recorrer la app
-npm run db:seed
-
-# 6. Arrancá el servidor de desarrollo
-npm run dev
-```
-
-Abrí [http://localhost:3000](http://localhost:3000) y listo.
-
-### Scripts disponibles
-
-| Comando | Qué hace |
-| --- | --- |
-| `npm run dev` | Servidor de desarrollo |
-| `npm run build` | Build de producción |
-| `npm run start` | Sirve el build de producción |
-| `npm run lint` | Linter (ESLint) |
-| `npm run db:migrate` | Crea/aplica migraciones en desarrollo |
-| `npm run db:seed` | Siembra datos de ejemplo (abortado si detecta producción) |
-| `npm run db:backup` | Genera un dump fechado de la base en `/backups` |
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 16 (App Router, Server Components, Server Actions), React 19, TypeScript |
+| Datos | PostgreSQL (Neon) + Prisma 7 (`@prisma/adapter-pg`), migraciones versionadas |
+| Auth | Clerk (multi-tenant), con usuario de desarrollo local cuando no hay keys |
+| UI | Tailwind CSS v4, shadcn / Base UI, `@dnd-kit` para el Kanban |
+| IA | Capa propia multi-proveedor, sin SDKs de terceros |
+| Validación | Zod 4 |
+| Testing | Vitest, PGlite, Playwright, axe-core |
+| Infra | Vercel, GitHub Actions, PostHog |
 
 ---
 
-## Backups y exportación de datos
+## Funcionalidades
 
-Hay dos redes de seguridad para no perder datos:
-
-### 1. Backup completo de la base (operador)
-
-`npm run db:backup` corre `pg_dump` contra la `DATABASE_URL` de tu `.env` y deja un
-dump fechado en `backups/konexo-AAAA-MM-DD_HHmmss.sql`. La carpeta `/backups` está
-en `.gitignore` (puede contener datos reales).
-
-> **Requisito:** `pg_dump` **versión ≥ la del servidor**. Neon corre PostgreSQL 18,
-> así que hace falta `pg_dump` 18+ (un `pg_dump` más viejo se niega a dumpear un
-> servidor más nuevo). En Windows viene con el
-> [instalador de PostgreSQL 18](https://www.postgresql.org/download/windows/).
->
-> El script busca `pg_dump` en este orden: variable de entorno `PG_DUMP` → el `PATH`
-> → la instalación más nueva en `C:\Program Files\PostgreSQL\<ver>\bin`. Si lo tenés
-> en otro lado (ej. binarios sueltos sin instalar el servidor), apuntalo así:
->
-> ```bash
-> PG_DUMP="C:\\ruta\\a\\pg18\\bin\\pg_dump.exe" npm run db:backup
-> ```
-
-```bash
-npm run db:backup
-```
-
-**Restaurar un backup** en una base destino (por ejemplo una base Neon nueva), con
-su connection string:
-
-```bash
-# Restaura el dump elegido sobre la base destino.
-psql "postgresql://USER:PASSWORD@HOST/DB?sslmode=require" -f backups/konexo-AAAA-MM-DD_HHmmss.sql
-```
-
-> El dump se genera con `--no-owner --no-privileges`, así que se restaura sin chocar
-> con roles que no existan en la base destino. Restaurá siempre sobre una base
-> **vacía o de prueba** primero para verificar.
-
-**Sobre los backups automáticos de Neon:** Neon ofrece *point-in-time restore*
-gestionado; la ventana depende del plan (el Free suele dar ~24 h, los pagos varios
-días). Verificá tu ventana actual en el dashboard de Neon → tu proyecto → *Backups /
-History*. `db:backup` es complementario: una copia tuya, fuera de Neon.
-
-### 2. Exportar mis datos a JSON (usuario)
-
-Dentro de la app, en **Configuración → Mis datos**, el botón *Exportar a JSON*
-descarga una copia de todos los datos del usuario logueado (empresas, oportunidades,
-contactos, seguimientos, CVs y configuración). Está scopeado por `userId`: nunca
-incluye datos de otra cuenta.
-
----
-
-## Guía de uso
-
-1. **Elegí tu modo.** En Configuración activás **Búsqueda laboral**, **Tu negocio**, o los dos. Con ambos activos, un selector arriba te deja cambiar de pipeline. A "Tu negocio" podés ponerle el nombre de tu emprendimiento.
-2. **Cargá el embudo.** Creá empresas/clientes, oportunidades/proyectos y contactos, o **importá tu cartera desde Excel** por el chat (descargá la plantilla, completala y subila con el clip 📎). Movés las cards entre etapas arrastrando en el tablero Kanban.
-3. **Registrá la Actividad.** Cada email, llamada o reunión queda como interacción, y las ideas/avances como bitácora, en un solo stream. Agendás el próximo follow-up para que nada se enfríe.
-4. **Configurá la IA.** En **Configuración** elegí proveedor (Groq es gratis) y pegá tu API key (se guarda cifrada). Definí tu perfil de negocio para que los agentes personalicen y firmen los mensajes.
-5. **Usá el asistente.** El chat lateral conoce tu embudo: te resume, te pone al día y decide próximos pasos; si le pedís un mensaje, lo redacta. En el **Asistente**, el equipo de agentes califica tus oportunidades abiertas y devuelve borradores listos para copiar y pegar.
-6. **Sincronizá el calendario.** En **Calendario** ves tus follow-ups vencidos y próximos, y generás un enlace para suscribir el feed en el calendario del teléfono.
-
-> 💡 Hay una guía de uso pública dentro de la app, en la ruta `/guia`.
+- **Dos modos sobre una misma base.** *Búsqueda laboral* (avisos → aplicada → entrevista → oferta) y *Tu negocio* (consulta → propuesta → negociación → en curso → cobrado, con monto y forecast ponderado). Se pueden activar los dos y cambiar de pipeline con un selector.
+- **Kanban editable** con drag & drop y etapas configurables por usuario.
+- **Asistente de IA que gestiona, no solo redacta.** Un chat que conoce tu embudo real: resume, prioriza y propone próximos pasos. Redactar mensajes es opcional y solo ocurre si lo pedís.
+- **Equipo de agentes** que califica tus oportunidades abiertas y devuelve borradores listos para enviar.
+- **Proyectos propios vs. de cliente**, con un botón *"Ponme al día"* que resume estado y próximos pasos.
+- **Actividad unificada**: interacciones (email, llamada, reunión) y bitácora interna en un solo historial, más un checklist de tareas.
+- **Seguimientos**: cada oportunidad y contacto tiene su próximo follow-up; los vencidos se marcan y suben de prioridad.
+- **Calendario sincronizable** con el teléfono mediante un feed `.ics` privado.
+- **Importación desde Excel** de empresas y contactos en bloque, con plantilla descargable.
+- **Versiones de CV adaptadas por IA** a cada aviso.
+- **Pomodoro y "Cierre del día"** con un repaso de lo que avanzaste, generado por IA.
+- **Exportación de tus datos** a JSON y eliminación de cuenta.
 
 ---
 
 ## Arquitectura
 
-- **Framework:** Next.js 16 (App Router) + React 19, con Server Components y Server Actions.
-- **Base de datos:** PostgreSQL vía Prisma 7 (cliente generado en `lib/generated/prisma/`, adaptador `@prisma/adapter-pg`).
-- **Auth:** Clerk, con degradación a usuario-dev cuando no hay keys (`lib/auth.ts`, `proxy.ts`). Fail-closed en producción.
-- **UI:** Tailwind CSS v4 + shadcn / Base UI, estética cómic; Kanban con `@dnd-kit`.
-- **IA:** router multi-proveedor (`lib/ai.ts`) y equipo de agentes (`lib/agent-team.ts`); defensa anti prompt-injection (`lib/prompt-safety.ts`) y API keys cifradas at-rest (`lib/crypto.ts`).
-- **Importación:** parser de Excel determinista con `exceljs` (`lib/excel-import.ts`); plantilla descargable en `app/api/plantilla/`.
-- **Calendario:** feed iCalendar generado en `lib/ics.ts` y servido por la ruta pública `app/api/calendario/[token]/` (autenticada por token, no por sesión).
-- **Analítica:** PostHog. **Hosting:** Vercel.
+```mermaid
+flowchart LR
+    U[Usuario] -->|HTTPS| P[proxy.ts<br/>Clerk · rutas protegidas]
+    P --> RSC[Server Components<br/>+ Server Actions]
+    RSC -->|"queries scopeadas por userId"| DB[(PostgreSQL<br/>Prisma)]
+    RSC --> AI[lib/ai.ts<br/>router multi-proveedor]
+    AI -->|"resumen en texto<br/>(sin acceso a la DB)"| LLM[Groq · Ollama · Anthropic<br/>OpenAI · Google]
+    Cal[App de calendario] -->|token secreto| ICS["/api/calendario/[token]"]
+    ICS --> DB
+```
 
-El concepto central son los **modos/tracks** (`lib/tracks.ts`): una misma estructura de datos vestida para cada objetivo. Hoy se ofrecen dos (`AVAILABLE_TRACKS`); el resto de los presets quedan por compatibilidad. Las rutas se separan en zona pública (landing, guía, login) y zona privada `app/(app)/` (el CRM), protegida por `proxy.ts`.
+- **Rutas:** zona pública (landing, guía, blog, legales, login) y zona privada `app/(app)/` con el CRM, protegida por [`proxy.ts`](proxy.ts) (el antiguo `middleware` en Next 16).
+- **Mutaciones:** todas pasan por Server Actions que obtienen el usuario con `currentUserId()` y validan la entrada con Zod antes de tocar la base.
+- **IA:** capa texto→texto **sin tool calling**. El servidor arma el contexto, el modelo devuelve texto y el código decide qué hacer con él. Un límite diario por usuario protege la key compartida ([`lib/ai-usage.ts`](lib/ai-usage.ts)).
+- **Modos/tracks:** [`lib/tracks.ts`](lib/tracks.ts) define el vocabulario y las etapas de cada modo. Hay otros presets (inmobiliaria, fundraising, reclutamiento) que no se ofrecen hoy y se conservan por compatibilidad con datos históricos.
+
+---
+
+## Seguridad
+
+- **Fail-closed en producción:** si faltan variables críticas (auth, base de datos, clave de cifrado), el build y el arranque fallan en vez de servir la app mal configurada ([`lib/env.ts`](lib/env.ts)).
+- **Aislamiento de datos** por usuario en todas las consultas, cubierto por tests de integración.
+- **Secretos cifrados** con AES-256-GCM; nunca se muestran completos en la UI.
+- **Headers de seguridad:** CSP estricta, HSTS, `X-Frame-Options: DENY`, `nosniff`, `Permissions-Policy` ([`next.config.ts`](next.config.ts)).
+- **Validación** de toda entrada con Zod, y defensa contra *prompt injection* en todo lo que llega al LLM.
+- **Cadena de suministro:** CI con permisos mínimos y Dependabot para actualizaciones de dependencias.
+
+Para reportar una vulnerabilidad y ver el runbook operativo (WAF, rate limiting, bot protection), consultá [`SECURITY.md`](SECURITY.md).
 
 ---
 
-## Contribución
+## Calidad: tests y CI
 
-Las contribuciones son bienvenidas:
+| Capa | Qué prueba | Tests | Comando |
+|---|---|---:|---|
+| Unitarios | Lógica pura (fechas, forecast, parser de Excel, prompt safety, iCal…) | 149 | `npm test` |
+| Integración | Server Actions y rutas API contra Postgres real (PGlite en memoria) | 65 | `npm run test:integration` |
+| E2E | Flujos en el navegador, accesibilidad (axe) y Web Vitals | 20 | `npm run test:e2e` |
 
-1. Abrí un **Issue** para reportar un bug o proponer una mejora antes de ponerte a codear.
-2. Hacé un **fork** y creá una rama descriptiva (`feat/mi-mejora` o `fix/mi-bug`).
-3. Asegurate de que `npm run lint` y `npm run build` pasen.
-4. Enviá un **Pull Request** explicando el qué y el porqué del cambio.
+En cada push y PR, [GitHub Actions](.github/workflows/ci.yml) corre lint, typecheck, las tres capas de tests y verifica que las migraciones se apliquen sobre Postgres sin *drift* respecto del schema. Más detalle en [`TESTING.md`](TESTING.md).
 
 ---
+
+## Correrlo localmente
+
+**Requisitos:** Node.js 20+ y una base PostgreSQL (local o, por ejemplo, [Neon](https://neon.tech)).
+
+```bash
+git clone https://github.com/Ezzeorazi/konexo.git
+cd konexo
+npm install                 # genera también el cliente de Prisma
+cp .env.example .env        # en PowerShell: Copy-Item .env.example .env
+# Editá .env y completá DATABASE_URL. Lo demás es opcional en desarrollo.
+npx prisma migrate deploy   # crea las tablas
+npm run db:seed             # (opcional) datos de ejemplo
+npm run dev                 # http://localhost:3000
+```
+
+Sin keys de Clerk, la app corre con un usuario de desarrollo local. Para usar la IA, cargá una API key desde **Configuración** dentro de la app (la de [Groq](https://console.groq.com) es gratuita) o definí `GROQ_API_KEY` en `.env`. Todas las variables están documentadas en [`.env.example`](.env.example).
+
+<details>
+<summary><strong>Scripts disponibles</strong></summary>
+
+| Comando | Qué hace |
+| --- | --- |
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` / `npm run start` | Build de producción y servirlo |
+| `npm run lint` | ESLint |
+| `npm test` · `npm run test:integration` · `npm run test:e2e` | Tests por capa |
+| `npm run test:all` | Unitarios + integración |
+| `npm run db:migrate` | Crea y aplica migraciones en desarrollo |
+| `npm run db:seed` | Siembra datos de ejemplo (se aborta si detecta producción) |
+| `npm run db:backup` | Dump fechado de la base en `/backups` |
+
+</details>
+
+---
+
+## Backups y exportación
+
+- **Operador:** `npm run db:backup` genera un `pg_dump` fechado en `backups/` (ignorado por git). Requiere `pg_dump` con versión igual o mayor a la del servidor (Neon usa PostgreSQL 18); si no está en el `PATH`, se puede indicar con la variable `PG_DUMP`. Para restaurar: `psql "<connection-string>" -f backups/<archivo>.sql`, siempre primero sobre una base vacía o de prueba.
+- **Usuario:** en **Configuración → Mis datos**, *Exportar a JSON* descarga todos sus datos, filtrados por su `userId`.
+
+---
+
+## Autor
+
+**Ezequiel Orazi**, desarrollador full stack.
+
+- Portfolio: [ezequiel-orazi.online](https://ezequiel-orazi.online)
+- GitHub: [@Ezzeorazi](https://github.com/Ezzeorazi)
+
+Si te interesa el proyecto o querés conversar sobre una oportunidad, escribime. Issues y PRs son bienvenidos (antes de un cambio grande, abrí un issue).
 
 ## Licencia
 
-Publicado bajo licencia **MIT**. Consultá el archivo [`LICENSE`](LICENSE) para los términos completos.
+[MIT](LICENSE) © 2026 Ezequiel Orazi

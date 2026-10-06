@@ -10,6 +10,11 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Mínimo privilegio: el GITHUB_TOKEN solo puede leer el repo. Ningún job
+# necesita escribir (no publica releases, ni comenta PRs, ni pushea).
+permissions:
+  contents: read
+
 jobs:
   # Lint + typecheck + tests (unit y de integración). La integración corre contra
   # PGlite en proceso, así que NO necesita un Postgres externo.

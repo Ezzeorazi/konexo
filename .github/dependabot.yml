@@ -1,0 +1,17 @@
+# Dependabot: PRs semanales con actualizaciones de seguridad y versiones.
+# Agrupa los parches/minors para no inundar el repo de PRs sueltos.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-y-parches:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
