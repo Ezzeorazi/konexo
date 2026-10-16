@@ -14,6 +14,7 @@ export type AiSurface =
   | "agents"
   | "cv"
   | "fit"
+  | "interview"
   | "catchup"
   | "daily_review"
   | "test_connection";

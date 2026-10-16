@@ -36,6 +36,8 @@ import { ItemLink } from "@/components/clickable";
 import { CvTailorCard } from "@/components/oportunidades/cv-tailor-card";
 import { FortuneCookie } from "@/components/galletas/fortune-cookie";
 import { FitCard } from "@/components/oportunidades/fit-card";
+import { InterviewPrepCard } from "@/components/oportunidades/interview-prep-card";
+import { isInterviewStage } from "@/lib/interview";
 import { parseStoredFit, profileIsUsable } from "@/lib/fit";
 import { getJobProfile } from "@/lib/job-profile";
 import { fortunesEnabled, getOppFortune } from "@/lib/fortune-data";
@@ -540,6 +542,26 @@ export default async function OportunidadDetailPage({
               />
             </CardContent>
           </Card>
+
+          {isJobs ? (
+            <InterviewPrepCard
+              opportunityId={opportunity.id}
+              title={opportunity.title}
+              hasJobDescription={Boolean(opportunity.jobDescription?.trim())}
+              highlight={opportunity.stage === "INTERVIEW"}
+              initialPrep={
+                opportunity.interviewPrep &&
+                opportunity.interviewPrepAt &&
+                isInterviewStage(opportunity.interviewPrepStage)
+                  ? {
+                      text: opportunity.interviewPrep,
+                      stage: opportunity.interviewPrepStage,
+                      at: opportunity.interviewPrepAt.toISOString(),
+                    }
+                  : null
+              }
+            />
+          ) : null}
 
           {isJobs ? (
             <FitCard

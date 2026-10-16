@@ -219,7 +219,8 @@ const CATALOG: FortuneDef[] = [
     credits: 20,
     phrase: "Llegá con tres historias y salís con una oferta.",
     mission: () =>
-      "Escribí tres historias STAR (Situación, Tarea, Acción, Resultado) que respondan a los requisitos del aviso. Uno o dos minutos cada una, con resultados concretos.",
+      "Armá el pack de preparación: preguntas probables y tres historias STAR (Situación, Tarea, Acción, Resultado) armadas con tu CV real.",
+    action: { label: "Armar el pack", href: oppHref("entrevista") },
   },
   {
     key: "interview-why",
@@ -238,6 +239,16 @@ const CATALOG: FortuneDef[] = [
     phrase: "El que pregunta, también evalúa.",
     mission: () =>
       "Prepará tres preguntas para el entrevistador: cómo es una semana típica, qué sería un éxito a los 6 meses, y cuánto es desarrollo nuevo vs mantenimiento.",
+  },
+  {
+    key: "interview-mock",
+    phases: ["interview"],
+    weight: 70,
+    credits: 20,
+    phrase: "El que entrena no improvisa.",
+    mission: () =>
+      "Hacé un simulacro en el chat: el entrevistador te pregunta, y después de cada respuesta te dice qué funcionó y qué afinar.",
+    action: { label: "Simulacro", href: oppHref("entrevista") },
   },
   {
     key: "interview-thanks",

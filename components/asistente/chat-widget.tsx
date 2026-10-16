@@ -11,10 +11,16 @@ import {
   Sparkles,
   Paperclip,
   Download,
+  Mic,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { sendChatMessage } from "@/app/(app)/asistente/actions";
+import { sendMockInterviewMessage } from "@/app/(app)/oportunidades/interview-actions";
+import {
+  MOCK_INTERVIEW_EVENT,
+  type MockInterviewTarget,
+} from "@/lib/mock-interview-event";
 import {
   importFromExcel,
   type ImportSummary,
@@ -26,25 +32,39 @@ import type { ChatMessage } from "@/lib/ai";
 // layout y, sin esto, cualquier remonte borraría los mensajes.
 const STORAGE_KEY = "konexo-chat-v1";
 
-function loadPersisted(): { open: boolean; messages: ChatMessage[] } {
-  if (typeof window === "undefined") return { open: false, messages: [] };
+type Persisted = {
+  open: boolean;
+  messages: ChatMessage[];
+  /** Simulacro de entrevista en curso (null = chat normal). */
+  mock: MockInterviewTarget | null;
+  /** La conversación normal, guardada mientras dura el simulacro. */
+  stash: ChatMessage[];
+};
+
+const EMPTY: Persisted = { open: false, messages: [], mock: null, stash: [] };
+
+function loadPersisted(): Persisted {
+  if (typeof window === "undefined") return EMPTY;
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return { open: false, messages: [] };
-    const data = JSON.parse(raw) as { open?: boolean; messages?: ChatMessage[] };
+    if (!raw) return EMPTY;
+    const data = JSON.parse(raw) as Partial<Persisted>;
     return {
       open: Boolean(data.open),
       messages: Array.isArray(data.messages) ? data.messages : [],
+      mock:
+        data.mock && typeof data.mock.opportunityId === "string" ? data.mock : null,
+      stash: Array.isArray(data.stash) ? data.stash : [],
     };
   } catch {
-    return { open: false, messages: [] };
+    return EMPTY;
   }
 }
 
-function persist(open: boolean, messages: ChatMessage[]) {
+function persist(state: Persisted) {
   if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ open, messages }));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     // sin storage (modo privado, cuota): el chat sigue andando, sin persistir.
   }
@@ -93,13 +113,26 @@ export function ChatWidget() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Espejos del estado para leer el valor más fresco dentro de callbacks async
   // y persistir de forma sincrónica antes de cualquier refresh/remonte.
+  const [mock, setMock] = useState<MockInterviewTarget | null>(null);
   const openRef = useRef(open);
   const messagesRef = useRef(messages);
+  const mockRef = useRef(mock);
+  const stashRef = useRef<ChatMessage[]>([]);
   // Mantenemos los espejos sincronizados tras cada commit (no durante el render).
   useEffect(() => {
     openRef.current = open;
     messagesRef.current = messages;
+    mockRef.current = mock;
   });
+
+  function persistNow() {
+    persist({
+      open: openRef.current,
+      messages: messagesRef.current,
+      mock: mockRef.current,
+      stash: stashRef.current,
+    });
+  }
 
   // Restaurar conversación al montar (después de hidratar, para no romper SSR).
   // Leer sessionStorage en el initializer del useState provocaría desajuste de
@@ -107,24 +140,80 @@ export function ChatWidget() {
   // el patrón correcto para estado que solo existe en el cliente.
   useEffect(() => {
     const p = loadPersisted();
-    if (!p.messages.length && !p.open) return;
+    if (!p.messages.length && !p.open && !p.mock) return;
+    stashRef.current = p.stash;
+    mockRef.current = p.mock;
     /* eslint-disable react-hooks/set-state-in-effect */
     setMessages(p.messages);
     setOpen(p.open);
+    setMock(p.mock);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   // Actualiza mensajes y persiste sincrónicamente (sobrevive a router.refresh).
   function saveMessages(next: ChatMessage[]) {
     messagesRef.current = next;
-    persist(openRef.current, next);
+    persistNow();
     setMessages(next);
   }
   function changeOpen(value: boolean) {
     openRef.current = value;
-    persist(value, messagesRef.current);
+    persistNow();
     setOpen(value);
   }
+
+  // ===== Simulacro de entrevista: un modo del chat, no otra superficie =====
+  function askInterviewer(target: MockInterviewTarget, history: ChatMessage[]) {
+    startTransition(async () => {
+      const result = await sendMockInterviewMessage(
+        target.opportunityId,
+        target.stage,
+        history
+      );
+      if (mockRef.current?.opportunityId !== target.opportunityId) return; // salió
+      if (result.ok) {
+        saveMessages([...history, { role: "assistant", content: result.text }]);
+      } else {
+        toast.error(result.error, { duration: 10000 });
+        if (history.length) {
+          // Devolvemos la respuesta al input para no perderla.
+          const last = history[history.length - 1];
+          saveMessages(history.slice(0, -1));
+          setInput(last.content);
+        }
+      }
+    });
+  }
+
+  function startMock(target: MockInterviewTarget) {
+    // Guardamos la charla normal para devolverla al salir del simulacro.
+    if (!mockRef.current) stashRef.current = messagesRef.current;
+    mockRef.current = target;
+    openRef.current = true;
+    setMock(target);
+    setOpen(true);
+    setInput("");
+    saveMessages([]);
+    askInterviewer(target, []);
+  }
+
+  function exitMock() {
+    const restored = stashRef.current;
+    stashRef.current = [];
+    mockRef.current = null;
+    setMock(null);
+    setInput("");
+    saveMessages(restored);
+  }
+
+  useEffect(() => {
+    function onStart(e: Event) {
+      const detail = (e as CustomEvent<MockInterviewTarget>).detail;
+      if (detail?.opportunityId) startMock(detail);
+    }
+    window.addEventListener(MOCK_INTERVIEW_EVENT, onStart);
+    return () => window.removeEventListener(MOCK_INTERVIEW_EVENT, onStart);
+  });
 
   function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -170,6 +259,10 @@ export function ChatWidget() {
     const next: ChatMessage[] = [...prev, { role: "user", content }];
     saveMessages(next);
     setInput("");
+    if (mockRef.current) {
+      askInterviewer(mockRef.current, next);
+      return;
+    }
     startTransition(async () => {
       const result = await sendChatMessage(next);
       if (result.ok) {
@@ -211,10 +304,29 @@ export function ChatWidget() {
   return (
     <div className="fixed right-5 bottom-5 z-40 flex h-[min(34rem,calc(100vh-3rem))] w-[min(24rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-xl bg-popover shadow-xl ring-1 ring-foreground/10">
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-primary" />
-          <p className="text-sm font-medium">Asistente</p>
-        </div>
+        {mock ? (
+          <div className="flex min-w-0 items-center gap-2">
+            <Mic className="size-4 shrink-0 text-alarm" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Simulacro · {mock.stageLabel}</p>
+              <p className="truncate text-xs text-muted-foreground">{mock.title}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="xs"
+              className="ml-1 shrink-0"
+              onClick={exitMock}
+              disabled={pending}
+            >
+              Salir
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" />
+            <p className="text-sm font-medium">Asistente</p>
+          </div>
+        )}
         <Button variant="ghost" size="icon-sm" onClick={() => changeOpen(false)}>
           <X className="size-4" />
           <span className="sr-only">Cerrar</span>
@@ -222,7 +334,12 @@ export function ChatWidget() {
       </div>
 
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
-        {messages.length === 0 ? (
+        {mock && messages.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            El entrevistador se está preparando… Respondé como en una entrevista
+            real: después de cada respuesta te da una devolución.
+          </p>
+        ) : messages.length === 0 ? (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Conozco tus proyectos y contactos. Te ayudo a gestionar: resúmenes,
@@ -285,7 +402,9 @@ export function ChatWidget() {
           )
         )}
         {pending ? (
-          <p className="text-xs text-muted-foreground">Pensando...</p>
+          <p className="text-xs text-muted-foreground">
+            {mock ? "El entrevistador escucha..." : "Pensando..."}
+          </p>
         ) : null}
       </div>
 
@@ -303,23 +422,25 @@ export function ChatWidget() {
           className="hidden"
           onChange={onPickFile}
         />
-        <Button
-          type="button"
-          size="icon"
-          variant="outline"
-          disabled={pending}
-          onClick={() => fileInputRef.current?.click()}
-          title="Importar empresas y contactos desde Excel"
-        >
-          <Paperclip className="size-4" />
-          <span className="sr-only">Adjuntar Excel</span>
-        </Button>
+        {mock ? null : (
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            disabled={pending}
+            onClick={() => fileInputRef.current?.click()}
+            title="Importar empresas y contactos desde Excel"
+          >
+            <Paperclip className="size-4" />
+            <span className="sr-only">Adjuntar Excel</span>
+          </Button>
+        )}
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder="Escribí tu consulta..."
+          placeholder={mock ? "Tu respuesta..." : "Escribí tu consulta..."}
           className="max-h-28 min-h-9 flex-1 overflow-y-auto py-1.5"
         />
         <Button type="submit" size="icon" disabled={pending || !input.trim()}>
