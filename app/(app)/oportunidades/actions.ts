@@ -235,53 +235,6 @@ export async function deleteOpportunity(id: string) {
   return { ok: true as const };
 }
 
-export async function tailorCv(opportunityId: string) {
-  const userId = await currentUserId();
-  const opportunity = await prisma.opportunity.findFirst({
-    where: { id: opportunityId, userId },
-    include: { company: true, cvVersion: true },
-  });
-  if (!opportunity) {
-    return { ok: false as const, error: "No encontré la oportunidad." };
-  }
-  if (!opportunity.jobDescription?.trim()) {
-    return {
-      ok: false as const,
-      error:
-        "Esta oportunidad no tiene descripción del puesto. Agregala desde “Editar” para poder adaptar tu CV.",
-    };
-  }
-  if (!opportunity.cvVersion?.content?.trim()) {
-    return {
-      ok: false as const,
-      error:
-        "La oportunidad no tiene una versión de CV con contenido. Creá una versión de CV en Configuración pegando el texto de tu CV, y asignala desde “Editar”.",
-    };
-  }
-
-  return generateAiText({
-    surface: "cv",
-    system: [
-      "Sos un experto en reclutamiento y redacción de CVs. Ayudás a adaptar el CV de una persona a un aviso de trabajo concreto. Respondés en español, en texto plano sin Markdown, de forma directa y accionable. Nunca inventás experiencia que la persona no tiene.",
-      INJECTION_GUARD,
-    ].join("\n"),
-    prompt: [
-      `Puesto: ${opportunity.title}${opportunity.company ? ` en ${opportunity.company.name}` : ""}`,
-      "",
-      "--- DESCRIPCIÓN DEL AVISO ---",
-      userData(opportunity.jobDescription, 6000),
-      "",
-      "--- CV ACTUAL ---",
-      userData(opportunity.cvVersion.content, 6000),
-      "",
-      "--- TAREA ---",
-      "1. Listá las 3-5 keywords o requisitos del aviso que el CV todavía no refleja bien.",
-      "2. Sugerí cambios concretos: qué bullets reescribir y cómo (mostrá el antes y el después).",
-      "3. Proponé un resumen profesional de 2-3 líneas adaptado a este puesto.",
-    ].join("\n"),
-  });
-}
-
 /**
  * "Ponme al día": en vez de redactar un mensaje, la IA resume el estado real de
  * UN proyecto (tareas, bitácora, timeline) y te da una guía para retomarlo.

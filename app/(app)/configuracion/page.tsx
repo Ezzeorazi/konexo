@@ -19,6 +19,7 @@ import { BusinessProfileForm } from "@/components/configuracion/business-profile
 import { TracksSettingsForm } from "@/components/configuracion/tracks-settings-form";
 import { StagesEditor } from "@/components/configuracion/stages-editor";
 import { CVVersionDialog } from "@/components/configuracion/cv-version-dialog";
+import { CvAnalyzeDialog } from "@/components/configuracion/cv-analyze-dialog";
 import { DeleteAccount } from "@/components/configuracion/delete-account";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { formatDate } from "@/lib/dates";
@@ -237,6 +238,11 @@ export default async function ConfiguracionPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
+                      <CvAnalyzeDialog
+                        cvVersionId={cv.id}
+                        label={cv.label}
+                        hasContent={Boolean(cv.content?.trim())}
+                      />
                       <CVVersionDialog
                         cvVersion={cv}
                         trigger={

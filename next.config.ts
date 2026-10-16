@@ -153,6 +153,11 @@ function securityHeaders({ landing }: { landing: boolean }) {
 const nextConfig: NextConfig = {
   // Permite archivos .md/.mdx como páginas e imports (blog en content/blog).
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
+  // Subida del PDF del CV (extractCvFromPdf): el archivo tope es 4 MB y el
+  // multipart suma overhead. 4.5 MB es además el tope de body de Vercel.
+  experimental: {
+    serverActions: { bodySizeLimit: "4.5mb" },
+  },
   // SEO: la landing histórica vivía en "/home" y el root redirigía ahí. Google
   // eligió "/" como canónica e ignoraba la auto-canónica de "/home" ("Duplicada:
   // Google eligió una canónica distinta"). Ahora la landing ES "/" y "/home"

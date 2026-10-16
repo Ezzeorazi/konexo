@@ -227,7 +227,7 @@ async function callAnthropic(
     },
     body: JSON.stringify({
       model: config.model,
-      max_tokens: 2048,
+      max_tokens: 4096,
       system,
       messages,
     }),

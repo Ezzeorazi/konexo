@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { FileUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createCVVersion, updateCVVersion } from "@/app/(app)/configuracion/actions";
+import { extractCvFromPdf } from "@/app/(app)/configuracion/cv-actions";
+import { AtsIssues } from "@/components/configuracion/ats-issues";
+import type { AtsCheck } from "@/lib/cv-ats";
 
 type CVVersionData = {
   id: string;
@@ -37,14 +41,54 @@ export function CVVersionDialog({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const isEdit = Boolean(cvVersion);
+  // Contenido y nombre de archivo controlados: el PDF subido los completa.
+  const [content, setContent] = useState(cvVersion?.content ?? "");
+  const [fileName, setFileName] = useState(cvVersion?.fileName ?? "");
+  const [ats, setAts] = useState<AtsCheck | null>(null);
+  const [extracting, startExtract] = useTransition();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleOpenChange(next: boolean) {
+    if (next) {
+      setContent(cvVersion?.content ?? "");
+      setFileName(cvVersion?.fileName ?? "");
+      setAts(null);
+    }
+    setOpen(next);
+  }
+
+  function handlePdf(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // permite volver a elegir el mismo archivo
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("El PDF pesa más de 4 MB. Exportalo más liviano.");
+      return;
+    }
+    const data = new FormData();
+    data.append("file", file);
+    startExtract(async () => {
+      const res = await extractCvFromPdf(data);
+      if (!res.ok) {
+        toast.error(res.error, { duration: 8000 });
+        return;
+      }
+      setContent(res.text);
+      setFileName(res.fileName);
+      setAts(res.ats);
+      toast.success(
+        `Leí ${res.pages} página${res.pages === 1 ? "" : "s"}. Revisá el texto antes de guardar.`
+      );
+    });
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const input = {
       label: String(form.get("label") ?? ""),
-      fileName: String(form.get("fileName") ?? ""),
-      content: String(form.get("content") ?? ""),
+      fileName,
+      content,
       notes: String(form.get("notes") ?? ""),
     };
     startTransition(async () => {
@@ -64,7 +108,7 @@ export function CVVersionDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={trigger} />
       <DialogContent className="max-h-[calc(100vh-4rem)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
@@ -92,20 +136,47 @@ export function CVVersionDialog({
             <Input
               id="fileName"
               name="fileName"
-              defaultValue={cvVersion?.fileName ?? ""}
+              value={fileName}
+              onChange={(e) => setFileName(e.target.value)}
               placeholder="Ej.: cv-backend-2026.pdf"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="content">Contenido del CV (texto)</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="content">Contenido del CV (texto)</Label>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                className="hidden"
+                onChange={handlePdf}
+                aria-label="Subir PDF del CV"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={extracting}
+                onClick={() => fileRef.current?.click()}
+              >
+                <FileUp className="size-4" />
+                {extracting ? "Leyendo PDF..." : "Subir PDF"}
+              </Button>
+            </div>
             <Textarea
               id="content"
               name="content"
               rows={6}
               className="max-h-48 overflow-y-auto"
-              defaultValue={cvVersion?.content ?? ""}
-              placeholder="Pegá acá el texto plano de tu CV. Lo usa la IA para adaptarlo a cada oportunidad."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Subí tu PDF o pegá acá el texto de tu CV. Lo usa la IA para analizarlo y adaptarlo a cada oportunidad."
             />
+            <p className="text-xs text-muted-foreground">
+              Del PDF guardamos solo el texto, no el archivo. Es lo mismo que
+              lee un ATS: si acá sale roto, al ATS también.
+            </p>
+            {ats ? <AtsIssues ats={ats} /> : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">Notas</Label>

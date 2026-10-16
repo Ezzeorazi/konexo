@@ -34,6 +34,7 @@ const TABLES = [
   "UserProgress",
   "AiUsage",
   "PipelineStage",
+  "CookieVictory",
 ];
 
 /** Deja la base vacía (entre tests). */
