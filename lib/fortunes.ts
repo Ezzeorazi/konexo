@@ -35,6 +35,8 @@ export type FortuneOpp = {
   hasDescription: boolean;
   hasCv: boolean;
   hasContact: boolean;
+  /** Veredicto de "Evaluar fit" (lib/fit.ts) o null si nunca se evaluó. */
+  fitVerdict: string | null;
   /** Claves de galletas ya ganadas en esta oportunidad. */
   won: string[];
 };
@@ -83,9 +85,33 @@ const CATALOG: FortuneDef[] = [
     phases: ["saved"],
     weight: 40,
     credits: 10,
+    when: (o) => !o.fitVerdict,
     phrase: "Ningún héroe entra a una batalla sin mirar el mapa.",
     mission: () =>
-      "Pasá los dos filtros antes de invertir tiempo: ¿el aviso exige un idioma o un permiso de trabajo que no tenés? Si no pasa, cerrala sin culpa y seguí.",
+      "Evaluá el fit antes de invertir tiempo: la IA revisa si el aviso exige un idioma, permiso de trabajo o ubicación que no tenés, y lo puntúa contra tu perfil.",
+    action: { label: "Evaluar fit", href: oppHref("fit") },
+  },
+  {
+    key: "saved-wall",
+    phases: ["saved"],
+    weight: 45,
+    credits: 10,
+    when: (o) => o.fitVerdict === "blocked",
+    phrase: "Esta muralla no se trepa: se rodea.",
+    mission: () =>
+      "Un filtro duro no pasa (idioma, permiso o ubicación). Cerrala sin culpa y buscá otra con el mismo perfil, salvo que sepas algo que el aviso no dice.",
+    action: { label: "Ver el fit", href: oppHref("fit") },
+  },
+  {
+    key: "saved-weak-fit",
+    phases: ["saved"],
+    weight: 35,
+    credits: 10,
+    when: (o) => o.fitVerdict === "weak" || o.fitVerdict === "poor",
+    phrase: "No toda batalla merece tu ejército.",
+    mission: () =>
+      "El fit dio bajo. Si no hay una razón estratégica para ir, cerrala y poné la energía en una que encaje mejor.",
+    action: { label: "Ver el fit", href: oppHref("fit") },
   },
   {
     key: "saved-description",

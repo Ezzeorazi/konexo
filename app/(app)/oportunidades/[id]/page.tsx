@@ -35,6 +35,9 @@ import { EditableMarkdown } from "@/components/editable/editable-markdown";
 import { ItemLink } from "@/components/clickable";
 import { CvTailorCard } from "@/components/oportunidades/cv-tailor-card";
 import { FortuneCookie } from "@/components/galletas/fortune-cookie";
+import { FitCard } from "@/components/oportunidades/fit-card";
+import { parseStoredFit, profileIsUsable } from "@/lib/fit";
+import { getJobProfile } from "@/lib/job-profile";
 import { fortunesEnabled, getOppFortune } from "@/lib/fortune-data";
 import { ProjectTracker } from "@/components/oportunidades/project-tracker";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
@@ -125,6 +128,9 @@ export default async function OportunidadDetailPage({
   // Galleta de la Victoria: próximo paso de esta búsqueda (solo modo empleo).
   const showFortune = track === "jobs" && (await fortunesEnabled());
   const fortune = showFortune ? await getOppFortune(userId, opportunity.id) : null;
+  // Evaluar fit: solo modo empleo; necesita el perfil de candidato.
+  const isJobs = track === "jobs";
+  const fitProfileReady = isJobs ? profileIsUsable(await getJobProfile()) : false;
 
   const companyContacts = [...(opportunity.company?.contacts ?? [])].sort(
     (a, b) =>
@@ -534,6 +540,15 @@ export default async function OportunidadDetailPage({
               />
             </CardContent>
           </Card>
+
+          {isJobs ? (
+            <FitCard
+              opportunityId={opportunity.id}
+              initialReport={parseStoredFit(opportunity.fitReport)}
+              hasJobDescription={Boolean(opportunity.jobDescription?.trim())}
+              profileReady={fitProfileReady}
+            />
+          ) : null}
 
           {vocab.usesCv ? (
             <div id="cv" className="scroll-mt-6">

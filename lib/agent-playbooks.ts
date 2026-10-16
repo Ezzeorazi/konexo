@@ -17,7 +17,7 @@ export type AgentPlaybook = {
 const PLAYBOOKS: Record<Track, AgentPlaybook> = {
   jobs: {
     qualifier:
-      "Lo más caliente es una entrevista próxima o reciente, y cualquier follow-up vencido. El orden de etapa importa: Entrevista > Aplicada > Guardada. Una oportunidad sin un contacto que pueda referir vale menos por ahora: su próximo paso suele ser conseguir ese referido. Bajá la prioridad de avisos viejos sin ningún avance.",
+      "Lo más caliente es una entrevista próxima o reciente, y cualquier follow-up vencido. El orden de etapa importa: Entrevista > Aplicada > Guardada. Una oportunidad sin un contacto que pueda referir vale menos por ahora: su próximo paso suele ser conseguir ese referido. Bajá la prioridad de avisos viejos sin ningún avance. Si hay un \"fit evaluado\", usalo: un fit fuerte o bueno sube la prioridad, uno débil la baja, y uno que no pasa los filtros casi no merece esfuerzo (su próximo paso es cerrarla).",
     drafter:
       "El mensaje típico es un follow-up de postulación, un pedido de referido a un contacto, o un agradecimiento post-entrevista. Tono entusiasta, humilde y profesional, breve. Mostrá interés genuino en el rol y la empresa; nunca suenes desesperado. Si es pedido de referido, hacéselo fácil al contacto (ofrecé tu CV o un resumen de una línea).",
   },

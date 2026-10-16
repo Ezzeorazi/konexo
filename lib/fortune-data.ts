@@ -31,6 +31,7 @@ const oppSelect = {
   nextFollowUpAt: true,
   jobDescription: true,
   cvVersionId: true,
+  fitVerdict: true,
   company: { select: { name: true, _count: { select: { contacts: true } } } },
   touchpoints: {
     where: { contactId: { not: null } },
@@ -49,6 +50,7 @@ type OppRow = {
   nextFollowUpAt: Date | null;
   jobDescription: string | null;
   cvVersionId: string | null;
+  fitVerdict: string | null;
   company: { name: string; _count: { contacts: number } } | null;
   touchpoints: { id: string }[];
   cookieVictories: { fortuneKey: string }[];
@@ -69,6 +71,7 @@ function toFortuneOpp(row: OppRow, stages: StageDef[]): FortuneOpp {
     hasCv: Boolean(row.cvVersionId),
     hasContact:
       (row.company?._count.contacts ?? 0) > 0 || row.touchpoints.length > 0,
+    fitVerdict: row.fitVerdict,
     won: row.cookieVictories.map((v) => v.fortuneKey),
   };
 }

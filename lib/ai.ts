@@ -13,6 +13,7 @@ export type AiSurface =
   | "chat"
   | "agents"
   | "cv"
+  | "fit"
   | "catchup"
   | "daily_review"
   | "test_connection";

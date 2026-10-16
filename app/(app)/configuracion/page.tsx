@@ -26,6 +26,8 @@ import { getEnabledTracks } from "@/lib/active-track";
 import { getTrackStagesFull } from "@/lib/stages";
 import { fortunesEnabled } from "@/lib/fortune-data";
 import { FortunesToggle } from "@/components/galletas/fortunes-toggle";
+import { JobProfileForm } from "@/components/configuracion/job-profile-form";
+import { getJobProfile } from "@/lib/job-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +53,10 @@ export default async function ConfiguracionPage() {
     }),
     getEnabledTracks(),
   ]);
-  const galletasOn = await fortunesEnabled();
+  const [galletasOn, jobProfile] = await Promise.all([
+    fortunesEnabled(),
+    getJobProfile(),
+  ]);
 
   const stagesByTrack = await Promise.all(
     enabledTracks.map(async (track) => ({
@@ -82,6 +87,21 @@ export default async function ConfiguracionPage() {
           />
         </CardContent>
       </Card>
+
+      {enabledTracks.includes("jobs") ? (
+        <Card id="perfil-candidato" className="mb-6 h-fit scroll-mt-6">
+          <CardHeader>
+            <CardTitle className="text-base">Perfil de candidato</CardTitle>
+            <CardDescription>
+              Lo usa “Evaluar fit” para comparar cada aviso con vos. Mínimo:
+              skills fuertes y experiencia. Cuanto más honesto, mejor evalúa.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <JobProfileForm initial={jobProfile} />
+          </CardContent>
+        </Card>
+      ) : null}
 
       {enabledTracks.includes("jobs") ? (
         <Card className="mb-6 h-fit">

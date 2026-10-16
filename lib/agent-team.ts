@@ -21,6 +21,7 @@ import {
   type PipelineData,
   type PipelineOpportunity,
 } from "@/app/(app)/asistente/pipeline";
+import { extractJson } from "@/lib/extract-json";
 
 export type Tier = "hot" | "warm" | "cold";
 
@@ -66,41 +67,6 @@ export type AgentTeamResult =
 const MAX_TO_QUALIFY = 25;
 const MAX_TO_DRAFT = 3;
 
-/** Extrae el primer bloque JSON (objeto o array) de la respuesta del modelo. */
-function extractJson<T>(text: string): T | null {
-  const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
-  // Buscamos el primer [ o { y su cierre balanceado.
-  const start = cleaned.search(/[[{]/);
-  if (start === -1) return null;
-  const open = cleaned[start];
-  const close = open === "[" ? "]" : "}";
-  let depth = 0;
-  let inStr = false;
-  let esc = false;
-  for (let i = start; i < cleaned.length; i++) {
-    const ch = cleaned[i];
-    if (inStr) {
-      if (esc) esc = false;
-      else if (ch === "\\") esc = true;
-      else if (ch === '"') inStr = false;
-      continue;
-    }
-    if (ch === '"') inStr = true;
-    else if (ch === open) depth++;
-    else if (ch === close) {
-      depth--;
-      if (depth === 0) {
-        try {
-          return JSON.parse(cleaned.slice(start, i + 1)) as T;
-        } catch {
-          return null;
-        }
-      }
-    }
-  }
-  return null;
-}
-
 function oppToBrief(
   o: PipelineOpportunity,
   vocabHasValue: boolean,
@@ -123,6 +89,7 @@ function oppToBrief(
       : "sin contacto identificado"
   );
   if (o.lastTouch) parts.push(`último toque: ${o.lastTouch}`);
+  if (o.fit) parts.push(`fit evaluado: ${o.fit}`);
   const delivery = deliveryBrief(o.delivery);
   if (delivery) parts.push(`ejecución → ${delivery}`);
   if (o.description) parts.push(`contexto: ${userData(o.description, 280)}`);

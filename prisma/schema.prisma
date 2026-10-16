@@ -77,6 +77,13 @@ model Opportunity {
   nextFollowUpAt DateTime?
   cvVersionId    String?
   notes          String?
+  // "Evaluar fit" (modo empleo, lib/fit.ts): puntaje ponderado 0-100 (null si
+  // un filtro duro bloquea), veredicto (strong|good|moderate|weak|poor|blocked)
+  // y el reporte completo en JSON (FitReport).
+  fitScore       Int?
+  fitVerdict     String?
+  fitReport      String?
+  fitEvaluatedAt DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

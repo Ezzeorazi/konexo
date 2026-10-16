@@ -24,6 +24,7 @@ function opp(over: Partial<FortuneOpp> = {}): FortuneOpp {
     hasDescription: true,
     hasCv: true,
     hasContact: true,
+    fitVerdict: null,
     won: [],
     ...over,
   };
@@ -41,8 +42,18 @@ describe("phaseOf", () => {
 });
 
 describe("pickFortune", () => {
-  it("una guardada arranca por los filtros de idioma/permiso", () => {
-    expect(pickFortune(opp(), NOW)?.key).toBe("saved-gates");
+  it("una guardada sin evaluar arranca por evaluar el fit", () => {
+    const f = pickFortune(opp(), NOW);
+    expect(f?.key).toBe("saved-gates");
+    expect(f?.action?.href).toBe("/oportunidades/o1#fit");
+  });
+
+  it("ya evaluada no vuelve a pedir el fit; bloqueada o débil sugiere soltarla", () => {
+    expect(pickFortune(opp({ fitVerdict: "good" }), NOW)?.key).toBe("saved-call");
+    expect(pickFortune(opp({ fitVerdict: "blocked" }), NOW)?.key).toBe("saved-wall");
+    expect(pickFortune(opp({ fitVerdict: "poor" }), NOW)?.key).toBe(
+      "saved-weak-fit"
+    );
   });
 
   it("cada victoria desbloquea la siguiente galleta de la cadena", () => {

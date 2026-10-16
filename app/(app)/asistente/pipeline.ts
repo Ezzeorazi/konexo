@@ -24,6 +24,7 @@ import {
   touchpointTypeLabels,
   INTERNAL_TOUCHPOINT_TYPES,
 } from "@/lib/labels";
+import { FIT_VERDICT_LABELS, type FitVerdict } from "@/lib/fit";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 export const money = (n: number) =>
@@ -58,6 +59,8 @@ export type PipelineOpportunity = {
   lastTouch: string | null;
   contacts: PipelineContact[];
   delivery: PipelineDelivery | null;
+  /** Modo empleo: resultado de "Evaluar fit" (ej. "72/100 · Buen fit"), si existe. */
+  fit: string | null;
 };
 
 /** Quién sos, qué vendés y cómo querés que la IA escriba. Editable en Configuración. */
@@ -157,6 +160,8 @@ export async function gatherPipeline(): Promise<PipelineData> {
           value: true,
           jobDescription: true,
           nextFollowUpAt: true,
+          fitScore: true,
+          fitVerdict: true,
           company: {
             select: {
               name: true,
@@ -292,6 +297,11 @@ export async function gatherPipeline(): Promise<PipelineData> {
       lastTouch,
       contacts,
       delivery,
+      fit: o.fitVerdict
+        ? `${o.fitScore != null ? `${o.fitScore}/100 · ` : ""}${
+            FIT_VERDICT_LABELS[o.fitVerdict as FitVerdict] ?? o.fitVerdict
+          }`
+        : null,
     };
   });
 
