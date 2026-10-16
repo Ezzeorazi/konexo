@@ -34,6 +34,8 @@ import { EditableSelect } from "@/components/editable/editable-select";
 import { EditableMarkdown } from "@/components/editable/editable-markdown";
 import { ItemLink } from "@/components/clickable";
 import { CvTailorCard } from "@/components/oportunidades/cv-tailor-card";
+import { FortuneCookie } from "@/components/galletas/fortune-cookie";
+import { fortunesEnabled, getOppFortune } from "@/lib/fortune-data";
 import { ProjectTracker } from "@/components/oportunidades/project-tracker";
 import { TouchpointDialog } from "@/components/contactos/touchpoint-dialog";
 import { TouchpointTimeline } from "@/components/contactos/touchpoint-timeline";
@@ -120,6 +122,9 @@ export default async function OportunidadDetailPage({
     }),
     getTrackStages(track),
   ]);
+  // Galleta de la Victoria: próximo paso de esta búsqueda (solo modo empleo).
+  const showFortune = track === "jobs" && (await fortunesEnabled());
+  const fortune = showFortune ? await getOppFortune(userId, opportunity.id) : null;
 
   const companyContacts = [...(opportunity.company?.contacts ?? [])].sort(
     (a, b) =>
@@ -225,6 +230,10 @@ export default async function OportunidadDetailPage({
           </div>
         </div>
       </div>
+
+      {showFortune ? (
+        <FortuneCookie key={fortune?.key ?? "none"} fortune={fortune} />
+      ) : null}
 
       {/* Próxima reunión / follow-up: prominente y editable desde el proyecto. */}
       {(() => {
@@ -508,7 +517,7 @@ export default async function OportunidadDetailPage({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="aviso" className="scroll-mt-6">
             <CardHeader>
               <CardTitle className="text-base">{vocab.descriptionLabel}</CardTitle>
             </CardHeader>
@@ -527,12 +536,14 @@ export default async function OportunidadDetailPage({
           </Card>
 
           {vocab.usesCv ? (
+            <div id="cv" className="scroll-mt-6">
             <CvTailorCard
               opportunityId={opportunity.id}
               hasJobDescription={Boolean(opportunity.jobDescription?.trim())}
               hasCvContent={Boolean(opportunity.cvVersion?.content?.trim())}
               cvLabel={opportunity.cvVersion?.label ?? null}
             />
+            </div>
           ) : null}
         </div>
 
@@ -608,7 +619,7 @@ export default async function OportunidadDetailPage({
           </CardContent>
         </Card>
 
-        <Card className="h-fit">
+        <Card id="actividad" className="h-fit scroll-mt-6">
           <CardHeader>
             <CardTitle className="text-base">
               Actividad ({opportunity.touchpoints.length})

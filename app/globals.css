@@ -457,6 +457,17 @@
   animation: inkBlink 1s step-end infinite;
 }
 
+/* ---- Galletas de la Victoria: la galleta tiembla, cruje y sale el papelito ---- */
+.cookie-crack {
+  animation: shake 0.35s ease-in-out 2;
+}
+.fortune-unroll {
+  animation: slideRip 0.45s ease-out forwards;
+}
+.victory-burst {
+  animation: burstIn 0.5s cubic-bezier(0.22, 1.6, 0.36, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1 !important;
@@ -464,7 +475,10 @@
   }
   .float-bob,
   .marquee-track,
-  .cursor-blink {
+  .cursor-blink,
+  .cookie-crack,
+  .fortune-unroll,
+  .victory-burst {
     animation: none !important;
   }
   .panel-hover:hover {

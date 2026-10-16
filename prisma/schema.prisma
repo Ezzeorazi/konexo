@@ -80,10 +80,11 @@ model Opportunity {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  cvVersion    CVVersion?    @relation(fields: [cvVersionId], references: [id], onDelete: SetNull)
-  touchpoints  Touchpoint[]
-  projectTasks ProjectTask[]
+  company         Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  cvVersion       CVVersion?      @relation(fields: [cvVersionId], references: [id], onDelete: SetNull)
+  touchpoints     Touchpoint[]
+  projectTasks    ProjectTask[]
+  cookieVictories CookieVictory[]
 
   @@index([userId, track])
   @@index([userId, track, stage])
@@ -220,6 +221,27 @@ model UserProgress {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Galletas de la Victoria (modo empleo): cada fila es una galleta cumplida en
+// una oportunidad. El catálogo vive en código (lib/fortunes.ts); acá solo se
+// guarda qué clave se ganó, para que no se repita y para sumar créditos al
+// mismo pozo que las misiones (UserProgress.credits). `daily` marca si se
+// cumplió como galleta del día (lleva bonus y es una por día).
+model CookieVictory {
+  id            String   @id @default(cuid())
+  userId        String
+  opportunityId String
+  fortuneKey    String
+  credits       Int
+  daily         Boolean  @default(false)
+  dayKey        String // "YYYY-MM-DD" en hora de Argentina
+  createdAt     DateTime @default(now())
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, fortuneKey])
+  @@index([userId, daily, dayKey])
 }
 
 // Contador de uso de IA por usuario y día (auditoría / Tarea 3). Rate-limita el

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import {
   CalendarClock,
   KanbanSquare,
@@ -19,6 +20,8 @@ import {
 import { Reveal } from "@/components/comic/reveal";
 import { ComicMarquee } from "@/components/comic/comic-marquee";
 import { MissionsPanel } from "@/components/onboarding/missions-panel";
+import { FortuneCookie } from "@/components/galletas/fortune-cookie";
+import { fortunesEnabled, getDailyCookie } from "@/lib/fortune-data";
 import { DailyReviewButton } from "@/components/dashboard/daily-review";
 import { getDashboardData } from "@/lib/dashboard";
 import { getActiveTrack } from "@/lib/active-track";
@@ -46,6 +49,15 @@ export default async function DashboardPage() {
     forecast: { pipelineValue, weightedValue, wonValue },
     onboarding,
   } = await getDashboardData({ userId, track, stages, hasValue: vocab.hasValue });
+
+  // Galleta del día: solo en el modo empleo y si el usuario no las escondió.
+  const dailyCookie =
+    track === "jobs" && (await fortunesEnabled())
+      ? await getDailyCookie(userId)
+      : null;
+  const dailyOpened =
+    dailyCookie != null &&
+    (await cookies()).get("konexo-galleta-dia")?.value === dailyCookie.dayKey;
 
   const fmtMoney = (n: number) =>
     n.toLocaleString("es-AR", { maximumFractionDigits: 0 });
@@ -229,6 +241,22 @@ export default async function DashboardPage() {
         </Reveal>
 
         <div className="space-y-6">
+          {/* ===== GALLETA DEL DÍA (modo empleo) ===== */}
+          {dailyCookie ? (
+            <Reveal anim="burst">
+              <FortuneCookie
+                key={dailyCookie.fortune?.key ?? "none"}
+                fortune={dailyCookie.fortune}
+                daily={{
+                  dayKey: dailyCookie.dayKey,
+                  wonToday: dailyCookie.wonToday,
+                  initiallyOpen: dailyOpened,
+                  empty: dailyCookie.empty,
+                }}
+              />
+            </Reveal>
+          ) : null}
+
           {/* ===== MISIONES DE ONBOARDING ===== */}
           <Reveal anim="pop">
             <MissionsPanel initialState={onboarding} />

@@ -24,6 +24,8 @@ import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { formatDate } from "@/lib/dates";
 import { getEnabledTracks } from "@/lib/active-track";
 import { getTrackStagesFull } from "@/lib/stages";
+import { fortunesEnabled } from "@/lib/fortune-data";
+import { FortunesToggle } from "@/components/galletas/fortunes-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +51,7 @@ export default async function ConfiguracionPage() {
     }),
     getEnabledTracks(),
   ]);
+  const galletasOn = await fortunesEnabled();
 
   const stagesByTrack = await Promise.all(
     enabledTracks.map(async (track) => ({
@@ -79,6 +82,21 @@ export default async function ConfiguracionPage() {
           />
         </CardContent>
       </Card>
+
+      {enabledTracks.includes("jobs") ? (
+        <Card className="mb-6 h-fit">
+          <CardHeader>
+            <CardTitle className="text-base">🥠 Galletas de la Victoria</CardTitle>
+            <CardDescription>
+              Pistas de próximo paso en tu búsqueda laboral. Rompé la galleta,
+              cumplí la misión y sumá créditos.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FortunesToggle initialEnabled={galletasOn} />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card className="mb-6 h-fit">
         <CardHeader>
